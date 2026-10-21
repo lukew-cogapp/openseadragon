@@ -47,16 +47,18 @@ import { converter } from "./datatypeconverter.js";
  * Object that keeps ready-to-draw tile state information. These properties might differ in time
  * dynamically, e.g. when blending/animating.
  * TODO: info.level is probably info.tile.level - remove?
- * @typedef {Object} OpenSeadragon.TiledImage.DrawTileInfo
+ * @typedef {Object} DrawTileInfo
  * @property {Number} level
  * @property {Number} levelOpacity
  * @property {Number} currentTime
  * @property {OpenSeadragon.Tile} tile
+ * @memberof OpenSeadragon.TiledImage
  */
 
 /**
  * Issues enum that records issues for the target image
- * @typedef {('webgl')} OpenSeadragon.TiledImage.Issue
+ * @typedef {('webgl')} Issue
+ * @memberof OpenSeadragon.TiledImage
  */
 
 /**

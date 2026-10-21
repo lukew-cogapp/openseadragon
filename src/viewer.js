@@ -1796,67 +1796,6 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         return this;
     },
 
-    /**
-     * @typedef OpenSeadragon.TileSourceSpecifier
-     * @property {Object} options
-     * @property {OpenSeadragon.TileSource|String|Object|Function} options.tileSource - The TileSource specifier.
-     * A String implies a url used to determine the tileSource implementation
-     *      based on the file extension of url. JSONP is implied by *.js,
-     *      otherwise the url is retrieved as text and the resulting text is
-     *      introspected to determine if its json, xml, or text and parsed.
-     * An Object implies an inline configuration which has a single
-     *      property sufficient for being able to determine tileSource
-     *      implementation. If the object has a property which is a function
-     *      named 'getTileUrl', it is treated as a custom TileSource.
-     * @property {Number} [options.index] The index of the item. Added on top of
-     * all other items if not specified.
-     * @property {Boolean} [options.replace=false] If true, the item at options.index will be
-     * removed and the new item is added in its place. options.tileSource will be
-     * interpreted and fetched if necessary before the old item is removed to avoid leaving
-     * a gap in the world.
-     * @property {Number} [options.x=0] The X position for the image in viewport coordinates.
-     * @property {Number} [options.y=0] The Y position for the image in viewport coordinates.
-     * @property {Number} [options.width=1] The width for the image in viewport coordinates.
-     * @property {Number} [options.height] The height for the image in viewport coordinates.
-     * @property {OpenSeadragon.Rect} [options.fitBounds] The bounds in viewport coordinates
-     * to fit the image into. If specified, x, y, width and height get ignored.
-     * @property {OpenSeadragon.Placement} [options.fitBoundsPlacement=OpenSeadragon.Placement.CENTER]
-     * How to anchor the image in the bounds if options.fitBounds is set.
-     * @property {OpenSeadragon.Rect} [options.clip] - An area, in image pixels, to clip to
-     * (portions of the image outside of this area will not be visible). Only works on
-     * browsers that support the HTML5 canvas.
-     * @property {Number} [options.opacity=1] Proportional opacity of the tiled images (1=opaque, 0=hidden)
-     * @property {Boolean} [options.preload=false] Default switch for loading hidden images (true loads, false blocks)
-     * @property {Boolean} [options.zombieCache] In the case that this method removes any TiledImage instance,
-     *      allow the item-referenced cache to remain in memory even without active tiles. Default false.
-     * @property {Number} [options.degrees=0] Initial rotation of the tiled image around
-     * its center in degrees.
-     * @property {Boolean} [options.flipped=false] Whether to horizontally flip the image.
-     * @property {String} [options.compositeOperation] How the image is composited onto other images.
-     * @property {String} [options.crossOriginPolicy] The crossOriginPolicy for this specific image,
-     * overriding viewer.crossOriginPolicy.
-     * @property {Boolean} [options.ajaxWithCredentials] Whether to set withCredentials on tile AJAX
-     * @property {Boolean} [options.loadTilesWithAjax]
-     *      Whether to load tile data using AJAX requests.
-     *      Defaults to the setting in {@link OpenSeadragon.Options}.
-     * @property {Object} [options.ajaxHeaders]
-     *      A set of headers to include when making tile AJAX requests.
-     *      Note that these headers will be merged over any headers specified in {@link OpenSeadragon.Options}.
-     *      Specifying a falsy value for a header will clear its existing value set at the Viewer level (if any).
-     * @property {Function} [options.success] A function that gets called when the image is
-     * successfully added. It's passed the event object which contains a single property:
-     * "item", which is the resulting instance of TiledImage.
-     * @property {Function} [options.error] A function that gets called if the image is
-     * unable to be added. It's passed the error event object, which contains "message"
-     * and "source" properties.
-     * @property {Boolean} [options.collectionImmediately=false] If collectionMode is on,
-     * specifies whether to snap to the new arrangement immediately or to animate to it.
-     * @property {String|CanvasGradient|CanvasPattern|Function} [options.placeholderFillStyle] - See {@link OpenSeadragon.Options}.
-     * @param {string|string[]} [options.originalDataType=undefined]
-     *      A default format to convert tiles to at the beginning. The format is the base tile format,
-     *      and this can optimize rendering or processing logics in case for example a plugin always requires a certain
-     *      format to convert to.
-     */
 
     /**
      * Add a tiled image to the viewer.
@@ -4740,5 +4679,69 @@ function getDrawerTypeString(candidate) {
     }
     return undefined;
 }
+
+
+/**
+ * @typedef TileSourceSpecifier
+ * @property {Object} options
+ * @property {OpenSeadragon.TileSource|String|Object|Function} options.tileSource - The TileSource specifier.
+ * A String implies a url used to determine the tileSource implementation
+ *      based on the file extension of url. JSONP is implied by *.js,
+ *      otherwise the url is retrieved as text and the resulting text is
+ *      introspected to determine if its json, xml, or text and parsed.
+ * An Object implies an inline configuration which has a single
+ *      property sufficient for being able to determine tileSource
+ *      implementation. If the object has a property which is a function
+ *      named 'getTileUrl', it is treated as a custom TileSource.
+ * @property {Number} [options.index] The index of the item. Added on top of
+ * all other items if not specified.
+ * @property {Boolean} [options.replace=false] If true, the item at options.index will be
+ * removed and the new item is added in its place. options.tileSource will be
+ * interpreted and fetched if necessary before the old item is removed to avoid leaving
+ * a gap in the world.
+ * @property {Number} [options.x=0] The X position for the image in viewport coordinates.
+ * @property {Number} [options.y=0] The Y position for the image in viewport coordinates.
+ * @property {Number} [options.width=1] The width for the image in viewport coordinates.
+ * @property {Number} [options.height] The height for the image in viewport coordinates.
+ * @property {OpenSeadragon.Rect} [options.fitBounds] The bounds in viewport coordinates
+ * to fit the image into. If specified, x, y, width and height get ignored.
+ * @property {OpenSeadragon.Placement} [options.fitBoundsPlacement=OpenSeadragon.Placement.CENTER]
+ * How to anchor the image in the bounds if options.fitBounds is set.
+ * @property {OpenSeadragon.Rect} [options.clip] - An area, in image pixels, to clip to
+ * (portions of the image outside of this area will not be visible). Only works on
+ * browsers that support the HTML5 canvas.
+ * @property {Number} [options.opacity=1] Proportional opacity of the tiled images (1=opaque, 0=hidden)
+ * @property {Boolean} [options.preload=false] Default switch for loading hidden images (true loads, false blocks)
+ * @property {Boolean} [options.zombieCache] In the case that this method removes any TiledImage instance,
+ *      allow the item-referenced cache to remain in memory even without active tiles. Default false.
+ * @property {Number} [options.degrees=0] Initial rotation of the tiled image around
+ * its center in degrees.
+ * @property {Boolean} [options.flipped=false] Whether to horizontally flip the image.
+ * @property {String} [options.compositeOperation] How the image is composited onto other images.
+ * @property {String} [options.crossOriginPolicy] The crossOriginPolicy for this specific image,
+ * overriding viewer.crossOriginPolicy.
+ * @property {Boolean} [options.ajaxWithCredentials] Whether to set withCredentials on tile AJAX
+ * @property {Boolean} [options.loadTilesWithAjax]
+ *      Whether to load tile data using AJAX requests.
+ *      Defaults to the setting in {@link OpenSeadragon.Options}.
+ * @property {Object} [options.ajaxHeaders]
+ *      A set of headers to include when making tile AJAX requests.
+ *      Note that these headers will be merged over any headers specified in {@link OpenSeadragon.Options}.
+ *      Specifying a falsy value for a header will clear its existing value set at the Viewer level (if any).
+ * @property {Function} [options.success] A function that gets called when the image is
+ * successfully added. It's passed the event object which contains a single property:
+ * "item", which is the resulting instance of TiledImage.
+ * @property {Function} [options.error] A function that gets called if the image is
+ * unable to be added. It's passed the error event object, which contains "message"
+ * and "source" properties.
+ * @property {Boolean} [options.collectionImmediately=false] If collectionMode is on,
+ * specifies whether to snap to the new arrangement immediately or to animate to it.
+ * @property {String|CanvasGradient|CanvasPattern|Function} [options.placeholderFillStyle] - See {@link OpenSeadragon.Options}.
+ * @param {string|string[]} [options.originalDataType=undefined]
+ *      A default format to convert tiles to at the beginning. The format is the base tile format,
+ *      and this can optimize rendering or processing logics in case for example a plugin always requires a certain
+ *      format to convert to.
+ * @memberof OpenSeadragon
+ */
 
 export { Viewer };

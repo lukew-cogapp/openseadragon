@@ -287,33 +287,33 @@ function postWorker(op, payload, { timeoutMs = 15000 } = {}) {
  *  It can be also conversion to undefined if used as destructor implementation.
  *
  * @callback TypeConverter
- * @memberof OpenSeadragon
  * @param {OpenSeadragon.Tile} tile reference tile that owns the data
  * @param {any} data data in the input format
  * @returns {any} data in the output format
+ * @memberof OpenSeadragon
  */
 
 /**
  * Destructor called every time a data type is to be destroyed or converted to another type.
  *
  * @callback TypeDestructor
- * @memberof OpenSeadragon
  * @param {any} data data in the format the destructor is registered for
  * @returns {any} can return any value that is carried over to the caller if desirable.
  *   Note: not used by the OSD cache system.
+ * @memberof OpenSeadragon
  */
 
 /**
  * Node on the conversion path in OpenSeadragon.converter.getConversionPath().
  *
  * @typedef {Object} ConversionStep
- * @memberof OpenSeadragon
  * @param {OpenSeadragon.PriorityQueue.Node} target - Target node of the conversion step.
  *  Its value is the target format.
  * @param {OpenSeadragon.PriorityQueue.Node} origin - Origin node of the conversion step.
  *  Its value is the origin format.
  * @param {number} weight cost of the conversion
  * @param {TypeConverter} transform the conversion itself
+ * @memberof OpenSeadragon
  */
 
 /**

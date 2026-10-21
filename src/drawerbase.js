@@ -39,7 +39,7 @@ import { Point } from "./point.js";
 import { Rect } from "./rectangle.js";
 
 /**
- * @typedef OpenSeadragon.BaseDrawerOptions
+ * @typedef BaseDrawerOptions
  * @memberOf OpenSeadragon
  * @property {boolean} [usePrivateCache=false] specify whether the drawer should use
  *   detached (=internal) cache object in case it has to perform custom type conversion atop
@@ -59,6 +59,7 @@ import { Rect } from "./rectangle.js";
  *
  * @property {boolean} [broadCastTileInvalidation=true] When true, the drawer will reflect changes done to the viewer's
  *   base drawer instance. For example, navigator will reflect data updates of the main viewport.
+ * @memberof OpenSeadragon
  */
 
 /**

@@ -37,28 +37,28 @@
 import $ from "./openseadragon.js";
 
 /**
- * @typedef {Object} OpenSeadragon.Event
- * @memberof OpenSeadragon
+ * @typedef {Object} Event
  * @property {boolean|function} [stopPropagation=undefined] - If set to true or the functional predicate returns true,
  *   the event exits after handling the current call.
+ * @memberof OpenSeadragon
  */
 
 /**
  * Event handler method signature used by all OpenSeadragon events.
  *
- * @typedef {function(OpenSeadragon.Event): void} OpenSeadragon.EventHandler
- * @memberof OpenSeadragon
+ * @typedef {function(OpenSeadragon.Event): void} EventHandler
  * @param {OpenSeadragon.Event} event - The event object containing event-specific properties.
  * @returns {void} This handler does not return a value.
+ * @memberof OpenSeadragon
  */
 
 /**
  * Event handler method signature used by all OpenSeadragon events.
  *
- * @typedef {function(OpenSeadragon.Event): Promise<void>} OpenSeadragon.AsyncEventHandler
- * @memberof OpenSeadragon
+ * @typedef {function(OpenSeadragon.Event): Promise<void>} AsyncEventHandler
  * @param {OpenSeadragon.Event} event - The event object containing event-specific properties.
  * @returns {Promise<void>} This handler does not return a value.
+ * @memberof OpenSeadragon
  */
 
 

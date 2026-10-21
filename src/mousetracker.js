@@ -1224,87 +1224,87 @@ import { Point } from "./point.js";
 ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Used for the processing/disposition of DOM events (propagation, default handling, capture, etc.)
-     *
-     * @typedef {Object} EventProcessInfo
-     * @memberof OpenSeadragon.MouseTracker
-     * @since v2.5.0
-     *
-     * @property {OpenSeadragon.MouseTracker} eventSource
-     *      A reference to the tracker instance.
-     * @property {Object} originalEvent
-     *      The original DOM event object.
-     * @property {Number} eventPhase
-     *      0 == NONE, 1 == CAPTURING_PHASE, 2 == AT_TARGET, 3 == BUBBLING_PHASE.
-     * @property {String} eventType
-     *     "keydown", "keyup", "keypress", "focus", "blur", "contextmenu", "gotpointercapture", "lostpointercapture", "pointerenter", "pointerleave", "pointerover", "pointerout", "pointerdown", "pointerup", "pointermove", "pointercancel", "wheel", "click", "dblclick".
-     * @property {String} pointerType
-     *     "mouse", "touch", "pen", etc.
-     * @property {Boolean} isEmulated
-     *      True if this is an emulated event. If true, originalEvent is either the event that caused
-     *      the emulated event, a synthetic event object created with values from the actual DOM event,
-     *      or null if no DOM event applies. Emulated events can occur on eventType "wheel" on legacy mouse-scroll
-     *      event emitting user agents.
-     * @property {Boolean} isStoppable
-     *      True if propagation of the event (e.g. bubbling) can be stopped with stopPropagation/stopImmediatePropagation.
-     * @property {Boolean} isCancelable
-     *      True if the event's default handling by the browser can be prevented with preventDefault.
-     * @property {Boolean} defaultPrevented
-     *      True if the event's default handling has already been prevented by a descendent element.
-     * @property {Boolean} preventDefault
-     *      Set to true to prevent the event's default handling by the browser.
-     * @property {Boolean} preventGesture
-     *      Set to true to prevent this MouseTracker from generating a gesture from the event.
-     *      Valid on eventType "pointerdown".
-     * @property {Boolean} stopPropagation
-     *      Set to true to prevent the event from propagating to ancestor/descendent elements on the capture/bubble phase.
-     * @property {Boolean} stopImmediatePropagation
-     *      Set to true to prevent any further listeners for this event from being invoked on the current target,
-     *      and to stop the event from propagating any further in the event flow (no additional capture or bubble).
-     * @property {Boolean} shouldCapture
-     *      (Internal Use) Set to true if the pointer should be captured (events (re)targeted to tracker element).
-     * @property {Boolean} shouldReleaseCapture
-     *      (Internal Use) Set to true if the captured pointer should be released.
-     * @property {Object} userData
-     *      Arbitrary user-defined object.
-     */
+ * Used for the processing/disposition of DOM events (propagation, default handling, capture, etc.)
+ *
+ * @typedef {Object} EventProcessInfo
+ * @since v2.5.0
+ *
+ * @property {OpenSeadragon.MouseTracker} eventSource
+ *      A reference to the tracker instance.
+ * @property {Object} originalEvent
+ *      The original DOM event object.
+ * @property {Number} eventPhase
+ *      0 == NONE, 1 == CAPTURING_PHASE, 2 == AT_TARGET, 3 == BUBBLING_PHASE.
+ * @property {String} eventType
+ *     "keydown", "keyup", "keypress", "focus", "blur", "contextmenu", "gotpointercapture", "lostpointercapture", "pointerenter", "pointerleave", "pointerover", "pointerout", "pointerdown", "pointerup", "pointermove", "pointercancel", "wheel", "click", "dblclick".
+ * @property {String} pointerType
+ *     "mouse", "touch", "pen", etc.
+ * @property {Boolean} isEmulated
+ *      True if this is an emulated event. If true, originalEvent is either the event that caused
+ *      the emulated event, a synthetic event object created with values from the actual DOM event,
+ *      or null if no DOM event applies. Emulated events can occur on eventType "wheel" on legacy mouse-scroll
+ *      event emitting user agents.
+ * @property {Boolean} isStoppable
+ *      True if propagation of the event (e.g. bubbling) can be stopped with stopPropagation/stopImmediatePropagation.
+ * @property {Boolean} isCancelable
+ *      True if the event's default handling by the browser can be prevented with preventDefault.
+ * @property {Boolean} defaultPrevented
+ *      True if the event's default handling has already been prevented by a descendent element.
+ * @property {Boolean} preventDefault
+ *      Set to true to prevent the event's default handling by the browser.
+ * @property {Boolean} preventGesture
+ *      Set to true to prevent this MouseTracker from generating a gesture from the event.
+ *      Valid on eventType "pointerdown".
+ * @property {Boolean} stopPropagation
+ *      Set to true to prevent the event from propagating to ancestor/descendent elements on the capture/bubble phase.
+ * @property {Boolean} stopImmediatePropagation
+ *      Set to true to prevent any further listeners for this event from being invoked on the current target,
+ *      and to stop the event from propagating any further in the event flow (no additional capture or bubble).
+ * @property {Boolean} shouldCapture
+ *      (Internal Use) Set to true if the pointer should be captured (events (re)targeted to tracker element).
+ * @property {Boolean} shouldReleaseCapture
+ *      (Internal Use) Set to true if the captured pointer should be released.
+ * @property {Object} userData
+ *      Arbitrary user-defined object.
+ * @memberof OpenSeadragon.MouseTracker
+ */
 
 
     /**
-     * Represents a point of contact on the screen made by a mouse cursor, pen, touch, or other pointer device.
-     *
-     * @typedef {Object} GesturePoint
-     * @memberof OpenSeadragon.MouseTracker
-     *
-     * @property {Number} id
-     *     Identifier unique from all other active GesturePoints for a given pointer device.
-     * @property {String} type
-     *     The pointer device type: "mouse", "touch", "pen", etc.
-     * @property {Boolean} captured
-     *     True if events for the gesture point are captured to the tracked element.
-     * @property {Boolean} isPrimary
-     *     True if the gesture point is a master pointer amongst the set of active pointers for each pointer type. True for mouse and primary (first) touch/pen pointers.
-     * @property {Boolean} insideElementPressed
-     *     True if button pressed or contact point initiated inside the screen area of the tracked element.
-     * @property {Boolean} insideElement
-     *     True if pointer or contact point is currently inside the bounds of the tracked element.
-     * @property {Number} speed
-     *     Current computed speed, in pixels per second.
-     * @property {Number} direction
-     *     Current computed direction, expressed as an angle counterclockwise relative to the positive X axis (-pi to pi, in radians). Only valid if speed > 0.
-     * @property {OpenSeadragon.Point} contactPos
-     *     The initial pointer contact position, relative to the page including any scrolling. Only valid if the pointer has contact (pressed, touch contact, pen contact).
-     * @property {Number} contactTime
-     *     The initial pointer contact time, in milliseconds. Only valid if the pointer has contact (pressed, touch contact, pen contact).
-     * @property {OpenSeadragon.Point} lastPos
-     *     The last pointer position, relative to the page including any scrolling.
-     * @property {Number} lastTime
-     *     The last pointer contact time, in milliseconds.
-     * @property {OpenSeadragon.Point} currentPos
-     *     The current pointer position, relative to the page including any scrolling.
-     * @property {Number} currentTime
-     *     The current pointer contact time, in milliseconds.
-     */
+ * Represents a point of contact on the screen made by a mouse cursor, pen, touch, or other pointer device.
+ *
+ * @typedef {Object} GesturePoint
+ *
+ * @property {Number} id
+ *     Identifier unique from all other active GesturePoints for a given pointer device.
+ * @property {String} type
+ *     The pointer device type: "mouse", "touch", "pen", etc.
+ * @property {Boolean} captured
+ *     True if events for the gesture point are captured to the tracked element.
+ * @property {Boolean} isPrimary
+ *     True if the gesture point is a master pointer amongst the set of active pointers for each pointer type. True for mouse and primary (first) touch/pen pointers.
+ * @property {Boolean} insideElementPressed
+ *     True if button pressed or contact point initiated inside the screen area of the tracked element.
+ * @property {Boolean} insideElement
+ *     True if pointer or contact point is currently inside the bounds of the tracked element.
+ * @property {Number} speed
+ *     Current computed speed, in pixels per second.
+ * @property {Number} direction
+ *     Current computed direction, expressed as an angle counterclockwise relative to the positive X axis (-pi to pi, in radians). Only valid if speed > 0.
+ * @property {OpenSeadragon.Point} contactPos
+ *     The initial pointer contact position, relative to the page including any scrolling. Only valid if the pointer has contact (pressed, touch contact, pen contact).
+ * @property {Number} contactTime
+ *     The initial pointer contact time, in milliseconds. Only valid if the pointer has contact (pressed, touch contact, pen contact).
+ * @property {OpenSeadragon.Point} lastPos
+ *     The last pointer position, relative to the page including any scrolling.
+ * @property {Number} lastTime
+ *     The last pointer contact time, in milliseconds.
+ * @property {OpenSeadragon.Point} currentPos
+ *     The current pointer position, relative to the page including any scrolling.
+ * @property {Number} currentTime
+ *     The current pointer contact time, in milliseconds.
+ * @memberof OpenSeadragon.MouseTracker
+ */
 
 
     /**

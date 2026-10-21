@@ -43,7 +43,7 @@ import { determineTileSourceType } from "./registry.js";
 import { getString } from "./strings.js";
 
 /**
- * @typedef {Object} OpenSeadragon.TileSourceOptions
+ * @typedef {Object} TileSourceOptions
  * @property {String} [options.url]
  *      The URL for the data necessary for this TileSource.
  * @property {String} [options.referenceStripThumbnailUrl]
@@ -87,6 +87,7 @@ import { getString } from "./strings.js";
  *      TODO: could be removed completely:
  *        - do not use Tiled Image's getImageInfo, implement it separately
  *        - call getImageInfo as perviously, by default just call raiseEvent('ready', { tileSource: this })
+ * @memberof OpenSeadragon
  */
 
 /**

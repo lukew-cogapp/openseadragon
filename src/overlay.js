@@ -112,15 +112,6 @@ const OverlayRotationMode = $.freezeObject({
  */
 function Overlay(element, location, placement) {
 
-    /**
-     * onDraw callback signature used by {@link OpenSeadragon.Overlay}.
-     *
-     * @callback OnDrawCallback
-     * @memberof OpenSeadragon.Overlay
-     * @param {OpenSeadragon.Point} position
-     * @param {OpenSeadragon.Point} size
-     * @param {Element} element
-     */
 
     let options;
     if ($.isPlainObject(element)) {
@@ -503,5 +494,16 @@ Overlay.prototype = {
             this._getPlacementPoint(bounds));
     }
 };
+
+
+/**
+ * onDraw callback signature used by {@link OpenSeadragon.Overlay}.
+ *
+ * @callback OnDrawCallback
+ * @param {OpenSeadragon.Point} position
+ * @param {OpenSeadragon.Point} size
+ * @param {Element} element
+ * @memberof OpenSeadragon.Overlay
+ */
 
 export { OverlayPlacement, OverlayRotationMode, Overlay };
