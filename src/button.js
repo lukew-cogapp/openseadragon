@@ -62,27 +62,28 @@ const ButtonState = {
  * for a specified period.
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.EventSource
- * @param {Object} options
- * @param {Element} [options.element=null] Element to use as the button. If not specified, an HTML &lt;button&gt; element is created.
- * @param {String} [options.tooltip=null] Provides context help for the button when the
- *  user hovers over it.
- * @param {String} [options.srcRest=null] URL of image to use in 'rest' state.
- * @param {String} [options.srcGroup=null] URL of image to use in 'up' state.
- * @param {String} [options.srcHover=null] URL of image to use in 'hover' state.
- * @param {String} [options.srcDown=null] URL of image to use in 'down' state.
- * @param {Number} [options.fadeDelay=0] How long to wait before fading.
- * @param {Number} [options.fadeLength=2000] How long should it take to fade the button.
- * @param {OpenSeadragon.EventHandler} [options.onPress=null] Event handler callback for {@link OpenSeadragon.Button.event:press}.
- * @param {OpenSeadragon.EventHandler} [options.onRelease=null] Event handler callback for {@link OpenSeadragon.Button.event:release}.
- * @param {OpenSeadragon.EventHandler} [options.onClick=null] Event handler callback for {@link OpenSeadragon.Button.event:click}.
- * @param {OpenSeadragon.EventHandler} [options.onEnter=null] Event handler callback for {@link OpenSeadragon.Button.event:enter}.
- * @param {OpenSeadragon.EventHandler} [options.onExit=null] Event handler callback for {@link OpenSeadragon.Button.event:exit}.
- * @param {OpenSeadragon.EventHandler} [options.onFocus=null] Event handler callback for {@link OpenSeadragon.Button.event:focus}.
- * @param {OpenSeadragon.EventHandler} [options.onBlur=null] Event handler callback for {@link OpenSeadragon.Button.event:blur}.
- * @param {Object} [options.userData=null] Arbitrary object to be passed unchanged to any attached handler methods.
  */
 class Button extends EventSource {
+    /**
+     * @param {Object} options
+     * @param {Element} [options.element=null] Element to use as the button. If not specified, an HTML &lt;button&gt; element is created.
+     * @param {String} [options.tooltip=null] Provides context help for the button when the
+     *  user hovers over it.
+     * @param {String} [options.srcRest=null] URL of image to use in 'rest' state.
+     * @param {String} [options.srcGroup=null] URL of image to use in 'up' state.
+     * @param {String} [options.srcHover=null] URL of image to use in 'hover' state.
+     * @param {String} [options.srcDown=null] URL of image to use in 'down' state.
+     * @param {Number} [options.fadeDelay=0] How long to wait before fading.
+     * @param {Number} [options.fadeLength=2000] How long should it take to fade the button.
+     * @param {OpenSeadragon.EventHandler} [options.onPress=null] Event handler callback for {@link OpenSeadragon.Button.event:press}.
+     * @param {OpenSeadragon.EventHandler} [options.onRelease=null] Event handler callback for {@link OpenSeadragon.Button.event:release}.
+     * @param {OpenSeadragon.EventHandler} [options.onClick=null] Event handler callback for {@link OpenSeadragon.Button.event:click}.
+     * @param {OpenSeadragon.EventHandler} [options.onEnter=null] Event handler callback for {@link OpenSeadragon.Button.event:enter}.
+     * @param {OpenSeadragon.EventHandler} [options.onExit=null] Event handler callback for {@link OpenSeadragon.Button.event:exit}.
+     * @param {OpenSeadragon.EventHandler} [options.onFocus=null] Event handler callback for {@link OpenSeadragon.Button.event:focus}.
+     * @param {OpenSeadragon.EventHandler} [options.onBlur=null] Event handler callback for {@link OpenSeadragon.Button.event:blur}.
+     * @param {Object} [options.userData=null] Arbitrary object to be passed unchanged to any attached handler methods.
+     */
     constructor(options) {
         super();
 

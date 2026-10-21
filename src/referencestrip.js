@@ -63,9 +63,11 @@ const THIS = {};
 /**
  * @class ReferenceStrip
  * @memberof OpenSeadragon
- * @param {Object} options
  */
 class ReferenceStrip {
+    /**
+     * @param {Object} options
+     */
     constructor(options) {
 
         const _this       = this;

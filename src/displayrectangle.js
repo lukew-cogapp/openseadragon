@@ -42,15 +42,16 @@ import { Rect } from "./rectangle.js";
  * for this rectangle.
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.Rect
- * @param {Number} x The vector component 'x'.
- * @param {Number} y The vector component 'y'.
- * @param {Number} width The vector component 'height'.
- * @param {Number} height The vector component 'width'.
- * @param {Number} minLevel The lowest zoom level supported.
- * @param {Number} maxLevel The highest zoom level supported.
  */
 class DisplayRect extends Rect {
+    /**
+     * @param {Number} x The vector component 'x'.
+     * @param {Number} y The vector component 'y'.
+     * @param {Number} width The vector component 'height'.
+     * @param {Number} height The vector component 'width'.
+     * @param {Number} minLevel The lowest zoom level supported.
+     * @param {Number} maxLevel The highest zoom level supported.
+     */
     constructor(x, y, width, height, minLevel, maxLevel) {
         super(x, y, width, height);
 

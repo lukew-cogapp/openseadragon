@@ -44,12 +44,14 @@ import { Point } from "./point.js";
  * @class WebglContextManager
  * @classdesc Handles the webgl context, isolating it from the rest of the DrawerBase API.
  * Manages WebGL context lifecycle, shaders, textures, framebuffers, and other WebGL resources.
- * @param {Object} options - Options for the context manager
- * @param {HTMLCanvasElement} options.renderingCanvas - The canvas element to use for WebGL context
- * @param {Boolean} [options.unpackWithPremultipliedAlpha=false] - Whether to enable gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL
- * @param {Boolean} [options.imageSmoothingEnabled=true] - Whether image smoothing is enabled
  */
 class WebglContextManager {
+    /**
+     * @param {Object} options - Options for the context manager
+     * @param {HTMLCanvasElement} options.renderingCanvas - The canvas element to use for WebGL context
+     * @param {Boolean} [options.unpackWithPremultipliedAlpha=false] - Whether to enable gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL
+     * @param {Boolean} [options.imageSmoothingEnabled=true] - Whether image smoothing is enabled
+     */
     constructor(options) {
         this._renderingCanvas = options.renderingCanvas;
         this._unpackWithPremultipliedAlpha = !!options.unpackWithPremultipliedAlpha;
@@ -639,14 +641,16 @@ class WebglContextManager {
 * in these scenarios, each TiledImage is drawn onto the output canvas immediately after the tile composition step
 * (pass 1). Otherwise, for efficiency, all TiledImages are copied over to the output canvas at once, after all
 * tiles have been composited for all images.
-* @param {Object} options - Options for this Drawer.
-* @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this Drawer.
-* @param {OpenSeadragon.Viewport} options.viewport - Reference to Viewer viewport.
-* @param {Element} options.element - Parent element.
-* @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
-* @param {Boolean} [options.unpackWithPremultipliedAlpha=false] - Whether to enable gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL when uploading textures.
 */
 class WebGLDrawer extends DrawerBase{
+    /**
+     * @param {Object} options - Options for this Drawer.
+     * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this Drawer.
+     * @param {OpenSeadragon.Viewport} options.viewport - Reference to Viewer viewport.
+     * @param {Element} options.element - Parent element.
+     * @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
+     * @param {Boolean} [options.unpackWithPremultipliedAlpha=false] - Whether to enable gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL when uploading textures.
+     */
     constructor(options){
        super(options);
 

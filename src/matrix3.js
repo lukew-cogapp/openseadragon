@@ -85,10 +85,12 @@
  *
  * @memberof OpenSeadragon
  *
- * @param {Array} [values] - Initial values for the matrix
- *
  **/
 class Mat3{
+    /**
+     * @param {Array} [values] - Initial values for the matrix
+     *
+     */
     constructor(values){
         if(!values) {
             values = [

@@ -41,11 +41,13 @@ import { MouseTracker } from "./mousetracker.js";
  * @classdesc Manages events on groups of buttons.
  *
  * @memberof OpenSeadragon
- * @param {Object} options - A dictionary of settings applied against the entire group of buttons.
- * @param {Array} options.buttons Array of buttons
- * @param {Element} [options.element] Element to use as the container
  **/
 class ButtonGroup {
+    /**
+     * @param {Object} options - A dictionary of settings applied against the entire group of buttons.
+     * @param {Array} options.buttons Array of buttons
+     * @param {Element} [options.element] Element to use as the container
+     */
     constructor(options) {
 
         $.extend( true, this, {

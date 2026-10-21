@@ -48,12 +48,6 @@ import { getString } from "./strings.js";
  * png or jpg.
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.TileSource
- * @param {Array} levels An array of file descriptions, each is an object with
- *      a 'url', a 'width', and a 'height'.  Overriding classes can expect more
- *      properties but these properties are sufficient for this implementation.
- *      Additionally, the levels are required to be listed in order from
- *      smallest to largest.
  * @property {Number} aspectRatio
  * @property {Number} dimensions
  * @property {Number} tileSize
@@ -63,6 +57,13 @@ import { getString } from "./strings.js";
  * @property {Array}  levels
  */
 class LegacyTileSource extends TileSource {
+    /**
+     * @param {Array} levels An array of file descriptions, each is an object with
+     *      a 'url', a 'width', and a 'height'.  Overriding classes can expect more
+     *      properties but these properties are sufficient for this implementation.
+     *      Additionally, the levels are required to be listed in order from
+     *      smallest to largest.
+     */
     constructor(levels) {
 
         let options;

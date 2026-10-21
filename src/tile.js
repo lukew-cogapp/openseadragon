@@ -43,26 +43,28 @@ import { converter } from "./datatypeconverter.js";
 /**
  * @class Tile
  * @memberof OpenSeadragon
- * @param {Number} level The zoom level this tile belongs to.
- * @param {Number} x The vector component 'x'.
- * @param {Number} y The vector component 'y'.
- * @param {OpenSeadragon.Rect} bounds Where this tile fits, in normalized
- *      coordinates.
- * @param {Boolean} exists Is this tile a part of a sparse image? ( Also has
- *      this tile failed to load? )
- * @param {String|Function} url The URL of this tile's image or a function that returns a url.
- * @param {CanvasRenderingContext2D} [context2D=undefined] The context2D of this tile if it
- *  *      is provided directly by the tile source. Deprecated: use Tile::addCache(...) instead.
- * @param {Boolean} loadWithAjax Whether this tile image should be loaded with an AJAX request .
- * @param {Object} ajaxHeaders The headers to send with this tile's AJAX request (if applicable).
- * @param {OpenSeadragon.Rect} sourceBounds The portion of the tile to use as the source of the
- *      drawing operation, in pixels. Note that this only works when drawing with canvas; when drawing
- *      with HTML the entire tile is always used.
- * @param {String} postData HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
- *      see TileSource::getTilePostData) or null
- * @param {String} cacheKey key to act as a tile cache, must be unique for tiles with unique image data
  */
 class Tile {
+    /**
+     * @param {Number} level The zoom level this tile belongs to.
+     * @param {Number} x The vector component 'x'.
+     * @param {Number} y The vector component 'y'.
+     * @param {OpenSeadragon.Rect} bounds Where this tile fits, in normalized
+     *      coordinates.
+     * @param {Boolean} exists Is this tile a part of a sparse image? ( Also has
+     *      this tile failed to load? )
+     * @param {String|Function} url The URL of this tile's image or a function that returns a url.
+     * @param {CanvasRenderingContext2D} [context2D=undefined] The context2D of this tile if it
+     *  *      is provided directly by the tile source. Deprecated: use Tile::addCache(...) instead.
+     * @param {Boolean} loadWithAjax Whether this tile image should be loaded with an AJAX request .
+     * @param {Object} ajaxHeaders The headers to send with this tile's AJAX request (if applicable).
+     * @param {OpenSeadragon.Rect} sourceBounds The portion of the tile to use as the source of the
+     *      drawing operation, in pixels. Note that this only works when drawing with canvas; when drawing
+     *      with HTML the entire tile is always used.
+     * @param {String} postData HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+     *      see TileSource::getTilePostData) or null
+     * @param {String} cacheKey key to act as a tile cache, must be unique for tiles with unique image data
+     */
     constructor(level, x, y, bounds, exists, url, context2D, loadWithAjax, ajaxHeaders, sourceBounds, postData, cacheKey) {
         /**
          * The zoom level this tile belongs to.

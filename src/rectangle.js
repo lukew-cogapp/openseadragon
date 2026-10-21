@@ -48,13 +48,15 @@ import { Point } from "./point.js";
  * The constructor normalizes the rectangle to always have 0 <= degrees < 90
  *
  * @memberof OpenSeadragon
- * @param {Number} [x=0] The vector component 'x'.
- * @param {Number} [y=0] The vector component 'y'.
- * @param {Number} [width=0] The vector component 'width'.
- * @param {Number} [height=0] The vector component 'height'.
- * @param {Number} [degrees=0] Rotation of the rectangle around (x,y) in degrees.
  */
 class Rect {
+    /**
+     * @param {Number} [x=0] The vector component 'x'.
+     * @param {Number} [y=0] The vector component 'y'.
+     * @param {Number} [width=0] The vector component 'width'.
+     * @param {Number} [height=0] The vector component 'height'.
+     * @param {Number} [degrees=0] Rotation of the rectangle around (x,y) in degrees.
+     */
     constructor(x, y, width, height, degrees) {
         /**
          * The vector component 'x'.

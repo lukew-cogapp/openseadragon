@@ -14,11 +14,13 @@
 /**
  * @class OpenSeadragon.PriorityQueue
  * @classdesc Fast priority queue. Implemented as a Heap.
- * @param {?OpenSeadragon.PriorityQueue} optHeap Optional Heap
- *     to initialize heap with.
  */
 class PriorityQueue {
 
+    /**
+     * @param {?OpenSeadragon.PriorityQueue} optHeap Optional Heap
+     *     to initialize heap with.
+     */
     constructor(optHeap = undefined) {
         /**
          * The nodes of the heap.

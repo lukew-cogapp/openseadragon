@@ -37,13 +37,14 @@ import { TileSource } from "./tilesource.js";
 
     *
     * @memberof OpenSeadragon
-     * @extends OpenSeadragon.TileSource
+     */
+class ZoomifyTileSource extends TileSource {
+    /**
      * @param {Number} width - the pixel width of the image.
      * @param {Number} height
      * @param {Number} tileSize
      * @param {String} tilesUrl
      */
-class ZoomifyTileSource extends TileSource {
     constructor(options) {
         if(typeof options.tileSize === 'undefined'){
             options.tileSize = 256;

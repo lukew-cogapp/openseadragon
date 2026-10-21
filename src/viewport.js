@@ -43,23 +43,25 @@ import { Spring } from "./spring.js";
  * @memberof OpenSeadragon
  * @classdesc Handles coordinate-related functionality (zoom, pan, rotation, etc.)
  * for an {@link OpenSeadragon.Viewer}.
- * @param {Object} options - Options for this Viewport.
- * @param {Object} [options.margins] - See viewportMargins in {@link OpenSeadragon.Options}.
- * @param {Number} [options.springStiffness] - See springStiffness in {@link OpenSeadragon.Options}.
- * @param {Number} [options.animationTime] - See animationTime in {@link OpenSeadragon.Options}.
- * @param {Number} [options.minZoomImageRatio] - See minZoomImageRatio in {@link OpenSeadragon.Options}.
- * @param {Number} [options.maxZoomPixelRatio] - See maxZoomPixelRatio in {@link OpenSeadragon.Options}.
- * @param {Number} [options.visibilityRatio] - See visibilityRatio in {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.wrapHorizontal] - See wrapHorizontal in {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.wrapVertical] - See wrapVertical in {@link OpenSeadragon.Options}.
- * @param {Number} [options.defaultZoomLevel] - See defaultZoomLevel in {@link OpenSeadragon.Options}.
- * @param {Number} [options.minZoomLevel] - See minZoomLevel in {@link OpenSeadragon.Options}.
- * @param {Number} [options.maxZoomLevel] - See maxZoomLevel in {@link OpenSeadragon.Options}.
- * @param {Number} [options.degrees] - See degrees in {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.homeFillsViewer] - See homeFillsViewer in {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.silenceMultiImageWarnings] - See silenceMultiImageWarnings in {@link OpenSeadragon.Options}.
  */
 class Viewport {
+    /**
+     * @param {Object} options - Options for this Viewport.
+     * @param {Object} [options.margins] - See viewportMargins in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.springStiffness] - See springStiffness in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.animationTime] - See animationTime in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.minZoomImageRatio] - See minZoomImageRatio in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.maxZoomPixelRatio] - See maxZoomPixelRatio in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.visibilityRatio] - See visibilityRatio in {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.wrapHorizontal] - See wrapHorizontal in {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.wrapVertical] - See wrapVertical in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.defaultZoomLevel] - See defaultZoomLevel in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.minZoomLevel] - See minZoomLevel in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.maxZoomLevel] - See maxZoomLevel in {@link OpenSeadragon.Options}.
+     * @param {Number} [options.degrees] - See degrees in {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.homeFillsViewer] - See homeFillsViewer in {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.silenceMultiImageWarnings] - See silenceMultiImageWarnings in {@link OpenSeadragon.Options}.
+     */
     constructor(options) {
 
         //backward compatibility for positional args while preferring more

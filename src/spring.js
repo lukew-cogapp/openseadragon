@@ -38,17 +38,19 @@ import $ from "./openseadragon.js";
 /**
  * @class Spring
  * @memberof OpenSeadragon
- * @param {Object} options - Spring configuration settings.
- * @param {Number} options.springStiffness - Spring stiffness. Must be greater than zero.
- * The closer to zero, the closer to linear animation.
- * @param {Number} options.animationTime - Animation duration per spring, in seconds.
- * Must be zero or greater.
- * @param {Number} [options.initial=0] - Initial value of spring.
- * @param {Boolean} [options.exponential=false] - Whether this spring represents
- * an exponential scale (such as zoom) and should be animated accordingly. Note that
- * exponential springs must have non-zero values.
  */
 class Spring {
+    /**
+     * @param {Object} options - Spring configuration settings.
+     * @param {Number} options.springStiffness - Spring stiffness. Must be greater than zero.
+     * The closer to zero, the closer to linear animation.
+     * @param {Number} options.animationTime - Animation duration per spring, in seconds.
+     * Must be zero or greater.
+     * @param {Number} [options.initial=0] - Initial value of spring.
+     * @param {Boolean} [options.exponential=false] - Whether this spring represents
+     * an exponential scale (such as zoom) and should be animated accordingly. Note that
+     * exponential springs must have non-zero values.
+     */
     constructor(options) {
         const args = arguments;
 

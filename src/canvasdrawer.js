@@ -40,16 +40,17 @@ import { Point } from "./point.js";
 
 /**
  * @class OpenSeadragon.CanvasDrawer
- * @extends OpenSeadragon.DrawerBase
  * @classdesc Default implementation of CanvasDrawer for an {@link OpenSeadragon.Viewer}.
- * @param {Object} options - Options for this Drawer.
- * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this Drawer.
- * @param {OpenSeadragon.Viewport} options.viewport - Reference to Viewer viewport.
- * @param {Element} options.element - Parent element.
- * @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
  */
 
 class CanvasDrawer extends DrawerBase{
+    /**
+     * @param {Object} options - Options for this Drawer.
+     * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this Drawer.
+     * @param {OpenSeadragon.Viewport} options.viewport - Reference to Viewer viewport.
+     * @param {Element} options.element - Parent element.
+     * @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
+     */
     constructor(options) {
         super(options);
 

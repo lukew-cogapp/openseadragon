@@ -77,12 +77,12 @@ let nextHash = 1;
  * @classdesc The main OpenSeadragon viewer class.
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.EventSource
- * @extends OpenSeadragon.ControlDock
- * @param {OpenSeadragon.Options} options - Viewer options.
- *
  **/
 class Viewer extends ControlDock {
+    /**
+     * @param {OpenSeadragon.Options} options - Viewer options.
+     *
+     */
     constructor(options) {
 
         const args  = arguments;

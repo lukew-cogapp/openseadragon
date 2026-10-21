@@ -67,14 +67,16 @@ import { Rect } from "./rectangle.js";
  * @classdesc Base class for Drawers that handle rendering of tiles for an {@link OpenSeadragon.Viewer}.
  *   More viewers can be implemented even as plugins if they are attached to the OpenSeadragon namespace.
  *   Then you can employ the newly defined type as you would do with built-in drawers.
- * @param {Object} options - Options for this Drawer.
- * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this Drawer.
- * @param {OpenSeadragon.Viewport} options.viewport - Reference to Viewer viewport.
- * @param {HTMLElement} options.element - Parent element.
  * @abstract
  */
 
 class DrawerBase {
+    /**
+     * @param {Object} options - Options for this Drawer.
+     * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this Drawer.
+     * @param {OpenSeadragon.Viewport} options.viewport - Reference to Viewer viewport.
+     * @param {HTMLElement} options.element - Parent element.
+     */
     constructor(options){
         $.console.assert( options.viewer, "[Drawer] options.viewer is required" );
         $.console.assert( options.viewport, "[Drawer] options.viewport is required" );

@@ -43,28 +43,29 @@ import { TileSource } from "./tilesource.js";
    * @classdesc A tilesource implementation for the Internet Imaging Protocol (IIP).
    *
    * @memberof OpenSeadragon
-   * @extends OpenSeadragon.TileSource
    * @see https://iipimage.sourceforge.io
    *
-   * @param {String} iipsrv      - IIPImage host server path (ex: "https://host/fcgi-bin/iipsrv.fcgi" or "/fcgi-bin/iipsrv.fcgi")
-   * @param {String} image       - Image path and name on server (ex: "image.tif")
-   * @param {String} [format]    - Tile output format (default: "jpg")
-   * @param {Object} [transform] - Object containing image processing transforms
-   *                                        (supported transform: "stack","quality","contrast","color","invert",
-   *                                                              "colormap," "gamma","minmax","twist","hillshade".
-   *                                        See https://iipimage.sourceforge.io/documentation/protocol for how to use)
-   *
-   * Example: tileSources: {
-   *            iipsrv:    "/fcgi-bin/iipsrv.fcgi",
-   *            image:     "test.tif",
-   *            transform: {
-   *              gamma: 1.5,
-   *              invert: true
-   *            }
-   *          }
    */
 
   class IIPTileSource extends TileSource {
+    /**
+     * @param {String} iipsrv      - IIPImage host server path (ex: "https://host/fcgi-bin/iipsrv.fcgi" or "/fcgi-bin/iipsrv.fcgi")
+     * @param {String} image       - Image path and name on server (ex: "image.tif")
+     * @param {String} [format]    - Tile output format (default: "jpg")
+     * @param {Object} [transform] - Object containing image processing transforms
+     *                                        (supported transform: "stack","quality","contrast","color","invert",
+     *                                                              "colormap," "gamma","minmax","twist","hillshade".
+     *                                        See https://iipimage.sourceforge.io/documentation/protocol for how to use)
+     *
+     * Example: tileSources: {
+     *            iipsrv:    "/fcgi-bin/iipsrv.fcgi",
+     *            image:     "test.tif",
+     *            transform: {
+     *              gamma: 1.5,
+     *              invert: true
+     *            }
+     *          }
+     */
     constructor(options) {
 
         super();

@@ -65,57 +65,58 @@ import { converter } from "./datatypeconverter.js";
  * using {@link OpenSeadragon.Viewer#open} or {@link OpenSeadragon.Viewer#addTiledImage} instead.
  * @class TiledImage
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.EventSource
  * @classdesc Handles rendering of tiles for an {@link OpenSeadragon.Viewer}.
  * A new instance is created for each TileSource opened.
- * @param {Object} options - Configuration for this TiledImage.
- * @param {OpenSeadragon.TileSource} options.source - The TileSource that defines this TiledImage.
- * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this TiledImage.
- * @param {OpenSeadragon.TileCache} options.tileCache - The TileCache for this TiledImage to use.
- * @param {OpenSeadragon.Drawer} options.drawer - The Drawer for this TiledImage to draw onto.
- * @param {OpenSeadragon.ImageLoader} options.imageLoader - The ImageLoader for this TiledImage to use.
- * @param {Number} [options.x=0] - Left position, in viewport coordinates.
- * @param {Number} [options.y=0] - Top position, in viewport coordinates.
- * @param {Number} [options.width=1] - Width, in viewport coordinates.
- * @param {Number} [options.height] - Height, in viewport coordinates.
- * @param {OpenSeadragon.Rect} [options.fitBounds] The bounds in viewport coordinates
- * to fit the image into. If specified, x, y, width and height get ignored.
- * @param {OpenSeadragon.Placement} [options.fitBoundsPlacement=OpenSeadragon.Placement.CENTER]
- * How to anchor the image in the bounds if options.fitBounds is set.
- * @param {OpenSeadragon.Rect} [options.clip] - An area, in image pixels, to clip to
- * (portions of the image outside of this area will not be visible). Only works on
- * browsers that support the HTML5 canvas.
- * @param {Number} [options.springStiffness] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.animationTime] - See {@link OpenSeadragon.Options}.
- * @param {Number} [options.minZoomImageRatio] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.wrapHorizontal] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.wrapVertical] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.immediateRender] - See {@link OpenSeadragon.Options}.
- * @param {Number} [options.blendTime] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.alwaysBlend] - See {@link OpenSeadragon.Options}.
- * @param {Number} [options.minPixelRatio] - See {@link OpenSeadragon.Options}.
- * @param {Number} [options.discardLevelsBelowDownsampleRatio] - See {@link OpenSeadragon.Options}.
- * @param {Number} [options.smoothTileEdgesMinZoom] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.iOSDevice] - See {@link OpenSeadragon.Options}.
- * @param {Number} [options.opacity=1] - Set to draw at proportional opacity. If zero, images will not draw.
- * @param {Boolean} [options.preload=false] - Set true to load even when the image is hidden by zero opacity.
- * @param {String} [options.compositeOperation] - How the image is composited onto other images;
- * see compositeOperation in {@link OpenSeadragon.Options} for possible values.
- * @param {Boolean} [options.debugMode] - See {@link OpenSeadragon.Options}.
- * @param {String|CanvasGradient|CanvasPattern|Function} [options.placeholderFillStyle] - See {@link OpenSeadragon.Options}.
- * @param {String|Boolean} [options.crossOriginPolicy] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.ajaxWithCredentials] - See {@link OpenSeadragon.Options}.
- * @param {Boolean} [options.loadTilesWithAjax]
- *      Whether to load tile data using AJAX requests.
- *      Defaults to the setting in {@link OpenSeadragon.Options}.
- * @param {Object} [options.ajaxHeaders={}]
- *      A set of headers to include when making tile AJAX requests.
- * @param {string|string[]} [options.originalDataType=undefined]
- *      A default format to convert tiles to at the beginning. The format is the base tile format,
- *      and this can optimize rendering or processing logics, for example, in case a plugin always requires a certain
- *      format to convert to.
  */
 class TiledImage extends EventSource {
+    /**
+     * @param {Object} options - Configuration for this TiledImage.
+     * @param {OpenSeadragon.TileSource} options.source - The TileSource that defines this TiledImage.
+     * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this TiledImage.
+     * @param {OpenSeadragon.TileCache} options.tileCache - The TileCache for this TiledImage to use.
+     * @param {OpenSeadragon.Drawer} options.drawer - The Drawer for this TiledImage to draw onto.
+     * @param {OpenSeadragon.ImageLoader} options.imageLoader - The ImageLoader for this TiledImage to use.
+     * @param {Number} [options.x=0] - Left position, in viewport coordinates.
+     * @param {Number} [options.y=0] - Top position, in viewport coordinates.
+     * @param {Number} [options.width=1] - Width, in viewport coordinates.
+     * @param {Number} [options.height] - Height, in viewport coordinates.
+     * @param {OpenSeadragon.Rect} [options.fitBounds] The bounds in viewport coordinates
+     * to fit the image into. If specified, x, y, width and height get ignored.
+     * @param {OpenSeadragon.Placement} [options.fitBoundsPlacement=OpenSeadragon.Placement.CENTER]
+     * How to anchor the image in the bounds if options.fitBounds is set.
+     * @param {OpenSeadragon.Rect} [options.clip] - An area, in image pixels, to clip to
+     * (portions of the image outside of this area will not be visible). Only works on
+     * browsers that support the HTML5 canvas.
+     * @param {Number} [options.springStiffness] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.animationTime] - See {@link OpenSeadragon.Options}.
+     * @param {Number} [options.minZoomImageRatio] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.wrapHorizontal] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.wrapVertical] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.immediateRender] - See {@link OpenSeadragon.Options}.
+     * @param {Number} [options.blendTime] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.alwaysBlend] - See {@link OpenSeadragon.Options}.
+     * @param {Number} [options.minPixelRatio] - See {@link OpenSeadragon.Options}.
+     * @param {Number} [options.discardLevelsBelowDownsampleRatio] - See {@link OpenSeadragon.Options}.
+     * @param {Number} [options.smoothTileEdgesMinZoom] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.iOSDevice] - See {@link OpenSeadragon.Options}.
+     * @param {Number} [options.opacity=1] - Set to draw at proportional opacity. If zero, images will not draw.
+     * @param {Boolean} [options.preload=false] - Set true to load even when the image is hidden by zero opacity.
+     * @param {String} [options.compositeOperation] - How the image is composited onto other images;
+     * see compositeOperation in {@link OpenSeadragon.Options} for possible values.
+     * @param {Boolean} [options.debugMode] - See {@link OpenSeadragon.Options}.
+     * @param {String|CanvasGradient|CanvasPattern|Function} [options.placeholderFillStyle] - See {@link OpenSeadragon.Options}.
+     * @param {String|Boolean} [options.crossOriginPolicy] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.ajaxWithCredentials] - See {@link OpenSeadragon.Options}.
+     * @param {Boolean} [options.loadTilesWithAjax]
+     *      Whether to load tile data using AJAX requests.
+     *      Defaults to the setting in {@link OpenSeadragon.Options}.
+     * @param {Object} [options.ajaxHeaders={}]
+     *      A set of headers to include when making tile AJAX requests.
+     * @param {string|string[]} [options.originalDataType=undefined]
+     *      A default format to convert tiles to at the beginning. The format is the base tile format,
+     *      and this can optimize rendering or processing logics, for example, in case a plugin always requires a certain
+     *      format to convert to.
+     */
     constructor(options) {
         super();
         this._initialized = false;

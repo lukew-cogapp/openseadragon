@@ -44,29 +44,30 @@ import { getString } from "./strings.js";
  * Format: Image API 1.0 - 3.0
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.TileSource
  * @see http://iiif.io/api/image/
- * @param {String} [options.tileFormat='jpg']
- *      The extension that will be used when requiring tiles.
- * @param {String} [options.tileQuality]
- *      The IIIF quality to request for each tile. The Image API spec defines
- *      'native', 'color', 'grey' and 'bitonal' for version 1.x, and 'default',
- *      'color', 'gray' and 'bitonal' for versions 2.x and 3.x. Servers may
- *      advertise additional qualities via the info.json profile (v2) or
- *      extraQualities (v3); these are accepted without warning. Unknown
- *      values produce a console warning but are still sent to the server.
- *      Defaults to 'native' for 1.x and 'default' for 2.x and 3.x.
  *      @see https://iiif.io/api/image/3.0/#quality
- * @param {String[]} [options.extraQualities]
- *      Additional quality values the server supports beyond the IIIF Image
- *      API 3.x spec defaults. Normally populated automatically from the
- *      server's info.json `extraQualities` field, but may also be passed
- *      explicitly. Values listed here are treated as known qualities and
- *      will not trigger the unknown quality warning when used as
- *      `tileQuality`.
  *      @see https://iiif.io/api/image/3.0/#53-extra-functionality
  */
 class IIIFTileSource extends TileSource {
+    /**
+     * @param {String} [options.tileFormat='jpg']
+     *      The extension that will be used when requiring tiles.
+     * @param {String} [options.tileQuality]
+     *      The IIIF quality to request for each tile. The Image API spec defines
+     *      'native', 'color', 'grey' and 'bitonal' for version 1.x, and 'default',
+     *      'color', 'gray' and 'bitonal' for versions 2.x and 3.x. Servers may
+     *      advertise additional qualities via the info.json profile (v2) or
+     *      extraQualities (v3); these are accepted without warning. Unknown
+     *      values produce a console warning but are still sent to the server.
+     *      Defaults to 'native' for 1.x and 'default' for 2.x and 3.x.
+     * @param {String[]} [options.extraQualities]
+     *      Additional quality values the server supports beyond the IIIF Image
+     *      API 3.x spec defaults. Normally populated automatically from the
+     *      server's info.json `extraQualities` field, but may also be passed
+     *      explicitly. Values listed here are treated as known qualities and
+     *      will not trigger the unknown quality warning when used as
+     *      `tileQuality`.
+     */
     constructor(options) {
 
         /* eslint-disable camelcase */

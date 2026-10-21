@@ -1022,11 +1022,13 @@ class CacheRecord {
  * @memberof OpenSeadragon
  * @classdesc Stores all the tiles displayed in a {@link OpenSeadragon.Viewer}.
  * You generally won't have to interact with the TileCache directly.
- * @param {Object} options - Configuration for this TileCache.
- * @param {Number} [options.maxImageCacheCount] - See maxImageCacheCount in
- * {@link OpenSeadragon.Options} for details.
  */
 class TileCache {
+    /**
+     * @param {Object} options - Configuration for this TileCache.
+     * @param {Number} [options.maxImageCacheCount] - See maxImageCacheCount in
+     * {@link OpenSeadragon.Options} for details.
+     */
     constructor( options ) {
 
         options = options || {};

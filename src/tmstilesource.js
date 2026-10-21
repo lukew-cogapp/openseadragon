@@ -50,15 +50,16 @@ import { TileSource } from "./tilesource.js";
  * ( http://openlayers.org/dev/examples/tms.html ).
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.TileSource
- * @param {Number|Object} width - the pixel width of the image or the idiomatic
- *      options object which is used instead of positional arguments.
- * @param {Number} height
- * @param {Number} tileSize
- * @param {Number} tileOverlap
- * @param {String} tilesUrl
  */
 class TmsTileSource extends TileSource {
+    /**
+     * @param {Number|Object} width - the pixel width of the image or the idiomatic
+     *      options object which is used instead of positional arguments.
+     * @param {Number} height
+     * @param {Number} tileSize
+     * @param {Number} tileOverlap
+     * @param {String} tilesUrl
+     */
     constructor(width, height, tileSize, tileOverlap, tilesUrl) {
         let options;
 

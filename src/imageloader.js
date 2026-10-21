@@ -41,22 +41,24 @@ import { TileSource } from "./tilesource.js";
  * @classdesc Handles downloading of a single image.
  *
  * @memberof OpenSeadragon
- * @param {Object} options - Options for this ImageJob.
- * @param {String} [options.src] - URL of image to download.
- * @param {Tile} [options.tile] - Tile that belongs the data to.
- * @param {TileSource} [options.source] - Image loading strategy
- * @param {Boolean} [options.loadWithAjax] - Whether to load this image with AJAX.
- * @param {String} [options.ajaxHeaders] - Headers to add to the image request if using AJAX.
- * @param {Boolean} [options.ajaxWithCredentials] - Whether to set withCredentials on AJAX requests.
- * @param {String} [options.crossOriginPolicy] - CORS policy to use for downloads
- * @param {String} [options.postData] - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
- *      see TileSource::getTilePostData) or null
- * @param {Function} [options.callback] - Called once image has been downloaded.
- * @param {Function} [options.abort] - Called when this image job is aborted.
- * @param {Number} [options.timeout] - The max number of milliseconds that this image job may take to complete.
- * @param {Number} [options.tries] - Actual number of the current try.
  */
 class ImageJob {
+    /**
+     * @param {Object} options - Options for this ImageJob.
+     * @param {String} [options.src] - URL of image to download.
+     * @param {Tile} [options.tile] - Tile that belongs the data to.
+     * @param {TileSource} [options.source] - Image loading strategy
+     * @param {Boolean} [options.loadWithAjax] - Whether to load this image with AJAX.
+     * @param {String} [options.ajaxHeaders] - Headers to add to the image request if using AJAX.
+     * @param {Boolean} [options.ajaxWithCredentials] - Whether to set withCredentials on AJAX requests.
+     * @param {String} [options.crossOriginPolicy] - CORS policy to use for downloads
+     * @param {String} [options.postData] - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+     *      see TileSource::getTilePostData) or null
+     * @param {Function} [options.callback] - Called once image has been downloaded.
+     * @param {Function} [options.abort] - Called when this image job is aborted.
+     * @param {Number} [options.timeout] - The max number of milliseconds that this image job may take to complete.
+     * @param {Number} [options.tries] - Actual number of the current try.
+     */
     constructor(options) {
 
         /**
@@ -267,13 +269,15 @@ class ImageJob {
  * @memberof OpenSeadragon
  * @classdesc Wraps a group of ImageJobs as a single unit of work for the ImageLoader queue.
  * It mimics the ImageJob API so it can be managed in a similar way.
- * @param {Object} options
- * @param {TileSource} options.source
- * @param {Array<OpenSeadragon.ImageJob>} options.jobs
- * @param {Function} [options.callback]
- * @param {Function} [options.abort]
  */
 class BatchImageJob {
+    /**
+     * @param {Object} options
+     * @param {TileSource} options.source
+     * @param {Array<OpenSeadragon.ImageJob>} options.jobs
+     * @param {Function} [options.callback]
+     * @param {Function} [options.abort]
+     */
     constructor(options) {
         $.extend(true, this, {
             timeout: $.DEFAULT_SETTINGS.timeout,
@@ -381,11 +385,13 @@ class BatchImageJob {
  * @memberof OpenSeadragon
  * @classdesc Handles downloading of a set of images using asynchronous queue pattern.
  * You generally won't have to interact with the ImageLoader directly.
- * @param {Object} options - Options for this ImageLoader.
- * @param {Number} [options.jobLimit] - The number of concurrent image requests. See imageLoaderLimit in {@link OpenSeadragon.Options} for details.
- * @param {Number} [options.timeout] - The max number of milliseconds that an image job may take to complete.
  */
 class ImageLoader {
+    /**
+     * @param {Object} options - Options for this ImageLoader.
+     * @param {Number} [options.jobLimit] - The number of concurrent image requests. See imageLoaderLimit in {@link OpenSeadragon.Options} for details.
+     * @param {Number} [options.timeout] - The max number of milliseconds that an image job may take to complete.
+     */
     constructor(options) {
 
         $.extend(true, this, {

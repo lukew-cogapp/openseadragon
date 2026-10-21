@@ -65,16 +65,18 @@ const ControlAnchor = {
  * element.
  *
  * @memberof OpenSeadragon
- * @param {Element} element - the control element to be anchored in the container.
- * @param {Object } options - All required and optional settings for configuring a control element.
- * @param {OpenSeadragon.ControlAnchor} [options.anchor=OpenSeadragon.ControlAnchor.NONE] - the position of the control
- *  relative to the container.
- * @param {Boolean} [options.attachToViewer=true] - Whether the control should be added directly to the viewer, or
- *  directly to the container
- * @param {Boolean} [options.autoFade=true] - Whether the control should have the autofade behavior
- * @param {Element} container - the element to control will be anchored too.
  */
 class Control {
+    /**
+     * @param {Element} element - the control element to be anchored in the container.
+     * @param {Object } options - All required and optional settings for configuring a control element.
+     * @param {OpenSeadragon.ControlAnchor} [options.anchor=OpenSeadragon.ControlAnchor.NONE] - the position of the control
+     *  relative to the container.
+     * @param {Boolean} [options.attachToViewer=true] - Whether the control should be added directly to the viewer, or
+     *  directly to the container
+     * @param {Boolean} [options.autoFade=true] - Whether the control should have the autofade behavior
+     * @param {Element} container - the element to control will be anchored too.
+     */
     constructor(element, options, container) {
 
         const parent = element.parentNode;

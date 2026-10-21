@@ -41,20 +41,21 @@ import { getString } from "./strings.js";
 /**
  * @class DziTileSource
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.TileSource
- * @param {Number|Object} width - the pixel width of the image or the idiomatic
- *      options object which is used instead of positional arguments.
- * @param {Number} height
- * @param {Number} tileSize
- * @param {Number} tileOverlap
- * @param {String} tilesUrl
- * @param {String} fileFormat
- * @param {OpenSeadragon.DisplayRect[]} displayRects
  * @property {String} tilesUrl
  * @property {String} fileFormat
  * @property {OpenSeadragon.DisplayRect[]} displayRects
  */
 class DziTileSource extends TileSource {
+    /**
+     * @param {Number|Object} width - the pixel width of the image or the idiomatic
+     *      options object which is used instead of positional arguments.
+     * @param {Number} height
+     * @param {Number} tileSize
+     * @param {Number} tileOverlap
+     * @param {String} tilesUrl
+     * @param {String} fileFormat
+     * @param {OpenSeadragon.DisplayRect[]} displayRects
+     */
     constructor(width, height, tileSize, tileOverlap, tilesUrl, fileFormat, displayRects, minLevel, maxLevel) {
         let level;
         let options;

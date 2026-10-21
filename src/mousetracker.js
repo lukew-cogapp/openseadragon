@@ -48,82 +48,84 @@ const THIS           = {};
  * @classdesc Provides simplified handling of common pointer device (mouse, touch, pen, etc.) gestures
  *            and keyboard events on a specified element.
  * @memberof OpenSeadragon
- * @param {Object} options
- *      Allows configurable properties to be entirely specified by passing
- *      an options object to the constructor.  The constructor also supports
- *      the original positional arguments 'element', 'clickTimeThreshold',
- *      and 'clickDistThreshold' in that order.
- * @param {Element|String} options.element
- *      A reference to an element or an element id for which the pointer/key
- *      events will be monitored.
- * @param {Boolean} [options.startDisabled=false]
- *      If true, event tracking on the element will not start until
- *      {@link OpenSeadragon.MouseTracker.setTracking|setTracking} is called.
- * @param {Number} [options.clickTimeThreshold=300]
- *      The number of milliseconds within which a pointer down-up event combination
- *      will be treated as a click gesture.
- * @param {Number} [options.clickDistThreshold=5]
- *      The maximum distance allowed between a pointer down event and a pointer up event
- *      to be treated as a click gesture.
- * @param {Number} [options.dblClickTimeThreshold=300]
- *      The number of milliseconds within which two pointer down-up event combinations
- *      will be treated as a double-click gesture.
- * @param {Number} [options.dblClickDistThreshold=20]
- *      The maximum distance allowed between two pointer click events
- *      to be treated as a click gesture.
- * @param {Number} [options.stopDelay=50]
- *      The number of milliseconds without pointer move before the stop
- *      event is fired.
- * @param {OpenSeadragon.EventHandler} [options.preProcessEventHandler=null]
- *      An optional handler for controlling DOM event propagation and processing.
- * @param {OpenSeadragon.EventHandler} [options.contextMenuHandler=null]
- *      An optional handler for contextmenu.
- * @param {OpenSeadragon.EventHandler} [options.enterHandler=null]
- *      An optional handler for pointer enter.
- * @param {OpenSeadragon.EventHandler} [options.leaveHandler=null]
- *      An optional handler for pointer leave.
- * @param {OpenSeadragon.EventHandler} [options.exitHandler=null]
- *      An optional handler for pointer leave. <span style="color:red;">Deprecated. Use leaveHandler instead.</span>
- * @param {OpenSeadragon.EventHandler} [options.overHandler=null]
- *      An optional handler for pointer over.
- * @param {OpenSeadragon.EventHandler} [options.outHandler=null]
- *      An optional handler for pointer out.
- * @param {OpenSeadragon.EventHandler} [options.pressHandler=null]
- *      An optional handler for pointer press.
- * @param {OpenSeadragon.EventHandler} [options.nonPrimaryPressHandler=null]
- *      An optional handler for pointer non-primary button press.
- * @param {OpenSeadragon.EventHandler} [options.releaseHandler=null]
- *      An optional handler for pointer release.
- * @param {OpenSeadragon.EventHandler} [options.nonPrimaryReleaseHandler=null]
- *      An optional handler for pointer non-primary button release.
- * @param {OpenSeadragon.EventHandler} [options.moveHandler=null]
- *      An optional handler for pointer move.
- * @param {OpenSeadragon.EventHandler} [options.scrollHandler=null]
- *      An optional handler for mouse wheel scroll.
- * @param {OpenSeadragon.EventHandler} [options.clickHandler=null]
- *      An optional handler for pointer click.
- * @param {OpenSeadragon.EventHandler} [options.dblClickHandler=null]
- *      An optional handler for pointer double-click.
- * @param {OpenSeadragon.EventHandler} [options.dragHandler=null]
- *      An optional handler for the drag gesture.
- * @param {OpenSeadragon.EventHandler} [options.dragEndHandler=null]
- *      An optional handler for after a drag gesture.
- * @param {OpenSeadragon.EventHandler} [options.pinchHandler=null]
- *      An optional handler for the pinch gesture.
- * @param {OpenSeadragon.EventHandler} [options.keyDownHandler=null]
- *      An optional handler for keydown.
- * @param {OpenSeadragon.EventHandler} [options.keyUpHandler=null]
- *      An optional handler for keyup.
- * @param {OpenSeadragon.EventHandler} [options.keyHandler=null]
- *      An optional handler for keypress.
- * @param {OpenSeadragon.EventHandler} [options.focusHandler=null]
- *      An optional handler for focus.
- * @param {OpenSeadragon.EventHandler} [options.blurHandler=null]
- *      An optional handler for blur.
- * @param {Object} [options.userData=null]
- *      Arbitrary object to be passed unchanged to any attached handler methods.
  */
 class MouseTracker {
+    /**
+     * @param {Object} options
+     *      Allows configurable properties to be entirely specified by passing
+     *      an options object to the constructor.  The constructor also supports
+     *      the original positional arguments 'element', 'clickTimeThreshold',
+     *      and 'clickDistThreshold' in that order.
+     * @param {Element|String} options.element
+     *      A reference to an element or an element id for which the pointer/key
+     *      events will be monitored.
+     * @param {Boolean} [options.startDisabled=false]
+     *      If true, event tracking on the element will not start until
+     *      {@link OpenSeadragon.MouseTracker.setTracking|setTracking} is called.
+     * @param {Number} [options.clickTimeThreshold=300]
+     *      The number of milliseconds within which a pointer down-up event combination
+     *      will be treated as a click gesture.
+     * @param {Number} [options.clickDistThreshold=5]
+     *      The maximum distance allowed between a pointer down event and a pointer up event
+     *      to be treated as a click gesture.
+     * @param {Number} [options.dblClickTimeThreshold=300]
+     *      The number of milliseconds within which two pointer down-up event combinations
+     *      will be treated as a double-click gesture.
+     * @param {Number} [options.dblClickDistThreshold=20]
+     *      The maximum distance allowed between two pointer click events
+     *      to be treated as a click gesture.
+     * @param {Number} [options.stopDelay=50]
+     *      The number of milliseconds without pointer move before the stop
+     *      event is fired.
+     * @param {OpenSeadragon.EventHandler} [options.preProcessEventHandler=null]
+     *      An optional handler for controlling DOM event propagation and processing.
+     * @param {OpenSeadragon.EventHandler} [options.contextMenuHandler=null]
+     *      An optional handler for contextmenu.
+     * @param {OpenSeadragon.EventHandler} [options.enterHandler=null]
+     *      An optional handler for pointer enter.
+     * @param {OpenSeadragon.EventHandler} [options.leaveHandler=null]
+     *      An optional handler for pointer leave.
+     * @param {OpenSeadragon.EventHandler} [options.exitHandler=null]
+     *      An optional handler for pointer leave. <span style="color:red;">Deprecated. Use leaveHandler instead.</span>
+     * @param {OpenSeadragon.EventHandler} [options.overHandler=null]
+     *      An optional handler for pointer over.
+     * @param {OpenSeadragon.EventHandler} [options.outHandler=null]
+     *      An optional handler for pointer out.
+     * @param {OpenSeadragon.EventHandler} [options.pressHandler=null]
+     *      An optional handler for pointer press.
+     * @param {OpenSeadragon.EventHandler} [options.nonPrimaryPressHandler=null]
+     *      An optional handler for pointer non-primary button press.
+     * @param {OpenSeadragon.EventHandler} [options.releaseHandler=null]
+     *      An optional handler for pointer release.
+     * @param {OpenSeadragon.EventHandler} [options.nonPrimaryReleaseHandler=null]
+     *      An optional handler for pointer non-primary button release.
+     * @param {OpenSeadragon.EventHandler} [options.moveHandler=null]
+     *      An optional handler for pointer move.
+     * @param {OpenSeadragon.EventHandler} [options.scrollHandler=null]
+     *      An optional handler for mouse wheel scroll.
+     * @param {OpenSeadragon.EventHandler} [options.clickHandler=null]
+     *      An optional handler for pointer click.
+     * @param {OpenSeadragon.EventHandler} [options.dblClickHandler=null]
+     *      An optional handler for pointer double-click.
+     * @param {OpenSeadragon.EventHandler} [options.dragHandler=null]
+     *      An optional handler for the drag gesture.
+     * @param {OpenSeadragon.EventHandler} [options.dragEndHandler=null]
+     *      An optional handler for after a drag gesture.
+     * @param {OpenSeadragon.EventHandler} [options.pinchHandler=null]
+     *      An optional handler for the pinch gesture.
+     * @param {OpenSeadragon.EventHandler} [options.keyDownHandler=null]
+     *      An optional handler for keydown.
+     * @param {OpenSeadragon.EventHandler} [options.keyUpHandler=null]
+     *      An optional handler for keyup.
+     * @param {OpenSeadragon.EventHandler} [options.keyHandler=null]
+     *      An optional handler for keypress.
+     * @param {OpenSeadragon.EventHandler} [options.focusHandler=null]
+     *      An optional handler for focus.
+     * @param {OpenSeadragon.EventHandler} [options.blurHandler=null]
+     *      An optional handler for blur.
+     * @param {Object} [options.userData=null]
+     *      Arbitrary object to be passed unchanged to any attached handler methods.
+     */
     constructor(options) {
 
         MOUSETRACKERS.push( this );

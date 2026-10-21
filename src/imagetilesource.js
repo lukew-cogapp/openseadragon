@@ -49,20 +49,21 @@ import { TileSource } from "./tilesource.js";
  * in the options object.
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.TileSource
- * @param {Object} options Options object.
- * @param {String} options.url URL of the image
- * @param {Boolean} [options.buildPyramid=true] If set to true (default), a
- * pyramid will be built internally to provide a better downsampling.
- * @param {String|Boolean} [options.crossOriginPolicy=false] Valid values are
- * 'Anonymous', 'use-credentials', and false. If false, image requests will
- * not use CORS preventing internal pyramid building for images from other
- * domains.
- * @param {String|Boolean} [options.ajaxWithCredentials=false] Whether to set
- * the withCredentials XHR flag for AJAX requests (when loading tile sources).
  */
 class ImageTileSource extends TileSource {
 
+    /**
+     * @param {Object} options Options object.
+     * @param {String} options.url URL of the image
+     * @param {Boolean} [options.buildPyramid=true] If set to true (default), a
+     * pyramid will be built internally to provide a better downsampling.
+     * @param {String|Boolean} [options.crossOriginPolicy=false] Valid values are
+     * 'Anonymous', 'use-credentials', and false. If false, image requests will
+     * not use CORS preventing internal pyramid building for images from other
+     * domains.
+     * @param {String|Boolean} [options.ajaxWithCredentials=false] Whether to set
+     * the withCredentials XHR flag for AJAX requests (when loading tile sources).
+     */
     constructor(props) {
         super($.extend({
             buildPyramid: true,

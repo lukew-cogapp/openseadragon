@@ -43,12 +43,13 @@ import { TiledImage } from "./tiledimage.js";
 /**
  * @class World
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.EventSource
  * @classdesc Keeps track of all of the tiled images in the scene.
- * @param {Object} options - World options.
- * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this World.
  **/
 class World extends EventSource {
+    /**
+     * @param {Object} options - World options.
+     * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this World.
+     */
     constructor(options) {
         super();
         const _this = this;

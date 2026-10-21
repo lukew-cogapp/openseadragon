@@ -85,31 +85,33 @@ const OverlayRotationMode = $.freezeObject({
  * @classdesc Provides a way to float an HTML element on top of the viewer element.
  *
  * @memberof OpenSeadragon
- * @param {Object} options
- * @param {Element} options.element
- * @param {OpenSeadragon.Point|OpenSeadragon.Rect} options.location - The
- * location of the overlay on the image. If a {@link OpenSeadragon.Point}
- * is specified, the overlay will be located at this location with respect
- * to the placement option. If a {@link OpenSeadragon.Rect} is specified,
- * the overlay will be placed at this location with the corresponding width
- * and height and placement TOP_LEFT.
- * @param {OpenSeadragon.Placement} [options.placement=OpenSeadragon.Placement.TOP_LEFT]
- * Defines what part of the overlay should be at the specified options.location
- * @param {OpenSeadragon.Overlay.OnDrawCallback} [options.onDraw]
- * @param {Boolean} [options.checkResize=true] Set to false to avoid to
- * check the size of the overlay every time it is drawn in the directions
- * which are not scaled. It will improve performances but will cause a
- * misalignment if the overlay size changes.
- * @param {Number} [options.width] The width of the overlay in viewport
- * coordinates. If specified, the width of the overlay will be adjusted when
- * the zoom changes.
- * @param {Number} [options.height] The height of the overlay in viewport
- * coordinates. If specified, the height of the overlay will be adjusted when
- * the zoom changes.
- * @param {Boolean} [options.rotationMode=OpenSeadragon.OverlayRotationMode.EXACT]
- * How to handle the rotation of the viewport.
  */
 class Overlay {
+    /**
+     * @param {Object} options
+     * @param {Element} options.element
+     * @param {OpenSeadragon.Point|OpenSeadragon.Rect} options.location - The
+     * location of the overlay on the image. If a {@link OpenSeadragon.Point}
+     * is specified, the overlay will be located at this location with respect
+     * to the placement option. If a {@link OpenSeadragon.Rect} is specified,
+     * the overlay will be placed at this location with the corresponding width
+     * and height and placement TOP_LEFT.
+     * @param {OpenSeadragon.Placement} [options.placement=OpenSeadragon.Placement.TOP_LEFT]
+     * Defines what part of the overlay should be at the specified options.location
+     * @param {OpenSeadragon.Overlay.OnDrawCallback} [options.onDraw]
+     * @param {Boolean} [options.checkResize=true] Set to false to avoid to
+     * check the size of the overlay every time it is drawn in the directions
+     * which are not scaled. It will improve performances but will cause a
+     * misalignment if the overlay size changes.
+     * @param {Number} [options.width] The width of the overlay in viewport
+     * coordinates. If specified, the width of the overlay will be adjusted when
+     * the zoom changes.
+     * @param {Number} [options.height] The height of the overlay in viewport
+     * coordinates. If specified, the height of the overlay will be adjusted when
+     * the zoom changes.
+     * @param {Boolean} [options.rotationMode=OpenSeadragon.OverlayRotationMode.EXACT]
+     * How to handle the rotation of the viewport.
+     */
     constructor(element, location, placement) {
 
 

@@ -104,16 +104,17 @@ import { getString } from "./strings.js";
  *      <strong>2^(N+1) >= M</strong>.
  *
  * @memberof OpenSeadragon
- * @extends OpenSeadragon.EventSource
- * @param {OpenSeadragon.TileSourceOptions|string} options
- *      You can either specify a URL, or literally define the TileSource (by specifying
- *      width, height, tileSize, tileOverlap, minLevel, and maxLevel). For the former,
- *      the extending class is expected to implement 'supports' and 'configure'.
- *      Note that _in this case, the child class of getImageInfo() is ignored!_
- *      For the latter, the construction is assumed to occur through
- *      the extending classes implementation of 'configure'.
  */
 class TileSource extends EventSource {
+    /**
+     * @param {OpenSeadragon.TileSourceOptions|string} options
+     *      You can either specify a URL, or literally define the TileSource (by specifying
+     *      width, height, tileSize, tileOverlap, minLevel, and maxLevel). For the former,
+     *      the extending class is expected to implement 'supports' and 'configure'.
+     *      Note that _in this case, the child class of getImageInfo() is ignored!_
+     *      For the latter, the construction is assumed to occur through
+     *      the extending classes implementation of 'configure'.
+     */
     constructor(options) {
 
         // NOTE! Manually rewriting this to a class syntax is problematic, since apply(...) would have to be overridden

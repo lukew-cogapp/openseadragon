@@ -42,10 +42,12 @@ import $ from "./openseadragon.js";
  * not requiring any other frame of reference.
  *
  * @memberof OpenSeadragon
- * @param {Number} [x] The vector component 'x'. Defaults to the origin at 0.
- * @param {Number} [y] The vector component 'y'. Defaults to the origin at 0.
  */
 class Point {
+    /**
+     * @param {Number} [x] The vector component 'x'. Defaults to the origin at 0.
+     * @param {Number} [y] The vector component 'y'. Defaults to the origin at 0.
+     */
     constructor(x, y) {
         /**
          * The vector component 'x'.
