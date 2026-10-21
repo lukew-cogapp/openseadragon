@@ -195,10 +195,8 @@ self.onmessage = async (e) => {
   postMessage({ id, ok: false, err: error });
 };
 `;
-    // eslint-disable-next-line compat/compat
     const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
     _imageConversionWorker = new Worker(url);
-    // eslint-disable-next-line compat/compat
     URL.revokeObjectURL(url);
 
     _imageConversionWorker.onmessage = (e) => {
@@ -375,7 +373,6 @@ class DataTypeConverter {
             if (!$.supportsAsync) {
                 return reject("Not supported in sync mode!");
             }
-            // eslint-disable-next-line compat/compat
             const urlApi = window.URL || window.webkitURL;
             const url = urlApi.createObjectURL(blob);
             const img = new Image();
@@ -782,7 +779,6 @@ converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new $.Promi
         return postWorker('fetchDecode', { url, setup }).then(resolve).catch(reject);
     }
     // Fallback to the main thread
-    // eslint-disable-next-line compat/compat
     return fetch(url, setup).then(res => {
         if (!res.ok) {
             throw new Error(`HTTP ${res.status} loading ${url}`);

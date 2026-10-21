@@ -2890,107 +2890,23 @@ const $ = OpenSeadragon;
     })();
 
 
-    // Adding support for HTML5's requestAnimationFrame as suggested by acdha.
-    // Implementation taken from matt synder's post here:
-    // http://mattsnider.com/cross-browser-and-legacy-supported-requestframeanimation/
-    const animationFrame = (function( w ) {
-
-        // most browsers have an implementation
-        const requestAnimationFrame = w.requestAnimationFrame ||
-            w.mozRequestAnimationFrame ||
-            w.webkitRequestAnimationFrame ||
-            w.msRequestAnimationFrame;
-
-        const cancelAnimationFrame = w.cancelAnimationFrame ||
-            w.mozCancelAnimationFrame ||
-            w.webkitCancelAnimationFrame ||
-            w.msCancelAnimationFrame;
-
-        // polyfill, when necessary
-        if ( requestAnimationFrame && cancelAnimationFrame ) {
-            // We can't assign these window methods directly to $ because they
-            // expect their "this" to be "window", so we call them in wrappers.
-            return {
-                request: function( callback ) {
-                    return requestAnimationFrame.call( w, callback );
-                },
-                cancel: function( requestId ) {
-                    cancelAnimationFrame.call( w, requestId );
-                }
-            };
-        } else {
-            let aAnimQueue = [];
-            let processing = [];
-            let iIntervalId;
-            let iRequestId = 0;
-
-            // create a mock requestAnimationFrame function
-            const request = function( callback ) {
-                aAnimQueue.push( [ ++iRequestId, callback ] );
-
-                if ( !iIntervalId ) {
-                     iIntervalId = setInterval( function() {
-                        if ( aAnimQueue.length ) {
-                            const time = $.now();
-                            // Process all of the currently outstanding frame
-                            // requests, but none that get added during the
-                            // processing.
-                            // Swap the arrays so we don't have to create a new
-                            // array every frame.
-                            const temp = processing;
-                            processing = aAnimQueue;
-                            aAnimQueue = temp;
-                            while ( processing.length ) {
-                                processing.shift()[ 1 ]( time );
-                            }
-                        } else {
-                            // don't continue the interval, if unnecessary
-                            clearInterval( iIntervalId );
-                            iIntervalId = undefined;
-                        }
-                    }, 1000 / 50);  // estimating support for 50 frames per second
-                }
-
-                return iRequestId;
-            };
-
-            // create a mock cancelAnimationFrame function
-            const cancel = function( requestId ) {
-                // find the request ID and remove it
-                let i, j;
-                for ( i = 0, j = aAnimQueue.length; i < j; i += 1 ) {
-                    if ( aAnimQueue[ i ][ 0 ] === requestId ) {
-                        aAnimQueue.splice( i, 1 );
-                        return;
-                    }
-                }
-
-                // If it's not in the queue, it may be in the set we're currently
-                // processing (if cancelAnimationFrame is called from within a
-                // requestAnimationFrame callback).
-                for ( i = 0, j = processing.length; i < j; i += 1 ) {
-                    if ( processing[ i ][ 0 ] === requestId ) {
-                        processing.splice( i, 1 );
-                        return;
-                    }
-                }
-            };
-            return { request, cancel };
-        }
-    })( window );
-
+    // Wrapped rather than assigned, because these expect `this` to be window.
     /**
      * @function
      * @param {FrameRequestCallback} callback
      * @returns {number}
      */
-    OpenSeadragon.requestAnimationFrame = animationFrame.request;
+    OpenSeadragon.requestAnimationFrame = function( callback ) {
+        return window.requestAnimationFrame( callback );
+    };
 
     /**
      * @function
      * @param {number} requestId
      */
-    OpenSeadragon.cancelAnimationFrame = animationFrame.cancel;
+    OpenSeadragon.cancelAnimationFrame = function( requestId ) {
+        window.cancelAnimationFrame( requestId );
+    };
 
     /**
      * @private
