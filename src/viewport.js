@@ -32,8 +32,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
 
+
+
+import $ from "./openseadragon.js";
+import { Point } from "./point.js";
+import { Rect } from "./rectangle.js";
+import { Spring } from "./spring.js";
 
 /**
  * @class Viewport
@@ -56,12 +61,12 @@
  * @param {Boolean} [options.homeFillsViewer] - See homeFillsViewer in {@link OpenSeadragon.Options}.
  * @param {Boolean} [options.silenceMultiImageWarnings] - See silenceMultiImageWarnings in {@link OpenSeadragon.Options}.
  */
-$.Viewport = function( options ) {
+function Viewport( options ) {
 
     //backward compatibility for positional args while preferring more
     //idiomatic javascript options object as the only argument
     const args = arguments;
-    if (args.length && args[0] instanceof $.Point) {
+    if (args.length && args[0] instanceof Point) {
         options = {
             containerSize:  args[0],
             contentSize:    args[1],
@@ -120,24 +125,24 @@ $.Viewport = function( options ) {
 
     this._updateContainerInnerSize();
 
-    this.centerSpringX = new $.Spring({
+    this.centerSpringX = new Spring({
         initial: 0,
         springStiffness: this.springStiffness,
         animationTime:   this.animationTime
     });
-    this.centerSpringY = new $.Spring({
+    this.centerSpringY = new Spring({
         initial: 0,
         springStiffness: this.springStiffness,
         animationTime:   this.animationTime
     });
-    this.zoomSpring    = new $.Spring({
+    this.zoomSpring    = new Spring({
         exponential: true,
         initial: 1,
         springStiffness: this.springStiffness,
         animationTime:   this.animationTime
     });
 
-    this.degreesSpring = new $.Spring({
+    this.degreesSpring = new Spring({
         initial: options.initialDegrees,
         springStiffness: this.springStiffness,
         animationTime: this.animationTime
@@ -150,14 +155,14 @@ $.Viewport = function( options ) {
 
     this._sizeChanged = false;
 
-    this._setContentBounds(new $.Rect(0, 0, 1, 1), 1);
+    this._setContentBounds(new Rect(0, 0, 1, 1), 1);
 
     this.goHome(true);
     this.update();
-};
+}
 
 /** @lends OpenSeadragon.Viewport.prototype */
-$.Viewport.prototype = {
+Viewport.prototype = {
 
     // deprecated
     get degrees () {
@@ -180,11 +185,11 @@ $.Viewport.prototype = {
      */
     resetContentSize: function(contentSize) {
         $.console.assert(contentSize, "[Viewport.resetContentSize] contentSize is required");
-        $.console.assert(contentSize instanceof $.Point, "[Viewport.resetContentSize] contentSize must be an OpenSeadragon.Point");
+        $.console.assert(contentSize instanceof Point, "[Viewport.resetContentSize] contentSize must be an OpenSeadragon.Point");
         $.console.assert(contentSize.x > 0, "[Viewport.resetContentSize] contentSize.x must be greater than 0");
         $.console.assert(contentSize.y > 0, "[Viewport.resetContentSize] contentSize.y must be greater than 0");
 
-        this._setContentBounds(new $.Rect(0, 0, 1, contentSize.y / contentSize.x), contentSize.x);
+        this._setContentBounds(new Rect(0, 0, 1, contentSize.y / contentSize.x), contentSize.x);
         return this;
     },
 
@@ -202,7 +207,7 @@ $.Viewport.prototype = {
     // @private
     _setContentBounds: function(bounds, contentFactor) {
         $.console.assert(bounds, "[Viewport._setContentBounds] bounds is required");
-        $.console.assert(bounds instanceof $.Rect, "[Viewport._setContentBounds] bounds must be an OpenSeadragon.Rect");
+        $.console.assert(bounds instanceof Rect, "[Viewport._setContentBounds] bounds must be an OpenSeadragon.Rect");
         $.console.assert(bounds.width > 0, "[Viewport._setContentBounds] bounds.width must be greater than 0");
         $.console.assert(bounds.height > 0, "[Viewport._setContentBounds] bounds.height must be greater than 0");
 
@@ -281,7 +286,7 @@ $.Viewport.prototype = {
         const width  = 1.0 / this.getHomeZoom();
         const height = width / this.getAspectRatio();
 
-        return new $.Rect(
+        return new Rect(
             center.x - (width / 2.0),
             center.y - (height / 2.0),
             width,
@@ -350,7 +355,7 @@ $.Viewport.prototype = {
      * @returns {OpenSeadragon.Point} The size of the container, in screen coordinates.
      */
     getContainerSize: function() {
-        return new $.Point(
+        return new Point(
             this.containerSize.x,
             this.containerSize.y
         );
@@ -410,7 +415,7 @@ $.Viewport.prototype = {
         const width  = 1.0 / this.getZoom(current);
         const height = width / this.getAspectRatio();
 
-        return new $.Rect(
+        return new Rect(
             center.x - (width / 2.0),
             center.y - (height / 2.0),
             width,
@@ -450,11 +455,11 @@ $.Viewport.prototype = {
      * @param {Boolean} current - Pass true for the current location; defaults to false (target location).
      */
     getCenter: function( current ) {
-        const centerCurrent = new $.Point(
+        const centerCurrent = new Point(
                 this.centerSpringX.current.value,
                 this.centerSpringY.current.value
             );
-        const centerTarget = new $.Point(
+        const centerTarget = new Point(
                 this.centerSpringX.target.value,
                 this.centerSpringY.target.value
             );
@@ -470,7 +475,7 @@ $.Viewport.prototype = {
         const zoom    = this.getZoom();
         const width   = 1.0 / zoom;
         const height  = width / this.getAspectRatio();
-        const bounds  = new $.Rect(
+        const bounds  = new Rect(
             centerCurrent.x - width / 2.0,
             centerCurrent.y - height / 2.0,
             width,
@@ -659,7 +664,7 @@ $.Viewport.prototype = {
         const center = bounds.getCenter();
 
         // Compute width and height of bounding box.
-        const newBounds = new $.Rect(
+        const newBounds = new Rect(
             bounds.x,
             bounds.y,
             bounds.width,
@@ -771,7 +776,7 @@ $.Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
     fitVertically: function(immediately) {
-        const box = new $.Rect(
+        const box = new Rect(
             this._contentBounds.x + (this._contentBounds.width / 2),
             this._contentBounds.y,
             0,
@@ -785,7 +790,7 @@ $.Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
     fitHorizontally: function(immediately) {
-        const box = new $.Rect(
+        const box = new Rect(
             this._contentBounds.x,
             this._contentBounds.y + (this._contentBounds.height / 2),
             this._contentBounds.width,
@@ -818,7 +823,7 @@ $.Viewport.prototype = {
      * @fires OpenSeadragon.Viewer.event:pan
      */
     panBy: function( delta, immediately ) {
-        const center = new $.Point();
+        const center = new Point();
         if (immediately) {
             center.x = this.centerSpringX.current.value;
             center.y = this.centerSpringY.current.value;
@@ -889,7 +894,7 @@ $.Viewport.prototype = {
     zoomTo: function(zoom, refPoint, immediately) {
         const _this = this;
 
-        this.zoomPoint = refPoint instanceof $.Point &&
+        this.zoomPoint = refPoint instanceof Point &&
             !isNaN(refPoint.x) &&
             !isNaN(refPoint.y) ?
             refPoint :
@@ -983,7 +988,7 @@ $.Viewport.prototype = {
             this.degreesSpring.isAtTargetValue()) {
             return this;
         }
-        this.rotationPivot = pivot instanceof $.Point &&
+        this.rotationPivot = pivot instanceof Point &&
             !isNaN(pivot.x) &&
             !isNaN(pivot.y) ?
             pivot :
@@ -1062,7 +1067,7 @@ $.Viewport.prototype = {
                 return this;
             }
             const el = $.getElement(this.viewer.container);
-            newContainerSize = new $.Point(el.clientWidth || 1, el.clientHeight || 1);
+            newContainerSize = new Point(el.clientWidth || 1, el.clientHeight || 1);
         }
         const oldBounds = this.getBoundsNoRotate(false);
         const newBounds = oldBounds;
@@ -1129,7 +1134,7 @@ $.Viewport.prototype = {
 
     // private
     _updateContainerInnerSize: function() {
-        this._containerInnerSize = new $.Point(
+        this._containerInnerSize = new Point(
             Math.max(1, this.containerSize.x - (this._margins.left + this._margins.right)),
             Math.max(1, this.containerSize.y - (this._margins.top + this._margins.bottom))
         );
@@ -1313,7 +1318,7 @@ $.Viewport.prototype = {
         ).times(
             this._containerInnerSize.x / bounds.width
         ).plus(
-            new $.Point(this._margins.left, this._margins.top)
+            new Point(this._margins.left, this._margins.top)
         );
     },
 
@@ -1336,7 +1341,7 @@ $.Viewport.prototype = {
     pointFromPixelNoRotate: function(pixel, current) {
         const bounds = this.getBoundsNoRotate(current);
         return pixel.minus(
-            new $.Point(this._margins.left, this._margins.top)
+            new Point(this._margins.left, this._margins.top)
         ).divide(
             this._containerInnerSize.x / bounds.width
         ).plus(
@@ -1361,7 +1366,7 @@ $.Viewport.prototype = {
     // private
     _viewportToImageDelta: function( viewerX, viewerY ) {
         const scale = this._contentBoundsNoRotate.width;
-        return new $.Point(
+        return new Point(
             viewerX * this._contentSizeNoRotate.x / scale,
             viewerY * this._contentSizeNoRotate.x / scale);
     },
@@ -1378,7 +1383,7 @@ $.Viewport.prototype = {
      * @returns {OpenSeadragon.Point} a point representing the coordinates in the image.
      */
     viewportToImageCoordinates: function(viewerX, viewerY) {
-        if (viewerX instanceof $.Point) {
+        if (viewerX instanceof Point) {
             //they passed a point instead of individual components
             return this.viewportToImageCoordinates(viewerX.x, viewerX.y);
         }
@@ -1407,7 +1412,7 @@ $.Viewport.prototype = {
     // private
     _imageToViewportDelta: function( imageX, imageY ) {
         const scale = this._contentBoundsNoRotate.width;
-        return new $.Point(
+        return new Point(
             imageX / this._contentSizeNoRotate.x * scale,
             imageY / this._contentSizeNoRotate.x * scale);
     },
@@ -1424,7 +1429,7 @@ $.Viewport.prototype = {
      * @returns {OpenSeadragon.Point} a point representing the coordinates in the viewport.
      */
     imageToViewportCoordinates: function(imageX, imageY) {
-        if (imageX instanceof $.Point) {
+        if (imageX instanceof Point) {
             //they passed a point instead of individual components
             return this.imageToViewportCoordinates(imageX.x, imageX.y);
         }
@@ -1468,9 +1473,9 @@ $.Viewport.prototype = {
      */
     imageToViewportRectangle: function(imageX, imageY, pixelWidth, pixelHeight) {
         let rect = imageX;
-        if (!(rect instanceof $.Rect)) {
+        if (!(rect instanceof Rect)) {
             //they passed individual components instead of a rectangle
-            rect = new $.Rect(imageX, imageY, pixelWidth, pixelHeight);
+            rect = new Rect(imageX, imageY, pixelWidth, pixelHeight);
         }
 
         if (this.viewer) {
@@ -1492,7 +1497,7 @@ $.Viewport.prototype = {
 
         const coordA = this.imageToViewportCoordinates(rect.x, rect.y);
         const coordB = this._imageToViewportDelta(rect.width, rect.height);
-        return new $.Rect(
+        return new Rect(
             coordA.x,
             coordA.y,
             coordB.x,
@@ -1518,9 +1523,9 @@ $.Viewport.prototype = {
      */
     viewportToImageRectangle: function(viewerX, viewerY, pointWidth, pointHeight) {
         let rect = viewerX;
-        if (!(rect instanceof $.Rect)) {
+        if (!(rect instanceof Rect)) {
             //they passed individual components instead of a rectangle
-            rect = new $.Rect(viewerX, viewerY, pointWidth, pointHeight);
+            rect = new Rect(viewerX, viewerY, pointWidth, pointHeight);
         }
 
         if (this.viewer) {
@@ -1542,7 +1547,7 @@ $.Viewport.prototype = {
 
         const coordA = this.viewportToImageCoordinates(rect.x, rect.y);
         const coordB = this._viewportToImageDelta(rect.width, rect.height);
-        return new $.Rect(
+        return new Rect(
             coordA.x,
             coordA.y,
             coordB.x,
@@ -1630,7 +1635,7 @@ $.Viewport.prototype = {
      * @returns {OpenSeadragon.Rect} the converted rectangle
      */
     viewerElementToViewportRectangle: function(rectangle) {
-        return $.Rect.fromSummits(
+        return Rect.fromSummits(
             this.pointFromPixel(rectangle.getTopLeft(), true),
             this.pointFromPixel(rectangle.getTopRight(), true),
             this.pointFromPixel(rectangle.getBottomLeft(), true)
@@ -1644,7 +1649,7 @@ $.Viewport.prototype = {
      * @returns {OpenSeadragon.Rect} the converted rectangle
      */
     viewportToViewerElementRectangle: function(rectangle) {
-        return $.Rect.fromSummits(
+        return Rect.fromSummits(
             this.pixelFromPoint(rectangle.getTopLeft(), true),
             this.pixelFromPoint(rectangle.getTopRight(), true),
             this.pixelFromPoint(rectangle.getBottomLeft(), true)
@@ -1839,4 +1844,4 @@ $.Viewport.prototype = {
 
 };
 
-}( OpenSeadragon ));
+export { Viewport };

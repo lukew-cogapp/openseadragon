@@ -32,7 +32,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function ( $ ) {
+
+
+import $ from "./openseadragon.js";
+import { Point } from "./point.js";
 
     // All MouseTracker instances
     const MOUSETRACKERS  = [];
@@ -121,7 +124,7 @@
      * @param {Object} [options.userData=null]
      *      Arbitrary object to be passed unchanged to any attached handler methods.
      */
-    $.MouseTracker = function ( options ) {
+    function MouseTracker ( options ) {
 
         MOUSETRACKERS.push( this );
 
@@ -286,7 +289,7 @@
             sentDragEvent:         false
         };
 
-        if ( $.MouseTracker.havePointerEvents ) {
+        if ( MouseTracker.havePointerEvents ) {
             $.setElementPointerEvents( this.element, 'auto' );
         }
 
@@ -297,10 +300,10 @@
         if ( !options.startDisabled ) {
             this.setTracking( true );
         }
-    };
+    }
 
     /** @lends OpenSeadragon.MouseTracker.prototype */
-    $.MouseTracker.prototype = {
+    MouseTracker.prototype = {
 
         /**
          * Clean up any events or objects created by the tracker.
@@ -392,7 +395,7 @@
                 }
             }
 
-            list = new $.MouseTracker.GesturePointList( type );
+            list = new MouseTracker.GesturePointList( type );
             if(delegate){
                 delegate.activePointersLists.push( list );
             }
@@ -1074,7 +1077,7 @@
      * @member gesturePointVelocityTracker
      * @memberof OpenSeadragon.MouseTracker
      */
-    $.MouseTracker.gesturePointVelocityTracker = (function () {
+    MouseTracker.gesturePointVelocityTracker = (function () {
         const trackerPoints = [];
         let intervalId = 0;
         let lastTime = 0;
@@ -1156,49 +1159,49 @@
 // Pointer event model and feature detection
 ///////////////////////////////////////////////////////////////////////////////
 
-    $.MouseTracker.captureElement = document;
+    MouseTracker.captureElement = document;
 
     /**
      * Detect available mouse wheel event name.
      */
-    $.MouseTracker.wheelEventName = ( 'onwheel' in document.createElement( 'div' ) ) ? 'wheel' : // Modern browsers support 'wheel'
+    MouseTracker.wheelEventName = ( 'onwheel' in document.createElement( 'div' ) ) ? 'wheel' : // Modern browsers support 'wheel'
                                     document.onmousewheel !== undefined ? 'mousewheel' :         // Webkit (and unsupported IE) support at least 'mousewheel'
                                     'DOMMouseScroll';                                            // Assume old Firefox (deprecated)
 
     /**
      * Detect browser pointer device event model(s) and build appropriate list of events to subscribe to.
      */
-    $.MouseTracker.subscribeEvents = [ "click", "dblclick", "keydown", "keyup", "keypress", "focus", "blur", "contextmenu", $.MouseTracker.wheelEventName ];
+    MouseTracker.subscribeEvents = [ "click", "dblclick", "keydown", "keyup", "keypress", "focus", "blur", "contextmenu", MouseTracker.wheelEventName ];
 
-    if( $.MouseTracker.wheelEventName === "DOMMouseScroll" ) {
+    if( MouseTracker.wheelEventName === "DOMMouseScroll" ) {
         // Older Firefox
-        $.MouseTracker.subscribeEvents.push( "MozMousePixelScroll" );
+        MouseTracker.subscribeEvents.push( "MozMousePixelScroll" );
     }
 
     if ( window.PointerEvent ) {
         // W3C Pointer Event implementations (see http://www.w3.org/TR/pointerevents)
-        $.MouseTracker.havePointerEvents = true;
-        $.MouseTracker.subscribeEvents.push( "pointerenter", "pointerleave", "pointerover", "pointerout", "pointerdown", "pointerup", "pointermove", "pointercancel" );
+        MouseTracker.havePointerEvents = true;
+        MouseTracker.subscribeEvents.push( "pointerenter", "pointerleave", "pointerover", "pointerout", "pointerdown", "pointerup", "pointermove", "pointercancel" );
         // Pointer events capture support
-        $.MouseTracker.havePointerCapture = (function () {
+        MouseTracker.havePointerCapture = (function () {
             const divElement = document.createElement( 'div' );
             return $.isFunction( divElement.setPointerCapture ) && $.isFunction( divElement.releasePointerCapture );
         }());
-        if ( $.MouseTracker.havePointerCapture ) {
-            $.MouseTracker.subscribeEvents.push( "gotpointercapture", "lostpointercapture" );
+        if ( MouseTracker.havePointerCapture ) {
+            MouseTracker.subscribeEvents.push( "gotpointercapture", "lostpointercapture" );
         }
     } else {
         // Legacy W3C mouse events
-        $.MouseTracker.havePointerEvents = false;
-        $.MouseTracker.subscribeEvents.push( "mouseenter", "mouseleave", "mouseover", "mouseout", "mousedown", "mouseup", "mousemove" );
-        $.MouseTracker.mousePointerId = "legacy-mouse";
+        MouseTracker.havePointerEvents = false;
+        MouseTracker.subscribeEvents.push( "mouseenter", "mouseleave", "mouseover", "mouseout", "mousedown", "mouseup", "mousemove" );
+        MouseTracker.mousePointerId = "legacy-mouse";
         // Legacy mouse events capture support (IE/Firefox only?)
-        $.MouseTracker.havePointerCapture = (function () {
+        MouseTracker.havePointerCapture = (function () {
             const divElement = document.createElement( 'div' );
             return $.isFunction( divElement.setCapture ) && $.isFunction( divElement.releaseCapture );
         }());
-        if ( $.MouseTracker.havePointerCapture ) {
-            $.MouseTracker.subscribeEvents.push( "losecapture" );
+        if ( MouseTracker.havePointerCapture ) {
+            MouseTracker.subscribeEvents.push( "losecapture" );
         }
         // Legacy touch events
         if ( 'ontouchstart' in window ) {
@@ -1206,12 +1209,12 @@
             //    (see http://www.w3.org/TR/touch-events/)
             //    (see https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html)
             //    (see https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html)
-            $.MouseTracker.subscribeEvents.push( "touchstart", "touchend", "touchmove", "touchcancel" );
+            MouseTracker.subscribeEvents.push( "touchstart", "touchend", "touchmove", "touchcancel" );
         }
         if ( 'ongesturestart' in window ) {
             // iOS (see https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html)
             //   Subscribe to these to prevent default gesture handling
-            $.MouseTracker.subscribeEvents.push( "gesturestart", "gesturechange" );
+            MouseTracker.subscribeEvents.push( "gesturestart", "gesturechange" );
         }
     }
 
@@ -1312,7 +1315,7 @@
      * @memberof OpenSeadragon.MouseTracker
      * @param {String} type - The pointer device type: "mouse", "touch", "pen", etc.
      */
-    $.MouseTracker.GesturePointList = function ( type ) {
+    MouseTracker.GesturePointList = function ( type ) {
         this._gPoints = [];
         /**
          * The pointer device type: "mouse", "touch", "pen", etc.
@@ -1348,7 +1351,7 @@
     };
 
     /** @lends OpenSeadragon.MouseTracker.GesturePointList.prototype */
-    $.MouseTracker.GesturePointList.prototype = {
+    MouseTracker.GesturePointList.prototype = {
         /**
          * @function
          * @returns {Number} Number of gesture points in the list.
@@ -1503,13 +1506,13 @@
         const delegate = THIS[ tracker.hash ];
 
         if ( !delegate.tracking ) {
-            for ( let i = 0; i < $.MouseTracker.subscribeEvents.length; i++ ) {
-                const event = $.MouseTracker.subscribeEvents[ i ];
+            for ( let i = 0; i < MouseTracker.subscribeEvents.length; i++ ) {
+                const event = MouseTracker.subscribeEvents[ i ];
                 $.addEvent(
                     tracker.element,
                     event,
                     delegate[ event ],
-                    event === $.MouseTracker.wheelEventName ? { passive: false, capture: false } : false
+                    event === MouseTracker.wheelEventName ? { passive: false, capture: false } : false
                 );
             }
 
@@ -1535,8 +1538,8 @@
         const delegate = THIS[ tracker.hash ];
 
         if ( delegate.tracking ) {
-            for ( let i = 0; i < $.MouseTracker.subscribeEvents.length; i++ ) {
-                const event = $.MouseTracker.subscribeEvents[ i ];
+            for ( let i = 0; i < MouseTracker.subscribeEvents.length; i++ ) {
+                const event = MouseTracker.subscribeEvents[ i ];
                 $.removeEvent(
                     tracker.element,
                     event,
@@ -1594,8 +1597,8 @@
      * @inner
      */
     function capturePointer( tracker, gPoint ) {
-        if ( $.MouseTracker.havePointerCapture ) {
-            if ( $.MouseTracker.havePointerEvents ) {
+        if ( MouseTracker.havePointerCapture ) {
+            if ( MouseTracker.havePointerEvents ) {
                 // Can throw NotFoundError (InvalidPointerId Firefox < 82)
                 //   (should never happen so we'll log a warning)
                 try {
@@ -1613,7 +1616,7 @@
             // Emulate mouse capture by hanging listeners on the document object.
             //    (Note we listen on the capture phase so the captured handlers will get called first)
             //$.console.log('Emulated mouse capture set');
-            const eventParams = getCaptureEventParams( tracker, $.MouseTracker.havePointerEvents ? 'pointerevent' : gPoint.type );
+            const eventParams = getCaptureEventParams( tracker, MouseTracker.havePointerEvents ? 'pointerevent' : gPoint.type );
             // https://github.com/openseadragon/openseadragon/pull/790
             if (isInIframe && canAccessEvents(window.top)) {
                 $.addEvent(
@@ -1624,13 +1627,13 @@
                 );
             }
             $.addEvent(
-                $.MouseTracker.captureElement,
+                MouseTracker.captureElement,
                 eventParams.upName,
                 eventParams.upHandler,
                 true
             );
             $.addEvent(
-                $.MouseTracker.captureElement,
+                MouseTracker.captureElement,
                 eventParams.moveName,
                 eventParams.moveHandler,
                 true
@@ -1647,8 +1650,8 @@
      * @inner
      */
     function releasePointer( tracker, gPoint ) {
-        if ( $.MouseTracker.havePointerCapture ) {
-            if ( $.MouseTracker.havePointerEvents ) {
+        if ( MouseTracker.havePointerCapture ) {
+            if ( MouseTracker.havePointerEvents ) {
                 const pointsList = tracker.getActivePointersListByType( gPoint.type );
                 const cachedGPoint = pointsList.getById( gPoint.id );
                 if ( !cachedGPoint || !cachedGPoint.captured ) {
@@ -1670,7 +1673,7 @@
             // Emulate mouse capture by hanging listeners on the document object.
             //    (Note we listen on the capture phase so the captured handlers will get called first)
             //$.console.log('Emulated mouse capture release');
-            const eventParams = getCaptureEventParams( tracker, $.MouseTracker.havePointerEvents ? 'pointerevent' : gPoint.type );
+            const eventParams = getCaptureEventParams( tracker, MouseTracker.havePointerEvents ? 'pointerevent' : gPoint.type );
             // https://github.com/openseadragon/openseadragon/pull/790
             if (isInIframe && canAccessEvents(window.top)) {
                 $.removeEvent(
@@ -1681,13 +1684,13 @@
                 );
             }
             $.removeEvent(
-                $.MouseTracker.captureElement,
+                MouseTracker.captureElement,
                 eventParams.moveName,
                 eventParams.moveHandler,
                 true
             );
             $.removeEvent(
-                $.MouseTracker.captureElement,
+                MouseTracker.captureElement,
                 eventParams.upName,
                 eventParams.upHandler,
                 true
@@ -1705,7 +1708,7 @@
      * @inner
      */
     function getPointerId( event ) {
-        return ( $.MouseTracker.havePointerEvents ) ? event.pointerId : $.MouseTracker.mousePointerId;
+        return ( MouseTracker.havePointerEvents ) ? event.pointerId : MouseTracker.mousePointerId;
     }
 
 
@@ -1718,7 +1721,7 @@
      * @inner
      */
     function getPointerType( event ) {
-        return $.MouseTracker.havePointerEvents && event.pointerType ? event.pointerType : 'mouse';
+        return MouseTracker.havePointerEvents && event.pointerType ? event.pointerType : 'mouse';
     }
 
 
@@ -1729,7 +1732,7 @@
      * @inner
      */
     function getIsPrimary( event ) {
-        return ( $.MouseTracker.havePointerEvents ) ? event.isPrimary : true;
+        return ( MouseTracker.havePointerEvents ) ? event.isPrimary : true;
     }
 
 
@@ -1763,7 +1766,7 @@
      * @inner
      */
     function getCenterPoint( point1, point2 ) {
-        return new $.Point( ( point1.x + point2.x ) / 2, ( point1.y + point2.y ) / 2 );
+        return new Point( ( point1.x + point2.x ) / 2, ( point1.y + point2.y ) / 2 );
     }
 
 
@@ -2089,7 +2092,7 @@
         };
 
         // Calculate deltaY
-        if ( $.MouseTracker.wheelEventName === "mousewheel" ) {
+        if ( MouseTracker.wheelEventName === "mousewheel" ) {
             simulatedEvent.deltaY = -event.wheelDelta / $.DEFAULT_SETTINGS.pixelsPerWheelLine;
         } else {
             simulatedEvent.deltaY = event.detail;
@@ -2160,7 +2163,7 @@
         //$.console.log('losecapture ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
         const gPoint = {
-            id: $.MouseTracker.mousePointerId,
+            id: MouseTracker.mousePointerId,
             type: 'mouse'
         };
 
@@ -2591,7 +2594,7 @@
         //                         event.target.hasPointerCapture &&
         //                         $.Browser.vendor !== $.BROWSERS.IE) ?
         //                         event.target.hasPointerCapture(event.pointerId) : false;
-        const implicitlyCaptured = $.MouseTracker.havePointerEvents &&
+        const implicitlyCaptured = MouseTracker.havePointerEvents &&
                                 gPoint.type === 'touch';
 
         //$.console.log('pointerdown ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
@@ -3324,7 +3327,7 @@
             }
 
             if ( tracker.dragHandler || tracker.dragEndHandler || tracker.pinchHandler ) {
-                $.MouseTracker.gesturePointVelocityTracker.addPoint( tracker, gPoint );
+                MouseTracker.gesturePointVelocityTracker.addPoint( tracker, gPoint );
             }
 
             if ( pointsList.contacts === 1 ) {
@@ -3485,7 +3488,7 @@
                 eventInfo.preventDefault = true;
 
                 if ( tracker.dragHandler || tracker.dragEndHandler || tracker.pinchHandler ) {
-                    $.MouseTracker.gesturePointVelocityTracker.removePoint( tracker, updateGPoint );
+                    MouseTracker.gesturePointVelocityTracker.removePoint( tracker, updateGPoint );
                 }
 
                 if ( pointsList.contacts === 0 ) {
@@ -3819,4 +3822,4 @@
         return uniqueId;
     }
 
-}(OpenSeadragon));
+export { MouseTracker };

@@ -32,7 +32,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+import $ from "./openseadragon.js";
+import { MouseTracker } from "./mousetracker.js";
+
 /**
  * @class ButtonGroup
  * @classdesc Manages events on groups of buttons.
@@ -42,7 +45,7 @@
  * @param {Array} options.buttons Array of buttons
  * @param {Element} [options.element] Element to use as the container
  **/
-$.ButtonGroup = function( options ) {
+function ButtonGroup( options ) {
 
     $.extend( true, this, {
         /**
@@ -87,7 +90,7 @@ $.ButtonGroup = function( options ) {
      * @member {OpenSeadragon.MouseTracker} tracker
      * @memberof OpenSeadragon.ButtonGroup#
      */
-    this.tracker = new $.MouseTracker({
+    this.tracker = new MouseTracker({
         userData:           'ButtonGroup.tracker',
         element:            this.element,
         clickTimeThreshold: this.clickTimeThreshold,
@@ -107,10 +110,10 @@ $.ButtonGroup = function( options ) {
             }
         },
     });
-};
+}
 
 /** @lends OpenSeadragon.ButtonGroup.prototype */
-$.ButtonGroup.prototype = {
+ButtonGroup.prototype = {
 
     /**
      * Adds the given button to this button group.
@@ -154,5 +157,4 @@ $.ButtonGroup.prototype = {
     }
 };
 
-
-}( OpenSeadragon ));
+export { ButtonGroup };

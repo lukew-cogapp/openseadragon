@@ -32,7 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
 
 /**
  * @class Spring
@@ -47,7 +49,7 @@
  * an exponential scale (such as zoom) and should be animated accordingly. Note that
  * exponential springs must have non-zero values.
  */
-$.Spring = function( options ) {
+function Spring( options ) {
     const args = arguments;
 
     if( typeof ( options ) !== 'object' ){
@@ -132,10 +134,10 @@ $.Spring = function( options ) {
         this.target._logValue = Math.log(this.target.value);
         this.current._logValue = Math.log(this.current.value);
     }
-};
+}
 
 /** @lends OpenSeadragon.Spring.prototype */
-$.Spring.prototype = {
+Spring.prototype = {
 
     /**
      * @function
@@ -260,4 +262,4 @@ function transform( stiffness, x ) {
         ( 1.0 - Math.exp( -stiffness ) );
 }
 
-}( OpenSeadragon ));
+export { Spring };

@@ -32,7 +32,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function ( $ ) {
+
+
+import $ from "./openseadragon.js";
+import { ControlAnchor } from "./control.js";
+import { MouseTracker } from "./mousetracker.js";
+import { Viewer } from "./viewer.js";
 
 // dictionary from id to private properties
 const THIS = {};
@@ -61,7 +66,7 @@ const THIS = {};
  * @memberof OpenSeadragon
  * @param {Object} options
  */
-$.ReferenceStrip = function ( options ) {
+function ReferenceStrip ( options ) {
 
     const _this       = this;
     const viewer      = options.viewer;
@@ -113,7 +118,7 @@ $.ReferenceStrip = function ( options ) {
     $.setElementOpacity( this.element, 0.8 );
 
     this.viewer = viewer;
-    this.tracker = new $.MouseTracker( {
+    this.tracker = new MouseTracker( {
         userData:       'ReferenceStrip.tracker',
         element:        this.element,
         clickHandler:   $.delegate( this, onStripClick ),
@@ -137,7 +142,7 @@ $.ReferenceStrip = function ( options ) {
         this.element.style.height = options.height + 'px';
         viewer.addControl(
             this.element,
-            { anchor: $.ControlAnchor.BOTTOM_LEFT }
+            { anchor: ControlAnchor.BOTTOM_LEFT }
         );
     } else {
         if ( "horizontal" === options.scroll ) {
@@ -154,7 +159,7 @@ $.ReferenceStrip = function ( options ) {
 
             viewer.addControl(
                 this.element,
-                { anchor: $.ControlAnchor.BOTTOM_LEFT }
+                { anchor: ControlAnchor.BOTTOM_LEFT }
             );
         } else {
             this.element.style.height = (
@@ -170,7 +175,7 @@ $.ReferenceStrip = function ( options ) {
 
             viewer.addControl(
                 this.element,
-                { anchor: $.ControlAnchor.TOP_LEFT }
+                { anchor: ControlAnchor.TOP_LEFT }
             );
 
         }
@@ -206,10 +211,10 @@ $.ReferenceStrip = function ( options ) {
     loadPanels( this, this.scroll === 'vertical' ? viewerSize.y : viewerSize.x, 0 );
     this.setFocus( 0 );
 
-};
+}
 
 /** @lends OpenSeadragon.ReferenceStrip.prototype */
-$.ReferenceStrip.prototype = {
+ReferenceStrip.prototype = {
 
     /**
      * @function
@@ -440,7 +445,7 @@ function loadPanels( strip, viewerSize, scroll ) {
             } else {
                 miniTileSource = originalTileSource;
             }
-            miniViewer = new $.Viewer( {
+            miniViewer = new Viewer( {
                 id:                     element.id,
                 tileSources:            [miniTileSource],
                 element:                element,
@@ -608,4 +613,6 @@ function onKeyPress( event ) {
     }
 }
 
-}(OpenSeadragon));
+ReferenceStrip.viewerFeature = "ReferenceStrip";
+
+export { ReferenceStrip };

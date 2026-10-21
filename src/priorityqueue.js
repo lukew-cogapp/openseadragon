@@ -8,9 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-(function($) {
 
-const OpenSeadragon = $; // alias for JSDoc
+
 
 /**
  * @class OpenSeadragon.PriorityQueue
@@ -18,7 +17,7 @@ const OpenSeadragon = $; // alias for JSDoc
  * @param {?OpenSeadragon.PriorityQueue} optHeap Optional Heap
  *     to initialize heap with.
  */
-OpenSeadragon.PriorityQueue = class PriorityQueue {
+class PriorityQueue {
 
     constructor(optHeap = undefined) {
         /**
@@ -67,7 +66,7 @@ OpenSeadragon.PriorityQueue = class PriorityQueue {
      */
     insertAll(heap) {
         let keys, values;
-        if (heap instanceof $.PriorityQueue) {
+        if (heap instanceof PriorityQueue) {
             keys = heap.getKeys();
             values = heap.getValues();
 
@@ -291,7 +290,7 @@ OpenSeadragon.PriorityQueue = class PriorityQueue {
      * @return {!OpenSeadragon.PriorityQueue} A new Heap with the same key-value pairs.
      */
     clone() {
-        return new $.PriorityQueue(this);
+        return new PriorityQueue(this);
     }
 
     /**
@@ -316,12 +315,12 @@ OpenSeadragon.PriorityQueue = class PriorityQueue {
     clear() {
         this.nodes_.length = 0;
     }
-};
+}
 
 /**
  * @private
  */
-OpenSeadragon.PriorityQueue.Node = class Node {
+PriorityQueue.Node = class Node {
     constructor(key, value) {
         /**
          * The key.
@@ -350,4 +349,4 @@ OpenSeadragon.PriorityQueue.Node = class Node {
     }
 };
 
-}(OpenSeadragon));
+export { PriorityQueue };

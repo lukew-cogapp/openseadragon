@@ -32,9 +32,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function($){
 
-const OpenSeadragon = $; // alias for JSDoc
+
+import $ from "./openseadragon.js";
+import { PriorityQueue } from "./priorityqueue.js";
+
 
 /**
  * modified from https://gist.github.com/Prottoy2938/66849e04b0bac459606059f5f9f3aa1a
@@ -53,7 +55,7 @@ class WeightedGraph {
      */
     addVertex(vertex) {
         if (!this.vertices[vertex]) {
-            this.vertices[vertex] = new $.PriorityQueue.Node(0, vertex);
+            this.vertices[vertex] = new PriorityQueue.Node(0, vertex);
             this.adjacencyList[vertex] = [];
             return true;
         }
@@ -91,7 +93,7 @@ class WeightedGraph {
         if (start === finish) {
             return { path: path, cost: 0 };
         }
-        const nodes = new OpenSeadragon.PriorityQueue();
+        const nodes = new PriorityQueue();
         let smallestNode;
         //build up initial state
         for (let vertex in this.vertices) {
@@ -344,7 +346,7 @@ function postWorker(op, payload, { timeoutMs = 15000 } = {}) {
  * @class OpenSeadragon.DataTypeConverter
  * @memberOf OpenSeadragon
  */
-OpenSeadragon.DataTypeConverter = class DataTypeConverter {
+class DataTypeConverter {
 
     constructor() {
         this.graph = new WeightedGraph();
@@ -737,7 +739,7 @@ OpenSeadragon.DataTypeConverter = class DataTypeConverter {
     existsType(type) {
         return !!this.graph.vertices[type];
     }
-};
+}
 
 /**
  * Static converter available throughout OpenSeadragon.
@@ -751,11 +753,11 @@ OpenSeadragon.DataTypeConverter = class DataTypeConverter {
  * @type OpenSeadragon.DataTypeConverter
  * @memberOf OpenSeadragon
  */
-$.converter = new $.DataTypeConverter();
+const converter = new DataTypeConverter();
 
 // Image URL -> image private conversion, used in tests (was public originally, but made private to
 // discourage bad practices by forcing conversion API to deal with URLs that download data
-$.converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new $.Promise((resolve, reject) => {
+converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new $.Promise((resolve, reject) => {
     if (!$.supportsAsync) {
         return reject("Not supported in sync mode!");
     }
@@ -789,5 +791,6 @@ $.converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new $.Pro
     }).then(blob => createImageBitmap(blob, { colorSpaceConversion: 'none' })
     ).then(resolve).catch(reject);
 }), 1, 1);
-$.converter.learn("__private__imageUrl", "__private__imageUrl", (tile, url) => url, 0, 1); //strings are immutable, no need to copy
-}(OpenSeadragon));
+converter.learn("__private__imageUrl", "__private__imageUrl", (tile, url) => url, 0, 1); //strings are immutable, no need to copy
+
+export { DataTypeConverter, converter };

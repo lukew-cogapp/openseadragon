@@ -33,7 +33,12 @@
  *
  */
 
-(function($) {
+
+
+import $ from "./openseadragon.js";
+import { EventSource } from "./eventsource.js";
+import { Point } from "./point.js";
+import { TileSource } from "./tilesource.js";
 
   /**
    * @class IrisTileSource
@@ -54,9 +59,9 @@
    *          }
    */
 
-  $.IrisTileSource = function(options) {
+  function IrisTileSource(options) {
 
-    $.TileSource.apply(this, [options]);
+    TileSource.apply(this, [options]);
     if (!options.serverUrl || !options.slideId) {
       throw new Error("IrisTileSource requires serverUrl and slideId");
     }
@@ -72,9 +77,9 @@
       const url = this.getMetadataUrl();
       this.getImageInfo(url);
     }
-  };
+  }
 
-  $.extend($.IrisTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.IrisTileSource.prototype */{
+  $.extend(IrisTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.IrisTileSource.prototype */{
     /**
      * Return URL string for image metadata
      * @function
@@ -114,7 +119,7 @@
       this.width = Math.ceil(data.extent.width * maxScale);
       this.height = Math.ceil(data.extent.height * maxScale);
 
-      this.dimensions = new $.Point(this.width, this.height);
+      this.dimensions = new Point(this.width, this.height);
       this.aspectRatio = this.width / this.height;
       this.levelSizes = layers.map(level => ({
         width: Math.ceil(level.x_tiles * this._tileWidth),
@@ -174,9 +179,9 @@
      */
     getNumTiles: function(level) {
       if (level < this.minLevel || level > this.maxLevel || !this.levelSizes[level]) {
-        return new $.Point(0, 0);
+        return new Point(0, 0);
       }
-      return new $.Point(
+      return new Point(
         Math.ceil(this.levelSizes[level].xTiles),
         Math.ceil(this.levelSizes[level].yTiles)
       );
@@ -216,6 +221,6 @@
     }
   });
 
-  $.extend(true, $.IrisTileSource.prototype, $.EventSource.prototype);
+  $.extend(true, IrisTileSource.prototype, EventSource.prototype);
 
-}(OpenSeadragon));
+export { IrisTileSource };

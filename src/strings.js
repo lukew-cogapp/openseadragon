@@ -32,7 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
 
 //TODO: I guess this is where the i18n needs to be reimplemented.  I'll look
 //      into existing patterns for i18n in javascript but i think that mimicking
@@ -67,60 +69,56 @@ const I18N = {
     }
 };
 
-$.extend( $, /** @lends OpenSeadragon */{
+/**
+ * @function OpenSeadragon.getString
+ * @param {String} property
+ */
+function getString( prop ) {
+    const props   = prop.split('.');
+    let string;
+    const args    = arguments;
+    let container = I18N;
+    let i;
 
-    /**
-     * @function
-     * @param {String} property
-     */
-    getString: function( prop ) {
+    for (i = 0; i < props.length - 1; i++) {
+        // in case not a subproperty
+        container = container[ props[ i ] ] || {};
+    }
+    string = container[ props[ i ] ];
 
-        const props   = prop.split('.');
-        let string;
-        const args    = arguments;
-        let container = I18N;
-        let i;
-
-        for (i = 0; i < props.length - 1; i++) {
-            // in case not a subproperty
-            container = container[ props[ i ] ] || {};
-        }
-        string = container[ props[ i ] ];
-
-        if ( typeof ( string ) !== "string" ) {
-            $.console.error( "Untranslated source string:", prop );
-            string = ""; // FIXME: this breaks gettext()-style convention, which would return source
-        }
-
-        return string.replace(/\{\d+\}/g, function(capture) {
-            const i = parseInt( capture.match( /\d+/ ), 10 ) + 1;
-            return i < args.length ?
-                args[ i ] :
-                "";
-        });
-    },
-
-    /**
-     * @function
-     * @param {String} property
-     * @param {*} value
-     */
-    setString: function( prop, value ) {
-
-        const props     = prop.split('.');
-        let container = I18N;
-        let i;
-
-        for ( i = 0; i < props.length - 1; i++ ) {
-            if ( !container[ props[ i ] ] ) {
-                container[ props[ i ] ] = {};
-            }
-            container = container[ props[ i ] ];
-        }
-
-        container[ props[ i ] ] = value;
+    if ( typeof ( string ) !== "string" ) {
+        $.console.error( "Untranslated source string:", prop );
+        string = ""; // FIXME: this breaks gettext()-style convention, which would return source
     }
 
-});
+    return string.replace(/\{\d+\}/g, function(capture) {
+        const i = parseInt( capture.match( /\d+/ ), 10 ) + 1;
+        return i < args.length ?
+            args[ i ] :
+            "";
+    });
+}
 
-}( OpenSeadragon ));
+/**
+ * @function OpenSeadragon.setString
+ * @param {String} property
+ * @param {*} value
+ */
+function setString( prop, value ) {
+    const props     = prop.split('.');
+    let container = I18N;
+    let i;
+
+    for ( i = 0; i < props.length - 1; i++ ) {
+        if ( !container[ props[ i ] ] ) {
+            container[ props[ i ] ] = {};
+        }
+        container = container[ props[ i ] ];
+    }
+
+    container[ props[ i ] ] = value;
+}
+
+$.extend( $, { getString, setString } );
+
+export { getString, setString };

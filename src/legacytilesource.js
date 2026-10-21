@@ -32,7 +32,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { Point } from "./point.js";
+import { TileSource } from "./tilesource.js";
+import { getString } from "./strings.js";
 
 /**
  * @class LegacyTileSource
@@ -58,7 +63,7 @@
  * @property {Number} maxLevel
  * @property {Array}  levels
  */
-$.LegacyTileSource = function( levels ) {
+function LegacyTileSource( levels ) {
 
     let options;
     let width;
@@ -93,12 +98,12 @@ $.LegacyTileSource = function( levels ) {
         maxLevel: options.levels.length > 0 ? options.levels.length - 1 : 0
     } );
 
-    $.TileSource.apply( this, [ options ] );
+    TileSource.apply( this, [ options ] );
 
     this.levels = options.levels;
-};
+}
 
-$.extend( $.LegacyTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.LegacyTileSource.prototype */{
+$.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.LegacyTileSource.prototype */{
     /**
      * Determine if the data and/or url imply the image service is supported by
      * this tile source.
@@ -164,9 +169,9 @@ $.extend( $.LegacyTileSource.prototype, $.TileSource.prototype, /** @lends OpenS
     getNumTiles: function( level ) {
         const scale = this.getLevelScale( level );
         if ( scale ){
-            return new $.Point( 1, 1 );
+            return new Point( 1, 1 );
         } else {
-            return new $.Point( 0, 0 );
+            return new Point( 0, 0 );
         }
     },
 
@@ -247,7 +252,7 @@ function filterFiles( files ){
 function configureFromXML( tileSource, xmlDoc ){
 
     if ( !xmlDoc || !xmlDoc.documentElement ) {
-        throw new Error( $.getString( "Errors.Xml" ) );
+        throw new Error( getString( "Errors.Xml" ) );
     }
 
     const root         = xmlDoc.documentElement;
@@ -302,4 +307,4 @@ function configureFromObject( tileSource, configuration ){
 
 }
 
-}( OpenSeadragon ));
+export { LegacyTileSource };

@@ -32,7 +32,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { Button } from "./button.js";
+import { ButtonGroup } from "./buttongroup.js";
+import { ControlAnchor } from "./control.js";
+import { ControlDock } from "./controldock.js";
+import { DrawerBase } from "./drawerbase.js";
+import { EventSource } from "./eventsource.js";
+import { ImageLoader } from "./imageloader.js";
+import { MouseTracker } from "./mousetracker.js";
+import { Overlay } from "./overlay.js";
+import { Placement } from "./placement.js";
+import { Point } from "./point.js";
+import { Rect } from "./rectangle.js";
+import { determineDrawer, determineTileSourceType, getAutoDrawerCandidates, viewerFeatures } from "./registry.js";
+import { TileCache } from "./tilecache.js";
+import { TileSource } from "./tilesource.js";
+import { TiledImage } from "./tiledimage.js";
+import { Viewport } from "./viewport.js";
+import { World } from "./world.js";
+import { fullScreenApi } from "./fullscreen.js";
+import { getString } from "./strings.js";
 
 // dictionary from hash to private properties
 const THIS = {};
@@ -62,7 +84,7 @@ let nextHash = 1;
  * @param {OpenSeadragon.Options} options - Viewer options.
  *
  **/
-$.Viewer = function( options ) {
+function Viewer( options ) {
 
     const args  = arguments;
     const _this = this;
@@ -239,7 +261,7 @@ $.Viewer = function( options ) {
 
     //Private state properties
     THIS[ this.hash ] = {
-        fsBoundsDelta:     new $.Point( 1, 1 ),
+        fsBoundsDelta:     new Point( 1, 1 ),
         prevContainerSize: null,
         animating:         false,
         forceRedraw:       false,
@@ -287,10 +309,10 @@ $.Viewer = function( options ) {
 
 
     //Inherit some behaviors and properties
-    $.EventSource.call( this );
+    EventSource.call( this );
 
     this.addHandler( 'open-failed', function ( event ) {
-        const msg = $.getString( "Errors.OpenFailed", event.eventSource, event.message);
+        const msg = getString( "Errors.OpenFailed", event.eventSource, event.message);
         _this._showMessage( msg );
     });
 
@@ -300,7 +322,7 @@ $.Viewer = function( options ) {
         _this._updateCooperativeGestureHandling();
     });
 
-    $.ControlDock.call( this, options );
+    ControlDock.call( this, options );
 
     //Deal with tile sources
     if (this.xmlPath) {
@@ -361,7 +383,7 @@ $.Viewer = function( options ) {
     this.bodyOverflow   = document.body.style.overflow;
     this.docOverflow    = document.documentElement.style.overflow;
 
-    this.innerTracker = new $.MouseTracker({
+    this.innerTracker = new MouseTracker({
         userData:                 'Viewer.innerTracker',
         element:                  this.canvas,
         cooperativeGestureHandling: this._isCooperative,
@@ -394,7 +416,7 @@ $.Viewer = function( options ) {
     // now that the tracker exists. Single source of truth, also used on full-page change and toggle.
     this._updateCooperativeGestureHandling();
 
-    this.outerTracker = new $.MouseTracker({
+    this.outerTracker = new MouseTracker({
         userData:              'Viewer.outerTracker',
         element:               this.container,
         startDisabled:         !this.mouseNavEnabled,
@@ -407,7 +429,7 @@ $.Viewer = function( options ) {
     });
 
     if ( this.toolbar ){
-        this.toolbar = new $.ControlDock({ element: this.toolbar });
+        this.toolbar = new ControlDock({ element: this.toolbar });
     }
 
     this.bindStandardControls();
@@ -426,7 +448,7 @@ $.Viewer = function( options ) {
     }
 
     // Create the world
-    this.world = new $.World({
+    this.world = new World({
         viewer: this
     });
 
@@ -497,7 +519,7 @@ $.Viewer = function( options ) {
     });
 
     // Create the viewport
-    this.viewport = new $.Viewport({
+    this.viewport = new Viewport({
         containerSize:                      THIS[ this.hash ].prevContainerSize,
         springStiffness:                    this.springStiffness,
         animationTime:                      this.animationTime,
@@ -522,7 +544,7 @@ $.Viewer = function( options ) {
     this.viewport._setContentBounds(this.world.getHomeBounds(), this.world.getContentFactor());
 
     // Create the image loader
-    this.imageLoader = new $.ImageLoader({
+    this.imageLoader = new ImageLoader({
         jobLimit: this.imageLoaderLimit,
         timeout: options.timeout,
         tileRetryMax: this.tileRetryMax,
@@ -530,7 +552,7 @@ $.Viewer = function( options ) {
     });
 
     // Create the tile cache
-    this.tileCache = new $.TileCache({
+    this.tileCache = new TileCache({
         viewer: this,
         maxImageCacheCount: this.maxImageCacheCount
     });
@@ -541,7 +563,7 @@ $.Viewer = function( options ) {
 
         // for backwards compatibility, use HTMLDrawer if useCanvas is defined and is falsey
         if (!this.drawerOptions.useCanvas){
-            this.drawer = $.HTMLDrawer;
+            this.drawer = 'html';
         }
 
         delete this.drawerOptions.useCanvas;
@@ -611,8 +633,10 @@ $.Viewer = function( options ) {
     }
 
     //Instantiate a navigator if configured
-    if ( this.showNavigator){
-        this.navigator = new $.Navigator({
+    if ( this.showNavigator && !viewerFeatures.Navigator ) {
+        $.console.error("showNavigator needs the Navigator registered with OpenSeadragon.register");
+    } else if ( this.showNavigator){
+        this.navigator = new viewerFeatures.Navigator({
             element:           this.navigatorElement,
             id:                this.navigatorId,
             position:          this.navigatorPosition,
@@ -674,9 +698,9 @@ $.Viewer = function( options ) {
 
     // Register the viewer
     $._viewers.set(this.element, this);
-};
+}
 
-$.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, /** @lends OpenSeadragon.Viewer.prototype */{
+$.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @lends OpenSeadragon.Viewer.prototype */{
 
 
     /**
@@ -1167,11 +1191,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
         let Drawer = null;
 
         //if the candidate inherits from a drawer base, use it
-        if (drawerCandidate && drawerCandidate.prototype instanceof $.DrawerBase) {
+        if (drawerCandidate && drawerCandidate.prototype instanceof DrawerBase) {
             Drawer = drawerCandidate;
             drawerCandidate = 'custom';
         } else if (typeof drawerCandidate === "string") {
-            Drawer = $.determineDrawer(drawerCandidate);
+            Drawer = determineDrawer(drawerCandidate);
         }
 
         if (!Drawer) {
@@ -1640,11 +1664,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
     setFullScreen: function( fullScreen ) {
         const _this = this;
 
-        if ( !$.supportsFullScreen ) {
+        if ( !fullScreenApi.supportsFullScreen ) {
             return this.setFullPage( fullScreen );
         }
 
-        if ( $.isFullScreen() === fullScreen ) {
+        if ( fullScreenApi.isFullScreen() === fullScreen ) {
             return this;
         }
 
@@ -1687,15 +1711,15 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
 
             const onFullScreenChange = function() {
                 if (!THIS[ _this.hash ]) {
-                    $.removeEvent( document, $.fullScreenEventName, onFullScreenChange );
-                    $.removeEvent( document, $.fullScreenErrorEventName, onFullScreenChange );
+                    $.removeEvent( document, fullScreenApi.fullScreenEventName, onFullScreenChange );
+                    $.removeEvent( document, fullScreenApi.fullScreenErrorEventName, onFullScreenChange );
                     return;
                 }
 
-                const isFullScreen = $.isFullScreen();
+                const isFullScreen = fullScreenApi.isFullScreen();
                 if ( !isFullScreen ) {
-                    $.removeEvent( document, $.fullScreenEventName, onFullScreenChange );
-                    $.removeEvent( document, $.fullScreenErrorEventName, onFullScreenChange );
+                    $.removeEvent( document, fullScreenApi.fullScreenEventName, onFullScreenChange );
+                    $.removeEvent( document, fullScreenApi.fullScreenErrorEventName, onFullScreenChange );
 
                     _this.setFullPage( false );
                     if ( _this.isFullPage() ) {
@@ -1721,13 +1745,13 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                  */
                 _this.raiseEvent( 'full-screen', { fullScreen: isFullScreen } );
             };
-            $.addEvent( document, $.fullScreenEventName, onFullScreenChange );
-            $.addEvent( document, $.fullScreenErrorEventName, onFullScreenChange );
+            $.addEvent( document, fullScreenApi.fullScreenEventName, onFullScreenChange );
+            $.addEvent( document, fullScreenApi.fullScreenErrorEventName, onFullScreenChange );
 
-            $.requestFullScreen( document.body );
+            fullScreenApi.requestFullScreen( document.body );
 
         } else {
-            $.exitFullScreen();
+            fullScreenApi.exitFullScreen();
         }
         return this;
     },
@@ -1747,7 +1771,7 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
      * @returns {Boolean} returns true if the viewer is in fullscreen
      */
      isFullScreen: function () {
-        return $.isFullScreen() && this.isFullPage();
+        return fullScreenApi.isFullScreen() && this.isFullPage();
     },
 
     /**
@@ -2010,7 +2034,7 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
     instantiateTiledImageClass: function( options) {
         return this.instantiateTileSourceClass(options).then(event => {
             // add everybody at the front of the queue that's ready to go
-            const tiledImage = new $.TiledImage({
+            const tiledImage = new TiledImage({
                 viewer: this,
                 source: event.source,
                 viewport: this.viewport,
@@ -2146,7 +2170,7 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             setTimeout(() => {
                 if ( $.type( tileSource ) === 'string' ) {
                     //If its still a string it means it must be a url at this point
-                    tileSource = new $.TileSource({
+                    tileSource = new TileSource({
                         url: tileSource,
                         crossOriginPolicy: options.crossOriginPolicy !== undefined ?
                             options.crossOriginPolicy : this.crossOriginPolicy,
@@ -2167,13 +2191,13 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
 
                     if ( $.isFunction( tileSource.getTileUrl ) ) {
                         //Custom tile source
-                        const customTileSource = new $.TileSource( tileSource );
+                        const customTileSource = new TileSource( tileSource );
                         customTileSource.getTileUrl = tileSource.getTileUrl;
                         tileSource.ready = false;
                         waitUntilReady(customTileSource, tileSource);
                     } else {
                         //inline configuration
-                        const $TileSource = $.TileSource.determineType( this, tileSource, null );
+                        const $TileSource = determineTileSourceType( this, tileSource, null );
                         if ( !$TileSource ) {
                             reject({
                                 message: "Unable to load TileSource",
@@ -2312,11 +2336,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                 useGroup = false;
             }
 
-            this.previousButton = new $.Button({
+            this.previousButton = new Button({
                 element:    this.previousButton ? $.getElement( this.previousButton ) : null,
                 clickTimeThreshold: this.clickTimeThreshold,
                 clickDistThreshold: this.clickDistThreshold,
-                tooltip:    $.getString( "Tooltips.PreviousPage" ),
+                tooltip:    getString( "Tooltips.PreviousPage" ),
                 srcRest:    resolveUrl( this.prefixUrl, navImages.previous.REST ),
                 srcGroup:   resolveUrl( this.prefixUrl, navImages.previous.GROUP ),
                 srcHover:   resolveUrl( this.prefixUrl, navImages.previous.HOVER ),
@@ -2326,11 +2350,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                 onBlur:     onBlurHandler
             });
 
-            this.nextButton = new $.Button({
+            this.nextButton = new Button({
                 element:    this.nextButton ? $.getElement( this.nextButton ) : null,
                 clickTimeThreshold: this.clickTimeThreshold,
                 clickDistThreshold: this.clickDistThreshold,
-                tooltip:    $.getString( "Tooltips.NextPage" ),
+                tooltip:    getString( "Tooltips.NextPage" ),
                 srcRest:    resolveUrl( this.prefixUrl, navImages.next.REST ),
                 srcGroup:   resolveUrl( this.prefixUrl, navImages.next.GROUP ),
                 srcHover:   resolveUrl( this.prefixUrl, navImages.next.HOVER ),
@@ -2349,7 +2373,7 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
 
             if( useGroup ){
-                this.paging = new $.ButtonGroup({
+                this.paging = new ButtonGroup({
                     buttons: [
                         this.previousButton,
                         this.nextButton
@@ -2363,12 +2387,12 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                 if( this.toolbar ){
                     this.toolbar.addControl(
                         this.pagingControl,
-                        {anchor: $.ControlAnchor.BOTTOM_RIGHT}
+                        {anchor: ControlAnchor.BOTTOM_RIGHT}
                     );
                 }else{
                     this.addControl(
                         this.pagingControl,
-                        {anchor: this.sequenceControlAnchor || $.ControlAnchor.TOP_LEFT}
+                        {anchor: this.sequenceControlAnchor || ControlAnchor.TOP_LEFT}
                     );
                 }
             }
@@ -2414,11 +2438,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
 
             if ( this.showZoomControl ) {
-                buttons.push( this.zoomInButton = new $.Button({
+                buttons.push( this.zoomInButton = new Button({
                     element:    this.zoomInButton ? $.getElement( this.zoomInButton ) : null,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold,
-                    tooltip:    $.getString( "Tooltips.ZoomIn" ),
+                    tooltip:    getString( "Tooltips.ZoomIn" ),
                     srcRest:    resolveUrl( this.prefixUrl, navImages.zoomIn.REST ),
                     srcGroup:   resolveUrl( this.prefixUrl, navImages.zoomIn.GROUP ),
                     srcHover:   resolveUrl( this.prefixUrl, navImages.zoomIn.HOVER ),
@@ -2432,11 +2456,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                     onBlur:     onBlurHandler
                 }));
 
-                buttons.push( this.zoomOutButton = new $.Button({
+                buttons.push( this.zoomOutButton = new Button({
                     element:    this.zoomOutButton ? $.getElement( this.zoomOutButton ) : null,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold,
-                    tooltip:    $.getString( "Tooltips.ZoomOut" ),
+                    tooltip:    getString( "Tooltips.ZoomOut" ),
                     srcRest:    resolveUrl( this.prefixUrl, navImages.zoomOut.REST ),
                     srcGroup:   resolveUrl( this.prefixUrl, navImages.zoomOut.GROUP ),
                     srcHover:   resolveUrl( this.prefixUrl, navImages.zoomOut.HOVER ),
@@ -2457,11 +2481,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
 
             if ( this.showHomeControl ) {
-                buttons.push( this.homeButton = new $.Button({
+                buttons.push( this.homeButton = new Button({
                     element:    this.homeButton ? $.getElement( this.homeButton ) : null,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold,
-                    tooltip:    $.getString( "Tooltips.Home" ),
+                    tooltip:    getString( "Tooltips.Home" ),
                     srcRest:    resolveUrl( this.prefixUrl, navImages.home.REST ),
                     srcGroup:   resolveUrl( this.prefixUrl, navImages.home.GROUP ),
                     srcHover:   resolveUrl( this.prefixUrl, navImages.home.HOVER ),
@@ -2473,11 +2497,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
 
             if ( this.showFullPageControl ) {
-                buttons.push( this.fullPageButton = new $.Button({
+                buttons.push( this.fullPageButton = new Button({
                     element:    this.fullPageButton ? $.getElement( this.fullPageButton ) : null,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold,
-                    tooltip:    $.getString( "Tooltips.FullPage" ),
+                    tooltip:    getString( "Tooltips.FullPage" ),
                     srcRest:    resolveUrl( this.prefixUrl, navImages.fullpage.REST ),
                     srcGroup:   resolveUrl( this.prefixUrl, navImages.fullpage.GROUP ),
                     srcHover:   resolveUrl( this.prefixUrl, navImages.fullpage.HOVER ),
@@ -2489,11 +2513,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
 
             if ( this.showRotationControl ) {
-                buttons.push( this.rotateLeftButton = new $.Button({
+                buttons.push( this.rotateLeftButton = new Button({
                     element:    this.rotateLeftButton ? $.getElement( this.rotateLeftButton ) : null,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold,
-                    tooltip:    $.getString( "Tooltips.RotateLeft" ),
+                    tooltip:    getString( "Tooltips.RotateLeft" ),
                     srcRest:    resolveUrl( this.prefixUrl, navImages.rotateleft.REST ),
                     srcGroup:   resolveUrl( this.prefixUrl, navImages.rotateleft.GROUP ),
                     srcHover:   resolveUrl( this.prefixUrl, navImages.rotateleft.HOVER ),
@@ -2503,11 +2527,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                     onBlur:     onBlurHandler
                 }));
 
-                buttons.push( this.rotateRightButton = new $.Button({
+                buttons.push( this.rotateRightButton = new Button({
                     element:    this.rotateRightButton ? $.getElement( this.rotateRightButton ) : null,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold,
-                    tooltip:    $.getString( "Tooltips.RotateRight" ),
+                    tooltip:    getString( "Tooltips.RotateRight" ),
                     srcRest:    resolveUrl( this.prefixUrl, navImages.rotateright.REST ),
                     srcGroup:   resolveUrl( this.prefixUrl, navImages.rotateright.GROUP ),
                     srcHover:   resolveUrl( this.prefixUrl, navImages.rotateright.HOVER ),
@@ -2519,11 +2543,11 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
 
             if ( this.showFlipControl ) {
-                buttons.push( this.flipButton = new $.Button({
+                buttons.push( this.flipButton = new Button({
                     element:    this.flipButton ? $.getElement( this.flipButton ) : null,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold,
-                    tooltip:    $.getString( "Tooltips.Flip" ),
+                    tooltip:    getString( "Tooltips.Flip" ),
                     srcRest:    resolveUrl( this.prefixUrl, navImages.flip.REST ),
                     srcGroup:   resolveUrl( this.prefixUrl, navImages.flip.GROUP ),
                     srcHover:   resolveUrl( this.prefixUrl, navImages.flip.HOVER ),
@@ -2535,7 +2559,7 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
             }
 
             if ( useGroup ) {
-                this.buttonGroup = new $.ButtonGroup({
+                this.buttonGroup = new ButtonGroup({
                     buttons:            buttons,
                     clickTimeThreshold: this.clickTimeThreshold,
                     clickDistThreshold: this.clickDistThreshold
@@ -2547,12 +2571,12 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                 if( this.toolbar ){
                     this.toolbar.addControl(
                         this.navControl,
-                        {anchor: this.navigationControlAnchor || $.ControlAnchor.TOP_LEFT}
+                        {anchor: this.navigationControlAnchor || ControlAnchor.TOP_LEFT}
                     );
                 } else {
                     this.addControl(
                         this.navControl,
-                        {anchor: this.navigationControlAnchor || $.ControlAnchor.TOP_LEFT}
+                        {anchor: this.navigationControlAnchor || ControlAnchor.TOP_LEFT}
                     );
                 }
             } else {
@@ -2953,9 +2977,9 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
         let message;
         if ( gesture === 'scroll' ) {
             const modifier = /Mac/i.test( navigator.platform || navigator.userAgent || '' ) ? '⌘' : 'Ctrl';
-            message = $.getString( 'GestureHints.Scroll', modifier );
+            message = getString( 'GestureHints.Scroll', modifier );
         } else {
-            message = $.getString( 'GestureHints.Touch' );
+            message = getString( 'GestureHints.Touch' );
         }
 
         const cooperativeGestureArgs = {
@@ -3080,8 +3104,13 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
                 return;
             }
 
+            if (!viewerFeatures.ReferenceStrip) {
+                $.console.error("showReferenceStrip needs the ReferenceStrip registered with OpenSeadragon.register");
+                return;
+            }
+
             if (this.tileSources.length && this.tileSources.length > 1) {
-                this.referenceStrip = new $.ReferenceStrip({
+                this.referenceStrip = new viewerFeatures.ReferenceStrip({
                     id:          this.referenceStripElement,
                     position:    this.referenceStripPosition,
                     sizeRatio:   this.referenceStripSizeRatio,
@@ -3241,14 +3270,14 @@ $.extend( $.Viewer.prototype, $.EventSource.prototype, $.ControlDock.prototype, 
 function _getSafeElemSize (oElement) {
     oElement = $.getElement( oElement );
 
-    return new $.Point(
+    return new Point(
         (oElement.clientWidth === 0 ? 1 : oElement.clientWidth),
         (oElement.clientHeight === 0 ? 1 : oElement.clientHeight)
     );
 }
 
 function getOverlayObject( viewer, overlay ) {
-    if ( overlay instanceof $.Overlay ) {
+    if ( overlay instanceof Overlay ) {
         return overlay;
     }
 
@@ -3279,7 +3308,7 @@ function getOverlayObject( viewer, overlay ) {
         let x = overlay.x;
         let y = overlay.y;
         if (overlay.px !== undefined) {
-            const rect = viewer.viewport.imageToViewportRectangle(new $.Rect(
+            const rect = viewer.viewport.imageToViewportRectangle(new Rect(
                 overlay.px,
                 overlay.py,
                 width || 0,
@@ -3289,15 +3318,15 @@ function getOverlayObject( viewer, overlay ) {
             width = width !== undefined ? rect.width : undefined;
             height = height !== undefined ? rect.height : undefined;
         }
-        location = new $.Point(x, y);
+        location = new Point(x, y);
     }
 
     let placement = overlay.placement;
     if (placement && $.type(placement) === "string") {
-        placement = $.Placement[overlay.placement.toUpperCase()];
+        placement = Placement[overlay.placement.toUpperCase()];
     }
 
-    return new $.Overlay({
+    return new Overlay({
         element: element,
         location: location,
         placement: placement,
@@ -3888,7 +3917,7 @@ function onCanvasDragEnd( event ) {
             const center = this.viewport.pixelFromPoint(
                 this.viewport.getCenter(true));
             const target = this.viewport.pointFromPixel(
-                new $.Point(center.x - amplitudeX, center.y - amplitudeY));
+                new Point(center.x - amplitudeX, center.y - amplitudeY));
             this.viewport.panTo(target, false);
         }
         this.viewport.applyConstraints();
@@ -4381,9 +4410,9 @@ function doViewerResize(viewer, containerSize) {
     if (viewer.preserveImageSizeOnResize) {
         resizeRatio = THIS[viewer.hash].prevContainerSize.x / containerSize.x;
     } else {
-        const origin = new $.Point(0, 0);
-        const prevDiag = new $.Point(THIS[viewer.hash].prevContainerSize.x, THIS[viewer.hash].prevContainerSize.y).distanceTo(origin);
-        const newDiag = new $.Point(containerSize.x, containerSize.y).distanceTo(origin);
+        const origin = new Point(0, 0);
+        const prevDiag = new Point(THIS[viewer.hash].prevContainerSize.x, THIS[viewer.hash].prevContainerSize.y).distanceTo(origin);
+        const newDiag = new Point(containerSize.x, containerSize.y).distanceTo(origin);
         resizeRatio = newDiag / prevDiag * THIS[viewer.hash].prevContainerSize.x / containerSize.x;
     }
     viewport.zoomTo(zoom * resizeRatio, null, true);
@@ -4411,7 +4440,7 @@ function handleNavKeys(viewer) {
 
     // Use the viewer's configured pan amount
     const pixels = viewer.pixelsPerArrowPress / 10;
-    const panDelta = viewer.viewport.deltaPointsFromPixels(new OpenSeadragon.Point(pixels, pixels));
+    const panDelta = viewer.viewport.deltaPointsFromPixels(new Point(pixels, pixels));
 
     // 1. Zoom actions (priority: zoom disables pan)
     if (isDown('zoomIn')) {
@@ -4448,7 +4477,7 @@ function handleNavKeys(viewer) {
     }
 
     if (dx !== 0 || dy !== 0) {
-        viewer.viewport.panBy(new OpenSeadragon.Point(dx, dy), true);
+        viewer.viewport.panBy(new Point(dx, dy), true);
         viewer.viewport.applyConstraints();
     }
 }
@@ -4600,7 +4629,7 @@ function isAtZoomLimit( zoom, limit ) {
 
 function setButtonAtZoomLimit( viewer, button, atZoomLimit ) {
     // Without the zoom control, zoomInButton/zoomOutButton keep the raw id or element from the options.
-    if ( !( button instanceof $.Button ) ) {
+    if ( !( button instanceof Button ) ) {
         return;
     }
     if ( atZoomLimit && !button.isDisabled() ) {
@@ -4646,7 +4675,7 @@ function onHome() {
 
 
 function onFullScreen() {
-    if ( this.isFullPage() && !$.isFullScreen() ) {
+    if ( this.isFullPage() && !fullScreenApi.isFullScreen() ) {
         // Is fullPage but not fullScreen
         this.setFullPage( false );
     } else {
@@ -4706,48 +4735,10 @@ function getDrawerTypeString(candidate) {
         return candidate;
     }
     const proto = candidate && candidate.prototype;
-    if (proto && proto instanceof OpenSeadragon.DrawerBase && $.isFunction(proto.getType)) {
+    if (proto && proto instanceof DrawerBase && $.isFunction(proto.getType)) {
         return proto.getType.call(candidate);
     }
     return undefined;
 }
 
-/**
- * Return the list of drawer type strings that 'auto' expands to (platform-dependent).
- * Uses the same detection as determineDrawer('auto'): on iOS-like devices, ['canvas'] only;
- * on all other platforms, ['webgl', 'canvas'] so webgl is tried first and canvas next if WebGL fails.
- * @private
- * @returns {string[]}
- */
-function getAutoDrawerCandidates() {
-    // Our WebGL drawer is not as performant on iOS at the moment, so we use canvas there.
-    // Note that modern iPads report themselves as Mac, so we also check for coarse pointer.
-    const isPrimaryTouch = window.matchMedia('(pointer: coarse)').matches;
-    const isIOSDevice = /iPad|iPhone|iPod|Mac/.test(navigator.userAgent) && isPrimaryTouch;
-    return isIOSDevice ? ['canvas'] : ['webgl', 'canvas'];
-}
-
-/**
- * Find drawer
- */
-$.determineDrawer = function( id ){
-    if (id === 'auto') {
-        // Same platform detection as getAutoDrawerCandidates(); first entry is the preferred drawer type.
-        id = getAutoDrawerCandidates()[0];
-    }
-
-    for (const property in OpenSeadragon) {
-        const drawer = OpenSeadragon[ property ];
-        const proto = drawer.prototype;
-        if( proto &&
-            proto instanceof OpenSeadragon.DrawerBase &&
-            $.isFunction( proto.getType ) &&
-            proto.getType.call( drawer ) === id
-        ){
-            return drawer;
-        }
-    }
-    return null;
-};
-
-}( OpenSeadragon ));
+export { Viewer };

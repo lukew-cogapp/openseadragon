@@ -1,3 +1,7 @@
+import $ from "./openseadragon.js";
+import { DrawerBase } from "./drawerbase.js";
+import { Mat3 } from "./matrix3.js";
+import { Point } from "./point.js";
 
 /*
  * OpenSeadragon - WebGLDrawer
@@ -33,9 +37,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
 
-    const OpenSeadragon = $; // alias for JSDoc
+
 
     /**
      * @class WebglContextManager
@@ -643,7 +646,7 @@
     * @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
     * @param {Boolean} [options.unpackWithPremultipliedAlpha=false] - Whether to enable gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL when uploading textures.
     */
-    OpenSeadragon.WebGLDrawer = class WebGLDrawer extends OpenSeadragon.DrawerBase{
+    class WebGLDrawer extends DrawerBase{
         constructor(options){
            super(options);
 
@@ -980,15 +983,15 @@
             const bounds = this.viewport.getBoundsNoRotateWithMargins(true);
             const view = {
                 bounds: bounds,
-                center: new OpenSeadragon.Point(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2),
+                center: new Point(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2),
                 rotation: this.viewport.getRotation(true) * Math.PI / 180
             };
 
             const flipMultiplier = this.viewport.flipped ? -1 : 1;
             // calculate view matrix for viewer
-            const posMatrix = $.Mat3.makeTranslation(-view.center.x, -view.center.y);
-            const scaleMatrix = $.Mat3.makeScaling(2 / view.bounds.width * flipMultiplier, -2 / view.bounds.height);
-            const rotMatrix = $.Mat3.makeRotation(-view.rotation);
+            const posMatrix = Mat3.makeTranslation(-view.center.x, -view.center.y);
+            const scaleMatrix = Mat3.makeScaling(2 / view.bounds.width * flipMultiplier, -2 / view.bounds.height);
+            const rotMatrix = Mat3.makeRotation(-view.rotation);
             const viewMatrix = scaleMatrix.multiply(rotMatrix).multiply(posMatrix);
 
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1072,10 +1075,10 @@
                 const imageRotation = tiledImage.getRotation(true);
                 // if needed, handle the tiledImage being rotated
                 if( imageRotation % 360 !== 0){
-                    const imageRotationMatrix = $.Mat3.makeRotation(-imageRotation * Math.PI / 180);
+                    const imageRotationMatrix = Mat3.makeRotation(-imageRotation * Math.PI / 180);
                     const imageCenter = tiledImage.getBoundsNoRotate(true).getCenter();
-                    const t1 = $.Mat3.makeTranslation(imageCenter.x, imageCenter.y);
-                    const t2 = $.Mat3.makeTranslation(-imageCenter.x, -imageCenter.y);
+                    const t1 = Mat3.makeTranslation(imageCenter.x, imageCenter.y);
+                    const t2 = Mat3.makeTranslation(-imageCenter.x, -imageCenter.y);
 
                     // update the view matrix to account for this image's rotation
                     const localMatrix = t1.multiply(imageRotationMatrix).multiply(t2);
@@ -1089,7 +1092,7 @@
                     // in which case maxTextures can be null, leading to out of bounds errors with the array.
                     // For example, when viewers were created and not destroyed in the test suite, this error
                     // occurred in the TravisCI tests, though it did not happen when testing locally either in
-                    // a browser or on the command line via grunt test.
+                    // a browser or on the command line via npm test.
 
                     throw new Error(`WebGL error: bad value for gl parameter MAX_TEXTURE_IMAGE_UNITS (${maxTextures}). This could happen
                     if too many contexts have been created and not released, or there is another problem with the graphics card.`);
@@ -1382,7 +1385,7 @@
             const right = tile.positionedBounds.x + tile.positionedBounds.width - (tile.isRightMost ? 0 : xOffset);
             const bottom = tile.positionedBounds.y + tile.positionedBounds.height - (tile.isBottomMost ? 0 : yOffset);
 
-            const model = new $.Mat3([
+            const model = new Mat3([
                 right - x, 0, 0, // right - x = width
                 0, bottom - y, 0, // bottom - y = height
                 x, y, 1
@@ -1778,7 +1781,7 @@
             this._clippingContext.clearRect(0, 0, this._clippingCanvas.width, this._clippingCanvas.height);
             this._clippingContext.save();
             if(this.viewer.viewport.getFlip()){
-                const point = new $.Point(this.canvas.width / 2, this.canvas.height / 2);
+                const point = new Point(this.canvas.width / 2, this.canvas.height / 2);
                 this._clippingContext.translate(point.x, 0);
                 this._clippingContext.scale(-1, 1);
                 this._clippingContext.translate(-point.x, 0);
@@ -1823,7 +1826,7 @@
             }
 
             if(this.viewer.viewport.getFlip()){
-                const point = new $.Point(this.canvas.width / 2, this.canvas.height / 2);
+                const point = new Point(this.canvas.width / 2, this.canvas.height / 2);
                 this._clippingContext.translate(point.x, 0);
                 this._clippingContext.scale(-1, 1);
                 this._clippingContext.translate(-point.x, 0);
@@ -2014,7 +2017,7 @@
          * @returns {OpenSeadragon.Point} The center point of the canvas
          */
         _getCanvasCenter() {
-            return new $.Point(this.canvas.width / 2, this.canvas.height / 2);
+            return new Point(this.canvas.width / 2, this.canvas.height / 2);
         }
 
         // private
@@ -2073,7 +2076,6 @@
 
             return shaderProgram;
         }
-    };
+    }
 
-
-}( OpenSeadragon ));
+export { WebGLDrawer };

@@ -32,7 +32,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { Rect } from "./rectangle.js";
 
 /**
  * @class DisplayRect
@@ -49,8 +52,8 @@
  * @param {Number} minLevel The lowest zoom level supported.
  * @param {Number} maxLevel The highest zoom level supported.
  */
-$.DisplayRect = function( x, y, width, height, minLevel, maxLevel ) {
-    $.Rect.apply( this, [ x, y, width, height ] );
+function DisplayRect( x, y, width, height, minLevel, maxLevel ) {
+    Rect.apply( this, [ x, y, width, height ] );
 
     /**
      * The lowest zoom level supported.
@@ -64,8 +67,8 @@ $.DisplayRect = function( x, y, width, height, minLevel, maxLevel ) {
      * @memberof OpenSeadragon.DisplayRect#
      */
     this.maxLevel = maxLevel;
-};
+}
 
-$.extend( $.DisplayRect.prototype, $.Rect.prototype );
+$.extend( DisplayRect.prototype, Rect.prototype );
 
-}( OpenSeadragon ));
+export { DisplayRect };

@@ -32,7 +32,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { DisplayRect } from "./displayrectangle.js";
+import { TileSource } from "./tilesource.js";
+import { getString } from "./strings.js";
 
 /**
  * @class DziTileSource
@@ -50,7 +55,7 @@
  * @property {String} fileFormat
  * @property {OpenSeadragon.DisplayRect[]} displayRects
  */
-$.DziTileSource = function( width, height, tileSize, tileOverlap, tilesUrl, fileFormat, displayRects, minLevel, maxLevel ) {
+function DziTileSource( width, height, tileSize, tileOverlap, tilesUrl, fileFormat, displayRects, minLevel, maxLevel ) {
     let level;
     let options;
 
@@ -88,11 +93,11 @@ $.DziTileSource = function( width, height, tileSize, tileOverlap, tilesUrl, file
         }
     }
 
-    $.TileSource.apply( this, [ options ] );
+    TileSource.apply( this, [ options ] );
 
-};
+}
 
-$.extend( $.DziTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.DziTileSource.prototype */{
+$.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.DziTileSource.prototype */{
 
 
     /**
@@ -232,7 +237,7 @@ $.extend( $.DziTileSource.prototype, $.TileSource.prototype, /** @lends OpenSead
 function configureFromXML( tileSource, xmlDoc ){
 
     if ( !xmlDoc || !xmlDoc.documentElement ) {
-        throw new Error( $.getString( "Errors.Xml" ) );
+        throw new Error( getString( "Errors.Xml" ) );
     }
 
     const root           = xmlDoc.documentElement;
@@ -271,7 +276,7 @@ function configureFromXML( tileSource, xmlDoc ){
 
             if ( !$.imageFormatSupported( configuration.Image.Format ) ) {
                 throw new Error(
-                    $.getString( "Errors.ImageFormat", configuration.Image.Format.toUpperCase() )
+                    getString( "Errors.ImageFormat", configuration.Image.Format.toUpperCase() )
                 );
             }
 
@@ -308,17 +313,17 @@ function configureFromXML( tileSource, xmlDoc ){
         } catch ( e ) {
             throw (e instanceof Error) ?
                 e :
-                new Error( $.getString("Errors.Dzi") );
+                new Error( getString("Errors.Dzi") );
         }
     } else if ( rootName === "Collection" ) {
-        throw new Error( $.getString( "Errors.Dzc" ) );
+        throw new Error( getString( "Errors.Dzc" ) );
     } else if ( rootName === "Error" ) {
         const messageNode = root.getElementsByTagName("Message")[0];
         const message = messageNode.firstChild.nodeValue;
         throw new Error(message);
     }
 
-    throw new Error( $.getString( "Errors.Dzi" ) );
+    throw new Error( getString( "Errors.Dzi" ) );
 }
 
 /**
@@ -348,14 +353,14 @@ function configureFromObject( tileSource, configuration ){
     //
     /*if ( !imageFormatSupported( fileFormat ) ) {
         throw new Error(
-            $.getString( "Errors.ImageFormat", fileFormat.toUpperCase() )
+            getString( "Errors.ImageFormat", fileFormat.toUpperCase() )
         );
     }*/
 
     for (let i = 0; i < dispRectData.length; i++ ) {
         rectData = dispRectData[ i ].Rect;
 
-        displayRects.push( new $.DisplayRect(
+        displayRects.push( new DisplayRect(
             parseInt( rectData.X, 10 ),
             parseInt( rectData.Y, 10 ),
             parseInt( rectData.Width, 10 ),
@@ -379,4 +384,4 @@ function configureFromObject( tileSource, configuration ){
 
 }
 
-}( OpenSeadragon ));
+export { DziTileSource };

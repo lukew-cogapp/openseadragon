@@ -32,7 +32,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function($){
+
+
+import $ from "./openseadragon.js";
+import { TileSource } from "./tilesource.js";
 
 /**
  * @class ImageJob
@@ -54,7 +57,7 @@
  * @param {Number} [options.timeout] - The max number of milliseconds that this image job may take to complete.
  * @param {Number} [options.tries] - Actual number of the current try.
  */
-$.ImageJob = function(options) {
+function ImageJob(options) {
 
     /**
      * Private parameter. Called automatically once image has been downloaded
@@ -157,9 +160,9 @@ $.ImageJob = function(options) {
         jobId: null,
         tries: 0,
     }, options);
-};
+}
 
-$.ImageJob.prototype = {
+ImageJob.prototype = {
     /**
      * Starts the image job.
      * @method
@@ -270,7 +273,7 @@ $.ImageJob.prototype = {
  * @param {Function} [options.callback]
  * @param {Function} [options.abort]
  */
-$.BatchImageJob = function(options) {
+function BatchImageJob(options) {
     $.extend(true, this, {
         timeout: $.DEFAULT_SETTINGS.timeout,
         jobId: null,
@@ -281,9 +284,9 @@ $.BatchImageJob = function(options) {
 
     this.jobs = options.jobs || [];
     this.source = options.source;
-};
+}
 
-$.BatchImageJob.prototype = {
+BatchImageJob.prototype = {
     /**
      * Starts the batch job.
      */
@@ -381,7 +384,7 @@ $.BatchImageJob.prototype = {
  * @param {Number} [options.jobLimit] - The number of concurrent image requests. See imageLoaderLimit in {@link OpenSeadragon.Options} for details.
  * @param {Number} [options.timeout] - The max number of milliseconds that an image job may take to complete.
  */
-$.ImageLoader = function(options) {
+function ImageLoader(options) {
 
     $.extend(true, this, {
         jobLimit:       $.DEFAULT_SETTINGS.imageLoaderLimit,
@@ -392,10 +395,10 @@ $.ImageLoader = function(options) {
     }, options);
 
     this._batchBuckets = [];
-};
+}
 
 /** @lends OpenSeadragon.ImageLoader.prototype */
-$.ImageLoader.prototype = {
+ImageLoader.prototype = {
 
     /**
      * Add an unloaded image to the loader queue.
@@ -419,7 +422,7 @@ $.ImageLoader.prototype = {
     addJob: function(options) {
         if (!options.source) {
             $.console.error('ImageLoader.prototype.addJob() requires [options.source]...');
-            options.source = $.TileSource.prototype;
+            options.source = TileSource.prototype;
         }
 
         const _this = this,
@@ -436,7 +439,7 @@ $.ImageLoader.prototype = {
                 abort: options.abort,
                 timeout: this.timeout
             },
-            newJob = new $.ImageJob(jobOptions);
+            newJob = new ImageJob(jobOptions);
 
         const sourceWantsBatching = options.source && options.source.batchEnabled();
         if (sourceWantsBatching) {
@@ -514,7 +517,7 @@ $.ImageLoader.prototype = {
         }
 
         const _this = this;
-        const batchJob = new $.BatchImageJob({
+        const batchJob = new BatchImageJob({
             source: bucket.source,
             jobs: bucket.jobs,
             timeout: this.timeout,
@@ -622,4 +625,4 @@ function isInvalidData(dataItem) {
     return dataItem === null || dataItem === undefined || dataItem === false;
 }
 
-}(OpenSeadragon));
+export { ImageJob, BatchImageJob, ImageLoader };

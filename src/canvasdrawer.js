@@ -32,9 +32,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
 
-    const OpenSeadragon = $; // (re)alias back to OpenSeadragon for JSDoc
+
+import $ from "./openseadragon.js";
+import { DrawerBase } from "./drawerbase.js";
+import { Point } from "./point.js";
+
 /**
  * @class OpenSeadragon.CanvasDrawer
  * @extends OpenSeadragon.DrawerBase
@@ -46,7 +49,7 @@
  * @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
  */
 
-class CanvasDrawer extends OpenSeadragon.DrawerBase{
+class CanvasDrawer extends DrawerBase{
     constructor(options) {
         super(options);
 
@@ -561,7 +564,7 @@ class CanvasDrawer extends OpenSeadragon.DrawerBase{
             size = size.times(scale);
         }
 
-        if (translate instanceof $.Point) {
+        if (translate instanceof Point) {
             // shift tile position slightly
             position = position.plus(translate);
         }
@@ -766,8 +769,8 @@ class CanvasDrawer extends OpenSeadragon.DrawerBase{
         } else {
             scale = options.scale || 1;
             translate = options.translate;
-            const position = translate instanceof $.Point ?
-                translate : new $.Point(0, 0);
+            const position = translate instanceof Point ?
+                translate : new Point(0, 0);
 
             let widthExt = 0;
             let heightExt = 0;
@@ -903,7 +906,7 @@ class CanvasDrawer extends OpenSeadragon.DrawerBase{
      */
     _getCanvasSize(sketch) {
         const canvas = this._getContext(sketch).canvas;
-        return new $.Point(canvas.width, canvas.height);
+        return new Point(canvas.width, canvas.height);
     }
 
     /**
@@ -913,7 +916,7 @@ class CanvasDrawer extends OpenSeadragon.DrawerBase{
      * @returns {OpenSeadragon.Point} The center point of the canvas
      */
     _getCanvasCenter() {
-        return new $.Point(this.canvas.width / 2, this.canvas.height / 2);
+        return new Point(this.canvas.width / 2, this.canvas.height / 2);
     }
 
     /**
@@ -1004,7 +1007,7 @@ class CanvasDrawer extends OpenSeadragon.DrawerBase{
         };
     }
 }
-$.CanvasDrawer = CanvasDrawer;
+
 
 
 /**
@@ -1069,4 +1072,4 @@ function determineSubPixelRoundingRule(subPixelRoundingRules) {
     return normalizeSubPixelRoundingRule(subPixelRoundingRule);
 }
 
-}( OpenSeadragon ));
+export { CanvasDrawer };

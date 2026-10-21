@@ -72,7 +72,7 @@
 
 
 
-(function( $ ){
+
 
 // Modified from https://webglfundamentals.org/webgl/lessons/webgl-2d-matrices.html
 
@@ -307,7 +307,4 @@ class Mat3{
     }
 }
 
-
-$.Mat3 = Mat3;
-
-}( OpenSeadragon ));
+export { Mat3 };

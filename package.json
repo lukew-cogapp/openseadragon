@@ -3,7 +3,17 @@
     "version": "6.1.1",
     "description": "Provides a smooth, zoomable user interface for HTML/Javascript.",
     "keywords": [
-        "image", "zoom", "pan", "openseadragon", "seadragon", "deepzoom", "dzi", "iiif", "osm", "osd", "tms"
+        "image",
+        "zoom",
+        "pan",
+        "openseadragon",
+        "seadragon",
+        "deepzoom",
+        "dzi",
+        "iiif",
+        "osm",
+        "osd",
+        "tms"
     ],
     "homepage": "https://openseadragon.github.io/",
     "funding": "https://opencollective.com/openseadragon",
@@ -13,9 +23,23 @@
     "license": "BSD-3-Clause",
     "files": [
         "types/",
-        "build/openseadragon/"
+        "build/openseadragon/",
+        "build/esm/"
     ],
     "main": "build/openseadragon/openseadragon.js",
+    "module": "build/esm/esm.js",
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "import": "./build/esm/esm.js",
+            "default": "./build/openseadragon/openseadragon.js"
+        },
+        "./build/*": "./build/*",
+        "./package.json": "./package.json"
+    },
+    "sideEffects": [
+        "./build/openseadragon/*.js"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/openseadragon/openseadragon.git"
@@ -29,35 +53,27 @@
         "eslint": "^10.12.0",
         "eslint-plugin-compat": "^7.0.2",
         "globals": "^17.13.0",
-        "grunt": "^1.6.1",
-        "grunt-contrib-clean": "^2.0.1",
-        "grunt-contrib-compress": "^2.0.0",
-        "grunt-contrib-concat": "^2.1.0",
-        "grunt-contrib-connect": "^5.0.1",
-        "grunt-contrib-qunit": "^10.2.0",
-        "grunt-contrib-uglify": "^5.0.1",
-        "grunt-contrib-watch": "^1.1.0",
-        "grunt-eslint": "^27.0.0",
-        "grunt-git-describe": "^2.4.4",
-        "grunt-shell": "^4.0.0",
-        "grunt-text-replace": "^0.4.0",
         "nyc": "^18.0.0",
         "puppeteer": "^24.0.0",
         "qunit": "^2.24.1",
         "source-map-explorer": "^2.5.3",
         "tsd": "^0.33.0",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "vite": "^8.3.5",
+        "vite-plugin-istanbul": "^9.0.1"
     },
     "scripts": {
-        "test": "grunt test",
-        "coverage": "grunt coverage",
-        "prepare": "grunt build",
-        "build": "grunt build",
-        "dev": "grunt dev",
+        "test": "npm run build && node test/run-tests.mjs && npm run dts",
+        "coverage": "vite build --mode coverage && node test/run-tests.mjs --coverage && nyc report",
+        "prepare": "npm run build",
+        "build": "eslint src && vite build && vite build --mode min && vite build --mode esm",
+        "dev": "node scripts/dev.mjs",
         "bundlesize": "node scripts/check-bundle-size.js",
         "bundlesize:visualize": "source-map-explorer build/openseadragon/openseadragon.min.js --no-border-checks",
         "audit-dts": "node scripts/audit-dts.js",
-        "package": "grunt package"
+        "package": "npm run build && node scripts/package.mjs",
+        "lint": "eslint src",
+        "dts": "tsc --noEmit -p tsconfig.dts.json && tsd"
     },
     "bundlesize": [
         {

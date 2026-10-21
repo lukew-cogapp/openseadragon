@@ -32,7 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
 
 /**
  * @class Profiler
@@ -51,7 +53,7 @@
  * @property {Number} avgIdleTime
  * @property {Number} maxIdleTime
  */
-$.Profiler = function() {
+function Profiler() {
 
     this.midUpdate = false;
     this.numUpdates = 0;
@@ -66,10 +68,10 @@ $.Profiler = function() {
     this.minIdleTime = Infinity;
     this.avgIdleTime = 0;
     this.maxIdleTime = 0;
-};
+}
 
 /** @lends OpenSeadragon.Profiler.prototype */
-$.Profiler.prototype = {
+Profiler.prototype = {
 
     /**
      * @function
@@ -142,4 +144,4 @@ $.Profiler.prototype = {
     }
 };
 
-}( OpenSeadragon ));
+export { Profiler };

@@ -32,7 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function($){
+
+
+import $ from "./openseadragon.js";
 
 /**
  * @typedef {Object} OpenSeadragon.Event
@@ -66,13 +68,13 @@
  *
  * @memberof OpenSeadragon
  */
-$.EventSource = function() {
+function EventSource() {
     this.events = {};
     this._rejectedEventList = {};
-};
+}
 
 /** @lends OpenSeadragon.EventSource.prototype */
-$.EventSource.prototype = {
+EventSource.prototype = {
 
     /**
      * Add an event handler to be triggered only once (or a given number of times)
@@ -329,4 +331,4 @@ $.EventSource.prototype = {
     }
 };
 
-}( OpenSeadragon ));
+export { EventSource };

@@ -32,11 +32,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function($) {
+
+
+import $ from "./openseadragon.js";
 
 // deprecated
-$.TileSourceCollection = function(tileSize, tileSources, rows, layout) {
+function TileSourceCollection(tileSize, tileSources, rows, layout) {
     $.console.error('TileSourceCollection is deprecated; use World instead');
-};
+}
 
-}(OpenSeadragon));
+export { TileSourceCollection };

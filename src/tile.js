@@ -32,7 +32,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { CacheRecord } from "./tilecache.js";
+import { Point } from "./point.js";
+import { Rect } from "./rectangle.js";
+import { TileSource } from "./tilesource.js";
+import { converter } from "./datatypeconverter.js";
 
 /**
  * @class Tile
@@ -56,7 +63,7 @@
  *      see TileSource::getTilePostData) or null
  * @param {String} cacheKey key to act as a tile cache, must be unique for tiles with unique image data
  */
-$.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, ajaxHeaders, sourceBounds, postData, cacheKey) {
+function Tile(level, x, y, bounds, exists, url, context2D, loadWithAjax, ajaxHeaders, sourceBounds, postData, cacheKey) {
     /**
      * The zoom level this tile belongs to.
      * @member {Number} level
@@ -86,7 +93,7 @@ $.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, aja
      * @member {OpenSeadragon.Rect} positionedBounds
      * @memberof OpenSeadragon.Tile#
      */
-    this.positionedBounds  = new OpenSeadragon.Rect(bounds.x, bounds.y, bounds.width, bounds.height);
+    this.positionedBounds  = new Rect(bounds.x, bounds.y, bounds.width, bounds.height);
     /**
      * The portion of the tile to use as the source of the drawing operation, in pixels. Note that
      * this property is ignored with HTML drawer where the whole tile is always drawn.
@@ -141,7 +148,7 @@ $.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, aja
     if (cacheKey === undefined) {
         $.console.warn("Tile constructor needs 'cacheKey' variable: creation tile cache" +
             " in Tile class is deprecated. TileSource.prototype.getTileHashKey will be used.");
-        cacheKey = $.TileSource.prototype.getTileHashKey(level, x, y, url, ajaxHeaders, postData);
+        cacheKey = TileSource.prototype.getTileHashKey(level, x, y, url, ajaxHeaders, postData);
     }
 
     this._cKey = cacheKey || "";
@@ -264,10 +271,10 @@ $.Tile = function(level, x, y, bounds, exists, url, context2D, loadWithAjax, aja
      * @private
      */
     this.processingPromise = $.Promise.resolve(this);
-};
+}
 
 /** @lends OpenSeadragon.Tile.prototype */
-$.Tile.prototype = {
+Tile.prototype = {
 
     /**
      * Provides a string representation of this tiles level and (x,y)
@@ -355,7 +362,7 @@ $.Tile.prototype = {
         if (!cache || !cache.loaded) {
             return null;
         }
-        if (cache.type !== OpenSeadragon.HTMLDrawer.canvasCacheType || cache.type !== OpenSeadragon.HTMLDrawer.imageCacheType) {
+        if (cache.type !== 'htmlDrawer[canvas]' || cache.type !== 'htmlDrawer[image]') {
             $.console.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
             return null;
         }
@@ -374,7 +381,7 @@ $.Tile.prototype = {
         if (!cache || !cache.loaded) {
             return null;
         }
-        if (cache.type !== OpenSeadragon.HTMLDrawer.canvasCacheType || cache.type !== OpenSeadragon.HTMLDrawer.imageCacheType) {
+        if (cache.type !== 'htmlDrawer[canvas]' || cache.type !== 'htmlDrawer[image]') {
             $.console.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
             return null;
         }
@@ -393,7 +400,7 @@ $.Tile.prototype = {
         if (!cache || !cache.loaded) {
             return null;
         }
-        if (cache.type !== OpenSeadragon.HTMLDrawer.canvasCacheType || cache.type !== OpenSeadragon.HTMLDrawer.imageCacheType) {
+        if (cache.type !== 'htmlDrawer[canvas]' || cache.type !== 'htmlDrawer[image]') {
             $.console.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
             return null;
         }
@@ -561,14 +568,14 @@ $.Tile.prototype = {
             if (typeof data === 'function') {
                 $.console.error("[TileCache.cacheTile] options.data as a callback requires type argument! Current is " + type);
             }
-            type = $.converter.guessType(data);
+            type = converter.guessType(data);
         }
 
         const overwritesMainCache = key === this.cacheKey;
         if (_safely && (overwritesMainCache || setAsMain)) {
             // Need to get the supported type for rendering out of the active drawer.
             const supportedTypes = tiledImage.getDrawer().getSupportedDataFormats();
-            const conversion = $.converter.getConversionPath(type, supportedTypes);
+            const conversion = converter.getConversionPath(type, supportedTypes);
             $.console.assert(conversion, "[Tile.addCache] data was set for the default tile cache we are unable" +
                 `to render. Make sure OpenSeadragon.converter was taught to convert ${type} to (one of): ${conversion.toString()}`);
         }
@@ -616,11 +623,11 @@ $.Tile.prototype = {
 
         const overwritesMainCache = key === this.cacheKey;
         if (_safely) {
-            $.console.assert(cache instanceof $.CacheRecord, "[Tile.setCache] cache must be a CacheRecord object!");
+            $.console.assert(cache instanceof CacheRecord, "[Tile.setCache] cache must be a CacheRecord object!");
             if (overwritesMainCache || setAsMain) {
                 // Need to get the supported type for rendering out of the active drawer.
                 const supportedTypes = tiledImage.getDrawer().getSupportedDataFormats();
-                const conversion = $.converter.getConversionPath(cache.type, supportedTypes);
+                const conversion = converter.getConversionPath(cache.type, supportedTypes);
                 $.console.assert(conversion, "[Tile.setCache] data was set for the default tile cache we are unable" +
                     `to render. Make sure OpenSeadragon.converter was taught to convert ${cache.type} to (one of): ${conversion.toString()}`);
             }
@@ -742,7 +749,7 @@ $.Tile.prototype = {
         // INDEX_SIZE_ERR: DOM Exception 1: Index or size was negative, or greater than the allowed value.
         const x = Math.max(1, Math.ceil((sketchCanvasSize.x - canvasSize.x) / 2));
         const y = Math.max(1, Math.ceil((sketchCanvasSize.y - canvasSize.y) / 2));
-        return new $.Point(x, y).minus(
+        return new Point(x, y).minus(
             this.position
                 .times($.pixelDensityRatio)
                 .times(scale || 1)
@@ -808,4 +815,4 @@ $.Tile.prototype = {
     }
 };
 
-}( OpenSeadragon ));
+export { Tile };

@@ -32,8 +32,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
 
+
+
+import $ from "./openseadragon.js";
+import { EventSource } from "./eventsource.js";
+import { Point } from "./point.js";
+import { Rect } from "./rectangle.js";
+import { determineTileSourceType } from "./registry.js";
+import { getString } from "./strings.js";
 
 /**
  * @typedef {Object} OpenSeadragon.TileSourceOptions
@@ -107,12 +114,12 @@
  *      For the latter, the construction is assumed to occur through
  *      the extending classes implementation of 'configure'.
  */
-$.TileSource = function( options ) {
+function TileSource( options ) {
 
     // NOTE! Manually rewriting this to a class syntax is problematic, since apply(...) would have to be overridden
     //   static apply( target, args ) {...}
     // and check if target inherits TileSource and if not, copy all props to the __proto__ of the target
-    $.EventSource.apply( this );
+    EventSource.apply( this );
 
 
     /**
@@ -166,7 +173,7 @@ $.TileSource = function( options ) {
         this.ready       = true;
         this.aspectRatio = (source.width && source.height) ?
             (source.width / source.height) : 1;
-        this.dimensions  = new $.Point( source.width, source.height );
+        this.dimensions  = new Point( source.width, source.height );
 
         if ( source.tileSize ){
             this._tileWidth = this._tileHeight = source.tileSize;
@@ -218,7 +225,7 @@ $.TileSource = function( options ) {
         //in case the getImageInfo method is overridden and/or implies an
         //async mechanism set some safe defaults first
         this.aspectRatio = 1;
-        this.dimensions  = new $.Point( 10, 10 );
+        this.dimensions  = new Point( 10, 10 );
         this._tileWidth  = 0;
         this._tileHeight = 0;
         this.tileOverlap = 0;
@@ -239,10 +246,10 @@ $.TileSource = function( options ) {
         }
     }
     return this;
-};
+}
 
 /** @lends OpenSeadragon.TileSource.prototype */
-$.TileSource.prototype = {
+TileSource.prototype = {
 
     getTileSize: function( level ) {
         $.console.error(
@@ -330,7 +337,7 @@ $.TileSource.prototype = {
         const x = Math.ceil( scale * this.dimensions.x / this.getTileWidth(level) );
         const y = Math.ceil( scale * this.dimensions.y / this.getTileHeight(level) );
 
-        return new $.Point( x, y );
+        return new Point( x, y );
     },
 
     /**
@@ -342,7 +349,7 @@ $.TileSource.prototype = {
         const rx = 1.0 / imageSizeScaled.x * $.pixelDensityRatio;
         const ry = 1.0 / imageSizeScaled.y * $.pixelDensityRatio;
 
-        return new $.Point(rx, ry);
+        return new Point(rx, ry);
     },
 
 
@@ -392,7 +399,7 @@ $.TileSource.prototype = {
             y = this.getNumTiles(level).y - 1;
         }
 
-        return new $.Point(x, y);
+        return new Point(x, y);
     },
 
     /**
@@ -419,10 +426,10 @@ $.TileSource.prototype = {
         sy = Math.min( sy, dimensionsScaled.y - py );
 
         if (isSource) {
-            return new $.Rect(0, 0, sx, sy);
+            return new Rect(0, 0, sx, sy);
         }
 
-        return new $.Rect( px * scale, py * scale, sx * scale, sy * scale );
+        return new Rect( px * scale, py * scale, sx * scale, sy * scale );
     },
 
 
@@ -476,7 +483,7 @@ $.TileSource.prototype = {
             if( typeof (data) === "string" ) {
                 data = $.parseXml( data );
             }
-            const $TileSource = $.TileSource.determineType( _this, data, url );
+            const $TileSource = determineTileSourceType( _this, data, url );
             if ( !$TileSource ) {
                 /**
                  * Raised when an error occurs loading a TileSource.
@@ -1014,7 +1021,7 @@ $.TileSource.prototype = {
 };
 
 
-$.extend( true, $.TileSource.prototype, $.EventSource.prototype );
+$.extend( true, TileSource.prototype, EventSource.prototype );
 
 
 /**
@@ -1032,13 +1039,13 @@ function processResponse( xhr ){
     let data;
 
     if ( !xhr ) {
-        throw new Error( $.getString( "Errors.Security" ) );
+        throw new Error( getString( "Errors.Security" ) );
     } else if ( xhr.status !== 200 && xhr.status !== 0 ) {
         status     = xhr.status;
         statusText = ( status === 404 ) ?
             "Not Found" :
             xhr.statusText;
-        throw new Error( $.getString( "Errors.Status", status, statusText ) );
+        throw new Error( getString( "Errors.Status", status, statusText ) );
     }
 
     if( responseText.match(/^\s*<.*/) ){
@@ -1062,31 +1069,6 @@ function processResponse( xhr ){
 }
 
 
-/**
- * Determines the TileSource Implementation by introspection of OpenSeadragon
- * namespace, calling each TileSource implementation of 'isType'
- * @private
- * @inner
- * @function
- * @param {Object|Array|Document} data - the tile source configuration object
- * @param {String} url - the url where the tile source configuration object was
- *      loaded from, if any.
- */
-$.TileSource.determineType = function( tileSource, data, url ){
-    for( const property in OpenSeadragon ){
-        if( property.match(/.+TileSource$/) &&
-            $.isFunction( OpenSeadragon[ property ] ) &&
-            $.isFunction( OpenSeadragon[ property ].prototype.supports ) &&
-            OpenSeadragon[ property ].prototype.supports.call( tileSource, data, url )
-        ){
-            return OpenSeadragon[ property ];
-        }
-    }
+TileSource.determineType = determineTileSourceType;
 
-    $.console.error( "No TileSource was able to open %s %s", url, data );
-
-    return null;
-};
-
-
-}( OpenSeadragon ));
+export { TileSource };

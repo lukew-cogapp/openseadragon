@@ -32,6 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import $ from "./openseadragon.js";
+import { TileSource } from "./tilesource.js";
+
 /*
  * Derived from the OSM tile source in Rainer Simon's seajax-utils project
  * <http://github.com/rsimon/seajax-utils>.  Rainer Simon has contributed
@@ -40,7 +43,7 @@
  */
 
 
-(function( $ ){
+
 
 /**
  * @class OsmTileSource
@@ -68,7 +71,7 @@
  * @param {Number} tileOverlap
  * @param {String} tilesUrl
  */
-$.OsmTileSource = function( width, height, tileSize, tileOverlap, tilesUrl ) {
+function OsmTileSource( width, height, tileSize, tileOverlap, tilesUrl ) {
     let options;
 
     if( $.isPlainObject( width ) ){
@@ -98,11 +101,11 @@ $.OsmTileSource = function( width, height, tileSize, tileOverlap, tilesUrl ) {
     }
     options.minLevel = 8;
 
-    $.TileSource.apply( this, [ options ] );
+    TileSource.apply( this, [ options ] );
 
-};
+}
 
-$.extend( $.OsmTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.OsmTileSource.prototype */{
+$.extend( OsmTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.OsmTileSource.prototype */{
 
 
     /**
@@ -151,5 +154,4 @@ $.extend( $.OsmTileSource.prototype, $.TileSource.prototype, /** @lends OpenSead
     }
 });
 
-
-}( OpenSeadragon ));
+export { OsmTileSource };

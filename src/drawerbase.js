@@ -32,7 +32,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { Point } from "./point.js";
+import { Rect } from "./rectangle.js";
 
 /**
  * @typedef OpenSeadragon.BaseDrawerOptions
@@ -57,7 +61,6 @@
  *   base drawer instance. For example, navigator will reflect data updates of the main viewport.
  */
 
-const OpenSeadragon = $; // (re)alias back to OpenSeadragon for JSDoc
 /**
  * @class OpenSeadragon.DrawerBase
  * @classdesc Base class for Drawers that handle rendering of tiles for an {@link OpenSeadragon.Viewer}.
@@ -70,7 +73,7 @@ const OpenSeadragon = $; // (re)alias back to OpenSeadragon for JSDoc
  * @abstract
  */
 
-OpenSeadragon.DrawerBase = class DrawerBase {
+class DrawerBase {
     constructor(options){
         $.console.assert( options.viewer, "[Drawer] options.viewer is required" );
         $.console.assert( options.viewport, "[Drawer] options.viewport is required" );
@@ -348,19 +351,19 @@ OpenSeadragon.DrawerBase = class DrawerBase {
      *
      */
     _checkInterfaceImplementation(){
-        if (this._createDrawingElement === $.DrawerBase.prototype._createDrawingElement) {
+        if (this._createDrawingElement === DrawerBase.prototype._createDrawingElement) {
             throw(new Error("[drawer]._createDrawingElement must be implemented by child class"));
         }
-        if (this.draw === $.DrawerBase.prototype.draw) {
+        if (this.draw === DrawerBase.prototype.draw) {
             throw(new Error("[drawer].draw must be implemented by child class"));
         }
-        if (this.canRotate === $.DrawerBase.prototype.canRotate) {
+        if (this.canRotate === DrawerBase.prototype.canRotate) {
             throw(new Error("[drawer].canRotate must be implemented by child class"));
         }
-        if (this.destroy === $.DrawerBase.prototype.destroy) {
+        if (this.destroy === DrawerBase.prototype.destroy) {
             throw(new Error("[drawer].destroy must be implemented by child class"));
         }
-        if (this.setImageSmoothingEnabled === $.DrawerBase.prototype.setImageSmoothingEnabled) {
+        if (this.setImageSmoothingEnabled === DrawerBase.prototype.setImageSmoothingEnabled) {
             throw(new Error("[drawer].setImageSmoothingEnabled must be implemented by child class"));
         }
     }
@@ -378,7 +381,7 @@ OpenSeadragon.DrawerBase = class DrawerBase {
         const topLeft = this.viewport.pixelFromPointNoRotate(rectangle.getTopLeft(), true);
         const size = this.viewport.deltaPixelsFromPointsNoRotate(rectangle.getSize(), true);
 
-        return new $.Rect(
+        return new Rect(
             topLeft.x * $.pixelDensityRatio,
             topLeft.y * $.pixelDensityRatio,
             size.x * $.pixelDensityRatio,
@@ -396,7 +399,7 @@ OpenSeadragon.DrawerBase = class DrawerBase {
      */
     viewportCoordToDrawerCoord(point) {
         const vpPoint = this.viewport.pixelFromPointNoRotate(point, true);
-        return new $.Point(
+        return new Point(
             vpPoint.x * $.pixelDensityRatio,
             vpPoint.y * $.pixelDensityRatio
         );
@@ -414,7 +417,7 @@ OpenSeadragon.DrawerBase = class DrawerBase {
     _calculateCanvasSize() {
         const pixelDensityRatio = $.pixelDensityRatio;
         const viewportSize = this.viewport.getContainerSize();
-        return new OpenSeadragon.Point( Math.round(viewportSize.x * pixelDensityRatio), Math.round(viewportSize.y * pixelDensityRatio));
+        return new Point( Math.round(viewportSize.x * pixelDensityRatio), Math.round(viewportSize.y * pixelDensityRatio));
     }
 
     /**
@@ -476,6 +479,6 @@ OpenSeadragon.DrawerBase = class DrawerBase {
     }
 
 
-};
+}
 
-}( OpenSeadragon ));
+export { DrawerBase };

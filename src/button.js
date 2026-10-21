@@ -32,7 +32,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { EventSource } from "./eventsource.js";
+import { MouseTracker } from "./mousetracker.js";
 
 /**
  * An enumeration of button states
@@ -45,7 +49,7 @@
  * @property {Number} HOVER
  * @property {Number} DOWN
  */
-$.ButtonState = {
+const ButtonState = {
     REST:   0,
     GROUP:  1,
     HOVER:  2,
@@ -79,11 +83,11 @@ $.ButtonState = {
  * @param {OpenSeadragon.EventHandler} [options.onBlur=null] Event handler callback for {@link OpenSeadragon.Button.event:blur}.
  * @param {Object} [options.userData=null] Arbitrary object to be passed unchanged to any attached handler methods.
  */
-$.Button = function( options ) {
+function Button( options ) {
 
     const _this = this;
 
-    $.EventSource.call( this );
+    EventSource.call( this );
 
     $.extend( true, this, {
 
@@ -193,7 +197,7 @@ $.Button = function( options ) {
      * @member {OpenSeadragon.ButtonState} currentState
      * @memberof OpenSeadragon.Button#
      */
-    this.currentState = $.ButtonState.GROUP;
+    this.currentState = ButtonState.GROUP;
 
     // When the button last began to fade.
     this.fadeBeginTime  = null;
@@ -209,7 +213,7 @@ $.Button = function( options ) {
      * @member {OpenSeadragon.MouseTracker} tracker
      * @memberof OpenSeadragon.Button#
      */
-    this.tracker = new $.MouseTracker({
+    this.tracker = new MouseTracker({
 
         userData:           'Button.tracker',
         element:            this.element,
@@ -221,7 +225,7 @@ $.Button = function( options ) {
                 return;
             }
             if ( event.insideElementPressed ) {
-                inTo( _this, $.ButtonState.DOWN );
+                inTo( _this, ButtonState.DOWN );
                 /**
                  * Raised when the cursor enters the Button element.
                  *
@@ -234,7 +238,7 @@ $.Button = function( options ) {
                  */
                 _this.raiseEvent( "enter", { originalEvent: event.originalEvent } );
             } else if ( !event.buttonDownAny ) {
-                inTo( _this, $.ButtonState.HOVER );
+                inTo( _this, ButtonState.HOVER );
             }
         },
 
@@ -257,7 +261,7 @@ $.Button = function( options ) {
             if ( _this._disabled ) {
                 return;
             }
-            outTo( _this, $.ButtonState.GROUP );
+            outTo( _this, ButtonState.GROUP );
             if ( event.insideElementPressed ) {
                 /**
                  * Raised when the cursor leaves the Button element.
@@ -292,7 +296,7 @@ $.Button = function( options ) {
             if ( _this._disabled ) {
                 return;
             }
-            inTo( _this, $.ButtonState.DOWN );
+            inTo( _this, ButtonState.DOWN );
             /**
              * Raised when a mouse button is pressed or touch occurs in the Button element.
              *
@@ -311,7 +315,7 @@ $.Button = function( options ) {
                 return;
             }
             if ( event.insideElementPressed && event.insideElementReleased ) {
-                outTo( _this, $.ButtonState.HOVER );
+                outTo( _this, ButtonState.HOVER );
                 /**
                  * Raised when the mouse button is released or touch ends in the Button element.
                  *
@@ -324,9 +328,9 @@ $.Button = function( options ) {
                  */
                 _this.raiseEvent( "release", { originalEvent: event.originalEvent } );
             } else if ( event.insideElementPressed ) {
-                outTo( _this, $.ButtonState.GROUP );
+                outTo( _this, ButtonState.GROUP );
             } else {
-                inTo( _this, $.ButtonState.HOVER );
+                inTo( _this, ButtonState.HOVER );
             }
         },
 
@@ -392,10 +396,10 @@ $.Button = function( options ) {
 
     });
 
-    outTo( this, $.ButtonState.REST );
-};
+    outTo( this, ButtonState.REST );
+}
 
-$.extend( $.Button.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.Button.prototype */{
+$.extend( Button.prototype, EventSource.prototype, /** @lends OpenSeadragon.Button.prototype */{
 
     /**
      * Used by a button container element (e.g. a ButtonGroup) to transition the button state
@@ -403,7 +407,7 @@ $.extend( $.Button.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.
      * @function
      */
     notifyGroupEnter: function() {
-        inTo( this, $.ButtonState.GROUP );
+        inTo( this, ButtonState.GROUP );
     },
 
     /**
@@ -412,7 +416,7 @@ $.extend( $.Button.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.
      * @function
      */
     notifyGroupExit: function() {
-        outTo( this, $.ButtonState.REST );
+        outTo( this, ButtonState.REST );
     },
 
     /**
@@ -580,26 +584,26 @@ function inTo( button, newState ) {
         return;
     }
 
-    if ( newState >= $.ButtonState.GROUP &&
-         button.currentState === $.ButtonState.REST ) {
+    if ( newState >= ButtonState.GROUP &&
+         button.currentState === ButtonState.REST ) {
         stopFading( button );
-        button.currentState = $.ButtonState.GROUP;
+        button.currentState = ButtonState.GROUP;
     }
 
-    if ( newState >= $.ButtonState.HOVER &&
-         button.currentState === $.ButtonState.GROUP ) {
+    if ( newState >= ButtonState.HOVER &&
+         button.currentState === ButtonState.GROUP ) {
         if( button.imgHover ){
             button.imgHover.style.visibility = "";
         }
-        button.currentState = $.ButtonState.HOVER;
+        button.currentState = ButtonState.HOVER;
     }
 
-    if ( newState >= $.ButtonState.DOWN &&
-         button.currentState === $.ButtonState.HOVER ) {
+    if ( newState >= ButtonState.DOWN &&
+         button.currentState === ButtonState.HOVER ) {
         if( button.imgDown ){
             button.imgDown.style.visibility = "";
         }
-        button.currentState = $.ButtonState.DOWN;
+        button.currentState = ButtonState.DOWN;
     }
 }
 
@@ -610,29 +614,27 @@ function outTo( button, newState ) {
         return;
     }
 
-    if ( newState <= $.ButtonState.HOVER &&
-         button.currentState === $.ButtonState.DOWN ) {
+    if ( newState <= ButtonState.HOVER &&
+         button.currentState === ButtonState.DOWN ) {
         if( button.imgDown ){
             button.imgDown.style.visibility = "hidden";
         }
-        button.currentState = $.ButtonState.HOVER;
+        button.currentState = ButtonState.HOVER;
     }
 
-    if ( newState <= $.ButtonState.GROUP &&
-         button.currentState === $.ButtonState.HOVER ) {
+    if ( newState <= ButtonState.GROUP &&
+         button.currentState === ButtonState.HOVER ) {
         if( button.imgHover ){
             button.imgHover.style.visibility = "hidden";
         }
-        button.currentState = $.ButtonState.GROUP;
+        button.currentState = ButtonState.GROUP;
     }
 
-    if ( newState <= $.ButtonState.REST &&
-         button.currentState === $.ButtonState.GROUP ) {
+    if ( newState <= ButtonState.REST &&
+         button.currentState === ButtonState.GROUP ) {
         beginFading( button );
-        button.currentState = $.ButtonState.REST;
+        button.currentState = ButtonState.REST;
     }
 }
 
-
-
-}( OpenSeadragon ));
+export { ButtonState, Button };

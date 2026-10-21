@@ -32,7 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
 
 /**
  * An enumeration of supported locations where controls can be anchored.
@@ -48,7 +50,7 @@
  * @property {Number} BOTTOM_RIGHT
  * @property {Number} ABSOLUTE
  */
-$.ControlAnchor = {
+const ControlAnchor = {
     NONE: 0,
     TOP_LEFT: 1,
     TOP_RIGHT: 2,
@@ -73,7 +75,7 @@ $.ControlAnchor = {
  * @param {Boolean} [options.autoFade=true] - Whether the control should have the autofade behavior
  * @param {Element} container - the element to control will be anchored too.
  */
-$.Control = function ( element, options, container ) {
+function Control ( element, options, container ) {
 
     const parent = element.parentNode;
     if (typeof options === 'number')
@@ -113,7 +115,7 @@ $.Control = function ( element, options, container ) {
      * @member {Element} wrapper
      * @memberof OpenSeadragon.Control#
      */
-    if ( this.anchor === $.ControlAnchor.ABSOLUTE ) {
+    if ( this.anchor === ControlAnchor.ABSOLUTE ) {
         this.wrapper    = $.makeNeutralElement( "div" );
         this.wrapper.style.position = "absolute";
         this.wrapper.style.top = typeof (options.top) === "number" ? (options.top + 'px') : options.top;
@@ -131,7 +133,7 @@ $.Control = function ( element, options, container ) {
     } else {
         this.wrapper    = $.makeNeutralElement( "div" );
         this.wrapper.style.display = "inline-block";
-        if ( this.anchor === $.ControlAnchor.NONE ) {
+        if ( this.anchor === ControlAnchor.NONE ) {
             // IE6 fix
             this.wrapper.style.width = this.wrapper.style.height = "100%";
         }
@@ -139,8 +141,8 @@ $.Control = function ( element, options, container ) {
     this.wrapper.appendChild( this.element );
 
     if (options.attachToViewer ) {
-        if ( this.anchor === $.ControlAnchor.TOP_RIGHT ||
-             this.anchor === $.ControlAnchor.BOTTOM_RIGHT ) {
+        if ( this.anchor === ControlAnchor.TOP_RIGHT ||
+             this.anchor === ControlAnchor.BOTTOM_RIGHT ) {
             this.container.insertBefore(
                 this.wrapper,
                 this.container.firstChild
@@ -152,10 +154,10 @@ $.Control = function ( element, options, container ) {
         parent.appendChild( this.wrapper );
     }
 
-};
+}
 
 /** @lends OpenSeadragon.Control.prototype */
-$.Control.prototype = {
+Control.prototype = {
 
     /**
      * Removes the control from the container.
@@ -184,7 +186,7 @@ $.Control.prototype = {
      */
     setVisible: function( visible ) {
         this.wrapper.style.display = visible ?
-            ( this.anchor === $.ControlAnchor.ABSOLUTE ? 'block' : 'inline-block' ) :
+            ( this.anchor === ControlAnchor.ABSOLUTE ? 'block' : 'inline-block' ) :
             "none";
     },
 
@@ -198,4 +200,4 @@ $.Control.prototype = {
     }
 };
 
-}( OpenSeadragon ));
+export { ControlAnchor, Control };

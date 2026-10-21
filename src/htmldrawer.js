@@ -32,9 +32,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
 
-const OpenSeadragon = $; // alias back for JSDoc
+
+import $ from "./openseadragon.js";
+import { DrawerBase } from "./drawerbase.js";
+import { converter } from "./datatypeconverter.js";
+
 
 /**
  * @class OpenSeadragon.HTMLDrawer
@@ -47,7 +50,7 @@ const OpenSeadragon = $; // alias back for JSDoc
  * @param {Number} [options.debugGridColor] - See debugGridColor in {@link OpenSeadragon.Options} for details.
  */
 
-class HTMLDrawer extends OpenSeadragon.DrawerBase{
+class HTMLDrawer extends DrawerBase{
     constructor(options){
         super(options);
 
@@ -119,11 +122,11 @@ class HTMLDrawer extends OpenSeadragon.DrawerBase{
 
         // Accepting context2d directly matters for performance: reaching the image type from a canvas
         // means encoding the tile (toBlob) and decoding it again, whereas this is a single drawImage.
-        $.converter.learn("context2d", HTMLDrawer.canvasCacheType, _prepareCanvasTile, 1, 1);
-        $.converter.learn("image", HTMLDrawer.imageCacheType, _prepareImageTile, 1, 1);
+        converter.learn("context2d", HTMLDrawer.canvasCacheType, _prepareCanvasTile, 1, 1);
+        converter.learn("image", HTMLDrawer.imageCacheType, _prepareImageTile, 1, 1);
         // Also learn how to move back, since these elements can be just used as-is
-        $.converter.learn(HTMLDrawer.canvasCacheType, "context2d", _canvasTileToContext, 1, 3);
-        $.converter.learn(HTMLDrawer.imageCacheType, "image", (t, d) => d.data, 1, 3);
+        converter.learn(HTMLDrawer.canvasCacheType, "context2d", _canvasTileToContext, 1, 3);
+        converter.learn(HTMLDrawer.imageCacheType, "image", (t, d) => d.data, 1, 3);
 
         function _freeTile(data) {
             if ( data.imgElement && data.imgElement.parentNode ) {
@@ -137,13 +140,13 @@ class HTMLDrawer extends OpenSeadragon.DrawerBase{
         // The canvas is a copy this cache owns exclusively - the way back out copies again - so its
         // bitmap can be released here. Detaching the node only makes it collectable eventually, and
         // Safari holds canvas memory until width and height are set to zero.
-        $.converter.learnDestroy(HTMLDrawer.canvasCacheType, data => {
+        converter.learnDestroy(HTMLDrawer.canvasCacheType, data => {
             _freeTile(data);
             data.data.width = 0;
             data.data.height = 0;
         });
         // The image type holds an element owned by the 'image' cache it came from, so it is only detached.
-        $.converter.learnDestroy(HTMLDrawer.imageCacheType, _freeTile);
+        converter.learnDestroy(HTMLDrawer.imageCacheType, _freeTile);
     }
 
     static get imageCacheType() {
@@ -325,7 +328,4 @@ class HTMLDrawer extends OpenSeadragon.DrawerBase{
     }
 }
 
-$.HTMLDrawer = HTMLDrawer;
-
-
-}( OpenSeadragon ));
+export { HTMLDrawer };

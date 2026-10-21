@@ -32,7 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
 
 /**
  * @class Point
@@ -44,7 +46,7 @@
  * @param {Number} [x] The vector component 'x'. Defaults to the origin at 0.
  * @param {Number} [y] The vector component 'y'. Defaults to the origin at 0.
  */
-$.Point = function( x, y ) {
+function Point( x, y ) {
     /**
      * The vector component 'x'.
      * @member {Number} x
@@ -57,16 +59,16 @@ $.Point = function( x, y ) {
      * @memberof OpenSeadragon.Point#
      */
     this.y = typeof ( y ) === "number" ? y : 0;
-};
+}
 
 /** @lends OpenSeadragon.Point.prototype */
-$.Point.prototype = {
+Point.prototype = {
     /**
      * @function
      * @returns {OpenSeadragon.Point} a duplicate of this Point
      */
     clone: function() {
-        return new $.Point(this.x, this.y);
+        return new Point(this.x, this.y);
     },
 
     /**
@@ -77,7 +79,7 @@ $.Point.prototype = {
      *  vector components
      */
     plus: function( point ) {
-        return new $.Point(
+        return new Point(
             this.x + point.x,
             this.y + point.y
         );
@@ -91,7 +93,7 @@ $.Point.prototype = {
      *  vector components
      */
     minus: function( point ) {
-        return new $.Point(
+        return new Point(
             this.x - point.x,
             this.y - point.y
         );
@@ -105,7 +107,7 @@ $.Point.prototype = {
      *  of the vector components by the factor
      */
     times: function( factor ) {
-        return new $.Point(
+        return new Point(
             this.x * factor,
             this.y * factor
         );
@@ -119,7 +121,7 @@ $.Point.prototype = {
      *  vector components by the factor
      */
     divide: function( factor ) {
-        return new $.Point(
+        return new Point(
             this.x / factor,
             this.y / factor
         );
@@ -132,7 +134,7 @@ $.Point.prototype = {
      *  vector components
      */
     negate: function() {
-        return new $.Point( -this.x, -this.y );
+        return new Point( -this.x, -this.y );
     },
 
     /**
@@ -168,7 +170,7 @@ $.Point.prototype = {
      * by the specified function
      */
     apply: function( func ) {
-        return new $.Point( func( this.x ), func( this.y ) );
+        return new Point( func( this.x ), func( this.y ) );
     },
 
     /**
@@ -179,7 +181,7 @@ $.Point.prototype = {
      */
     equals: function( point ) {
         return (
-            point instanceof $.Point
+            point instanceof Point
         ) && (
             this.x === point.x
         ) && (
@@ -197,7 +199,7 @@ $.Point.prototype = {
      * @returns {OpenSeadragon.Point}. A new point representing the point rotated around the specified pivot
      */
     rotate: function (degrees, pivot) {
-        pivot = pivot || new $.Point(0, 0);
+        pivot = pivot || new Point(0, 0);
         let cos;
         let sin;
         // Avoid float computations when possible
@@ -228,7 +230,7 @@ $.Point.prototype = {
         }
         const x = cos * (this.x - pivot.x) - sin * (this.y - pivot.y) + pivot.x;
         const y = sin * (this.x - pivot.x) + cos * (this.y - pivot.y) + pivot.y;
-        return new $.Point(x, y);
+        return new Point(x, y);
     },
 
     /**
@@ -242,4 +244,4 @@ $.Point.prototype = {
     }
 };
 
-}( OpenSeadragon ));
+export { Point };

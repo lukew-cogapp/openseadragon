@@ -32,7 +32,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { CacheRecord } from "./tilecache.js";
+import { EventSource } from "./eventsource.js";
+import { Point } from "./point.js";
+import { Rect } from "./rectangle.js";
+import { TiledImage } from "./tiledimage.js";
 
 /**
  * @class World
@@ -42,12 +49,12 @@
  * @param {Object} options - World options.
  * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this World.
  **/
-$.World = function( options ) {
+function World( options ) {
     const _this = this;
 
     $.console.assert( options.viewer, "[World] options.viewer is required" );
 
-    $.EventSource.call( this );
+    EventSource.call( this );
 
     this.viewer = options.viewer;
     this._items = [];
@@ -64,9 +71,9 @@ $.World = function( options ) {
     };
 
     this._figureSizes();
-};
+}
 
-$.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.World.prototype */{
+$.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World.prototype */{
     /**
      * Add the specified item.
      * @param {OpenSeadragon.TiledImage} item - The item to add.
@@ -77,7 +84,7 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
      */
     addItem: function( item, options ) {
         $.console.assert(item, "[World.addItem] item is required");
-        $.console.assert(item instanceof $.TiledImage, "[World.addItem] only TiledImages supported at this time");
+        $.console.assert(item instanceof TiledImage, "[World.addItem] only TiledImages supported at this time");
 
         options = options || {};
         if (options.index !== undefined) {
@@ -405,7 +412,7 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
                 }
                 // Here ensure type is defined, rquired by data callbacks
                 type = type || origCache.type;
-                workingCache = new $.CacheRecord().withTileReference(tile);
+                workingCache = new CacheRecord().withTileReference(tile);
                 return origCache.getDataAs(type, true).then(data => {
                     if (data === undefined || data === null) {
                         // Conversion/loading failed upstream; abort invalidation for this tile.
@@ -418,7 +425,7 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
             const setWorkingCacheData = (value, type) => {
                 // // OpenSeadragon.trace(`        WORKER tile,  ${tile ? tile.toString() : 'null'} tstamp ${tStamp}`);
                 if (!workingCache) {
-                    workingCache = new $.CacheRecord().withTileReference(tile);
+                    workingCache = new CacheRecord().withTileReference(tile);
                     workingCache.addTile(tile, value, type);
                     return $.Promise.resolve();
                 }
@@ -819,7 +826,7 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
             }
 
             height = width * (box.height / box.width);
-            position = new $.Point(x + ((tileSize - width) / 2),
+            position = new Point(x + ((tileSize - width) / 2),
                 y + ((tileSize - height) / 2));
 
             item.setPosition(position, immediately);
@@ -841,8 +848,8 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
         const oldContentFactor = this._contentFactor || 0;
 
         if (!this._items.length) {
-            this._homeBounds = new $.Rect(0, 0, 1, 1);
-            this._contentSize = new $.Point(1, 1);
+            this._homeBounds = new Rect(0, 0, 1, 1);
+            this._contentSize = new Point(1, 1);
             this._contentFactor = 1;
         } else {
             let item = this._items[0];
@@ -865,8 +872,8 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
                 bottom = Math.max(bottom, clippedBounds.y + clippedBounds.height);
             }
 
-            this._homeBounds = new $.Rect(left, top, right - left, bottom - top);
-            this._contentSize = new $.Point(
+            this._homeBounds = new Rect(left, top, right - left, bottom - top);
+            this._contentSize = new Point(
                 this._homeBounds.width * this._contentFactor,
                 this._homeBounds.height * this._contentFactor);
         }
@@ -901,4 +908,4 @@ $.extend( $.World.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.W
     }
 });
 
-}( OpenSeadragon ));
+export { World };

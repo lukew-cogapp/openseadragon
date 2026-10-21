@@ -32,7 +32,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { ControlAnchor } from "./control.js";
+import { EventSource } from "./eventsource.js";
+import { MouseTracker } from "./mousetracker.js";
+import { Point } from "./point.js";
+import { Viewer } from "./viewer.js";
 
 /**
  * @class Navigator
@@ -49,7 +56,7 @@
  * @param {Element} [options.element] - An element to use for the navigator.
  * @param {String} [options.id] - Id of the element to use for the navigator. However, this is ignored if {@link options.element} is provided.
  */
-$.Navigator = function( options ){
+function Navigator( options ){
 
     const viewer = options.viewer;
     const _this = this;
@@ -77,7 +84,7 @@ $.Navigator = function( options ){
         }
 
         options.controlOptions  = {
-            anchor:           $.ControlAnchor.NONE,
+            anchor:           ControlAnchor.NONE,
             attachToViewer:   false,
             autoFade:         false
         };
@@ -85,22 +92,22 @@ $.Navigator = function( options ){
         options.id              = 'navigator-' + $.now();
         this.element            = $.makeNeutralElement( "div" );
         options.controlOptions  = {
-            anchor:           $.ControlAnchor.TOP_RIGHT,
+            anchor:           ControlAnchor.TOP_RIGHT,
             attachToViewer:   true,
             autoFade:         options.autoFade
         };
 
         if( options.position ){
             if( 'BOTTOM_RIGHT' === options.position ){
-               options.controlOptions.anchor = $.ControlAnchor.BOTTOM_RIGHT;
+               options.controlOptions.anchor = ControlAnchor.BOTTOM_RIGHT;
             } else if( 'BOTTOM_LEFT' === options.position ){
-               options.controlOptions.anchor = $.ControlAnchor.BOTTOM_LEFT;
+               options.controlOptions.anchor = ControlAnchor.BOTTOM_LEFT;
             } else if( 'TOP_RIGHT' === options.position ){
-               options.controlOptions.anchor = $.ControlAnchor.TOP_RIGHT;
+               options.controlOptions.anchor = ControlAnchor.TOP_RIGHT;
             } else if( 'TOP_LEFT' === options.position ){
-               options.controlOptions.anchor = $.ControlAnchor.TOP_LEFT;
+               options.controlOptions.anchor = ControlAnchor.TOP_LEFT;
             } else if( 'ABSOLUTE' === options.position ){
-               options.controlOptions.anchor = $.ControlAnchor.ABSOLUTE;
+               options.controlOptions.anchor = ControlAnchor.ABSOLUTE;
                options.controlOptions.top = options.top;
                options.controlOptions.left = options.left;
                options.controlOptions.height = options.height;
@@ -142,11 +149,11 @@ $.Navigator = function( options ){
     this.borderWidth = 2;
     //At some browser magnification levels the display regions lines up correctly, but at some there appears to
     //be a one pixel gap.
-    this.fudge = new $.Point(1, 1);
-    this.totalBorderWidths = new $.Point(this.borderWidth * 2, this.borderWidth * 2).minus(this.fudge);
+    this.fudge = new Point(1, 1);
+    this.totalBorderWidths = new Point(this.borderWidth * 2, this.borderWidth * 2).minus(this.fudge);
 
 
-    if ( options.controlOptions.anchor !== $.ControlAnchor.NONE ) {
+    if ( options.controlOptions.anchor !== ControlAnchor.NONE ) {
         (function( style, borderWidth ){
             style.margin        = '0px';
             style.border        = borderWidth + 'px solid ' + options.borderColor;
@@ -198,8 +205,8 @@ $.Navigator = function( options ){
         options.controlOptions
     );
 
-    this._resizeWithViewer = options.controlOptions.anchor !== $.ControlAnchor.ABSOLUTE &&
-        options.controlOptions.anchor !== $.ControlAnchor.NONE;
+    this._resizeWithViewer = options.controlOptions.anchor !== ControlAnchor.ABSOLUTE &&
+        options.controlOptions.anchor !== ControlAnchor.NONE;
 
     if (options.width && options.height) {
         this.setWidth(options.width);
@@ -213,9 +220,9 @@ $.Navigator = function( options ){
         this.elementArea = navigatorSize.x * navigatorSize.y;
     }
 
-    this.oldContainerSize = new $.Point( 0, 0 );
+    this.oldContainerSize = new Point( 0, 0 );
 
-    $.Viewer.apply( this, [ options ] );
+    Viewer.apply( this, [ options ] );
 
     this.displayRegionContainer.appendChild(this.displayRegion);
     this.element.getElementsByTagName('div')[0].appendChild(this.displayRegionContainer);
@@ -239,7 +246,7 @@ $.Navigator = function( options ){
 
     // Remove the base class' (Viewer's) innerTracker and replace it with our own
     this.innerTracker.destroy();
-    this.innerTracker = new $.MouseTracker({
+    this.innerTracker = new MouseTracker({
         userData:        'Navigator.innerTracker',
         element:         this.element, //this.canvas,
         dragHandler:     $.delegate( this, onCanvasDrag ),
@@ -286,9 +293,9 @@ $.Navigator = function( options ){
     });
 
     this.update(viewer.viewport);
-};
+}
 
-$.extend( $.Navigator.prototype, $.EventSource.prototype, $.Viewer.prototype, /** @lends OpenSeadragon.Navigator.prototype */{
+$.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @lends OpenSeadragon.Navigator.prototype */{
 
     /**
      * Used to notify the navigator when its size has changed. Especially useful when the navigator is resizable.
@@ -296,7 +303,7 @@ $.extend( $.Navigator.prototype, $.EventSource.prototype, $.Viewer.prototype, /*
      */
     updateSize: function () {
         if ( this.viewport ) {
-            const containerSize = new $.Point(
+            const containerSize = new Point(
                     (this.container.clientWidth === 0 ? 1 : this.container.clientWidth),
                     (this.container.clientHeight === 0 ? 1 : this.container.clientHeight)
                 );
@@ -450,11 +457,11 @@ $.extend( $.Navigator.prototype, $.EventSource.prototype, $.Viewer.prototype, /*
             }
         });
 
-        return $.Viewer.prototype.addTiledImage.apply(this, [optionsClone]);
+        return Viewer.prototype.addTiledImage.apply(this, [optionsClone]);
     },
 
     destroy: function() {
-        return $.Viewer.prototype.destroy.apply(this);
+        return Viewer.prototype.destroy.apply(this);
     },
 
     /**
@@ -481,7 +488,7 @@ $.extend( $.Navigator.prototype, $.EventSource.prototype, $.Viewer.prototype, /*
         $.console.warn("[OpenSeadragon.Navigator.setVisible] Navigator element is not defined.");
     }
 
-    return $.Viewer.prototype.setVisible.apply(this, [visible]);
+    return Viewer.prototype.setVisible.apply(this, [visible]);
 },
 
     // private
@@ -693,4 +700,6 @@ function setElementTransform( element, rule ) {
   element.style.transform = rule;
 }
 
-}( OpenSeadragon ));
+Navigator.viewerFeature = "Navigator";
+
+export { Navigator };

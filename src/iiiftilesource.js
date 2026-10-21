@@ -32,7 +32,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { Point } from "./point.js";
+import { TileSource } from "./tilesource.js";
+import { getString } from "./strings.js";
 
 /**
  * @class IIIFTileSource
@@ -62,7 +67,7 @@
  *      `tileQuality`.
  *      @see https://iiif.io/api/image/3.0/#53-extra-functionality
  */
-$.IIIFTileSource = function( options ){
+function IIIFTileSource( options ){
 
     /* eslint-disable camelcase */
 
@@ -199,10 +204,10 @@ $.IIIFTileSource = function( options ){
         }
     }
 
-    $.TileSource.apply( this, [ options ] );
-};
+    TileSource.apply( this, [ options ] );
+}
 
-$.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.IIIFTileSource.prototype */{
+$.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.IIIFTileSource.prototype */{
     /**
      * Determine if the data and/or url imply the image service is supported by
      * this tile source.
@@ -327,7 +332,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
     getTileWidth: function( level ) {
 
         if(this.emulateLegacyImagePyramid) {
-            return $.TileSource.prototype.getTileWidth.call(this, level);
+            return TileSource.prototype.getTileWidth.call(this, level);
         }
 
         const scaleFactor = Math.pow(2, this.maxLevel - level);
@@ -346,7 +351,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
     getTileHeight: function( level ) {
 
         if(this.emulateLegacyImagePyramid) {
-            return $.TileSource.prototype.getTileHeight.call(this, level);
+            return TileSource.prototype.getTileHeight.call(this, level);
         }
 
         const scaleFactor = Math.pow(2, this.maxLevel - level);
@@ -373,7 +378,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
             return levelScale;
         }
 
-        return $.TileSource.prototype.getLevelScale.call(this, level);
+        return TileSource.prototype.getLevelScale.call(this, level);
     },
 
     /**
@@ -385,9 +390,9 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
         if(this.emulateLegacyImagePyramid) {
             const scale = this.getLevelScale(level);
             if (scale) {
-                return new $.Point(1, 1);
+                return new Point(1, 1);
             } else {
-                return new $.Point(0, 0);
+                return new Point(0, 0);
             }
         }
 
@@ -396,11 +401,11 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
             const levelSize = this.levelSizes[level];
             const x = Math.ceil( levelSize.width / this.getTileWidth(level) );
             const y = Math.ceil( levelSize.height / this.getTileHeight(level) );
-            return new $.Point( x, y );
+            return new Point( x, y );
         }
         // Otherwise call default TileSource->getNumTiles() function
         else {
-            return $.TileSource.prototype.getNumTiles.call(this, level);
+            return TileSource.prototype.getNumTiles.call(this, level);
         }
     },
 
@@ -413,7 +418,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
     getTileAtPoint: function( level, point ) {
 
         if(this.emulateLegacyImagePyramid) {
-            return new $.Point(0, 0);
+            return new Point(0, 0);
         }
 
         // Use supplied list of scaled resolution sizes if these exist
@@ -440,11 +445,11 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
                 y = this.getNumTiles(level).y - 1;
             }
 
-            return new $.Point(x, y);
+            return new Point(x, y);
         }
 
         // Otherwise call default TileSource->getTileAtPoint() function
-        return $.TileSource.prototype.getTileAtPoint.call(this, level, point);
+        return TileSource.prototype.getTileAtPoint.call(this, level, point);
     },
 
 
@@ -683,7 +688,7 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
     function configureFromXml10(xmlDoc) {
         //parse the xml
         if ( !xmlDoc || !xmlDoc.documentElement ) {
-            throw new Error( $.getString( "Errors.Xml" ) );
+            throw new Error( getString( "Errors.Xml" ) );
         }
 
         const root            = xmlDoc.documentElement;
@@ -699,10 +704,10 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
             } catch ( e ) {
                 throw (e instanceof Error) ?
                     e :
-                    new Error( $.getString("Errors.IIIF") );
+                    new Error( getString("Errors.IIIF") );
             }
         }
-        throw new Error( $.getString( "Errors.IIIF" ) );
+        throw new Error( getString( "Errors.IIIF" ) );
     }
 
     function parseXML10( node, configuration, property ) {
@@ -726,6 +731,4 @@ $.extend( $.IIIFTileSource.prototype, $.TileSource.prototype, /** @lends OpenSea
         }
     }
 
-
-
-}( OpenSeadragon ));
+export { IIIFTileSource };

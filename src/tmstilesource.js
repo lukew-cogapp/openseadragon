@@ -32,6 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import $ from "./openseadragon.js";
+import { TileSource } from "./tilesource.js";
+
 /*
  * Derived from the TMS tile source in Rainer Simon's seajax-utils project
  * <http://github.com/rsimon/seajax-utils>.  Rainer Simon has contributed
@@ -40,7 +43,7 @@
  */
 
 
-(function( $ ){
+
 
 /**
  * @class TmsTileSource
@@ -57,7 +60,7 @@
  * @param {Number} tileOverlap
  * @param {String} tilesUrl
  */
-$.TmsTileSource = function( width, height, tileSize, tileOverlap, tilesUrl ) {
+function TmsTileSource( width, height, tileSize, tileOverlap, tilesUrl ) {
     let options;
 
     if( $.isPlainObject( width ) ){
@@ -88,11 +91,11 @@ $.TmsTileSource = function( width, height, tileSize, tileOverlap, tilesUrl ) {
     options.width = bufferedWidth;
     options.height = bufferedHeight;
 
-    $.TileSource.apply( this, [ options ] );
+    TileSource.apply( this, [ options ] );
 
-};
+}
 
-$.extend( $.TmsTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.TmsTileSource.prototype */{
+$.extend( TmsTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.TmsTileSource.prototype */{
 
 
     /**
@@ -141,5 +144,4 @@ $.extend( $.TmsTileSource.prototype, $.TileSource.prototype, /** @lends OpenSead
     }
 });
 
-
-}( OpenSeadragon ));
+export { TmsTileSource };

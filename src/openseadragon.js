@@ -32,6 +32,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import { Point } from "./point.js";
+
 /*
  * Portions of this source file taken from jQuery:
  *
@@ -84,7 +86,6 @@
 
 /**
  * @namespace OpenSeadragon
- * @version <%= pkg.name %> <%= pkg.version %>
  * @classdesc The root namespace for OpenSeadragon.  All utility methods
  * and classes are defined on or below this namespace.
  *
@@ -927,12 +928,12 @@
   *
   */
 
-/* eslint-disable no-redeclare */
 function OpenSeadragon( options ){
     return new OpenSeadragon.Viewer( options );
 }
+const $ = OpenSeadragon;
 
-(function( $ ){
+
 
 
     /**
@@ -946,10 +947,10 @@ function OpenSeadragon( options ){
      * @since 1.0.0
      */
     $.version = {
-        versionStr: '<%= osdVersion.versionStr %>',
-        major: parseInt('<%= osdVersion.major %>', 10),
-        minor: parseInt('<%= osdVersion.minor %>', 10),
-        revision: parseInt('<%= osdVersion.revision %>', 10)
+        versionStr: __OSD_VERSION__,
+        major: parseInt(__OSD_VERSION__.split('.')[0], 10),
+        minor: parseInt(__OSD_VERSION__.split('.')[1], 10),
+        revision: parseInt(__OSD_VERSION__.split('.')[2], 10)
     };
 
 
@@ -1204,7 +1205,7 @@ function OpenSeadragon( options ){
      */
     $.pixelDensityRatio = $.getCurrentPixelDensityRatio();
 
-}( OpenSeadragon ));
+
 
 /**
  *  This closure defines all static methods available to the OpenSeadragon
@@ -1218,7 +1219,7 @@ function OpenSeadragon( options ){
  *  Some static methods have also been refactored from the original OpenSeadragon
  *  project.
  */
-(function( $ ){
+
 
     /**
      * Taken from jQuery 1.6.1
@@ -1309,7 +1310,7 @@ function OpenSeadragon( options ){
         return target;
     };
 
-    const isIOSDevice = function () {
+    function isIOSDevice () {
         if (typeof navigator !== 'object') {
             return false;
         }
@@ -1320,7 +1321,7 @@ function OpenSeadragon( options ){
         return userAgent.indexOf('iPhone') !== -1 ||
                userAgent.indexOf('iPad') !== -1 ||
                userAgent.indexOf('iPod') !== -1;
-    };
+    }
 
     $.extend( $, /** @lends OpenSeadragon */{
         /**
@@ -1685,7 +1686,7 @@ function OpenSeadragon( options ){
          * @returns {OpenSeadragon.Point} - the position of the upper left corner of the element.
          */
         getElementPosition: function( element ) {
-            let result = new $.Point();
+            let result = new Point();
             let isFixed;
             let offsetParent;
 
@@ -1724,7 +1725,7 @@ function OpenSeadragon( options ){
             let boundingRect = { top: 0, left: 0 };
 
             if ( !doc ) {
-                return new $.Point();
+                return new Point();
             }
 
             const docElement = doc.documentElement;
@@ -1739,7 +1740,7 @@ function OpenSeadragon( options ){
                     doc.defaultView || doc.parentWindow :
                     false;
 
-            return new $.Point(
+            return new Point(
                 boundingRect.left + ( win.pageXOffset || docElement.scrollLeft ) - ( docElement.clientLeft || 0 ),
                 boundingRect.top + ( win.pageYOffset || docElement.scrollTop ) - ( docElement.clientTop || 0 )
             );
@@ -1755,7 +1756,7 @@ function OpenSeadragon( options ){
         getElementSize: function( element ) {
             element = $.getElement( element );
 
-            return new $.Point(
+            return new Point(
                 element.clientWidth,
                 element.clientHeight
             );
@@ -1864,7 +1865,7 @@ function OpenSeadragon( options ){
 
             if ( typeof ( event.pageX ) === "number" ) {
                 $.getMousePosition = function( event ){
-                    const result = new $.Point();
+                    const result = new Point();
 
                     result.x = event.pageX;
                     result.y = event.pageY;
@@ -1873,7 +1874,7 @@ function OpenSeadragon( options ){
                 };
             } else if ( typeof ( event.clientX ) === "number" ) {
                 $.getMousePosition = function( event ){
-                    const result = new $.Point();
+                    const result = new Point();
 
                     result.x =
                         event.clientX +
@@ -1907,28 +1908,28 @@ function OpenSeadragon( options ){
 
             if ( typeof ( window.pageXOffset ) === "number" ) {
                 $.getPageScroll = function(){
-                    return new $.Point(
+                    return new Point(
                         window.pageXOffset,
                         window.pageYOffset
                     );
                 };
             } else if ( body.scrollLeft || body.scrollTop ) {
                 $.getPageScroll = function(){
-                    return new $.Point(
+                    return new Point(
                         document.body.scrollLeft,
                         document.body.scrollTop
                     );
                 };
             } else if ( docElement.scrollLeft || docElement.scrollTop ) {
                 $.getPageScroll = function(){
-                    return new $.Point(
+                    return new Point(
                         document.documentElement.scrollLeft,
                         document.documentElement.scrollTop
                     );
                 };
             } else {
                 // We can't reassign the function yet, as there was no scroll.
-                return new $.Point(0, 0);
+                return new Point(0, 0);
             }
 
             return $.getPageScroll();
@@ -1996,21 +1997,21 @@ function OpenSeadragon( options ){
 
             if ( typeof ( window.innerWidth ) === 'number' ) {
                 $.getWindowSize = function(){
-                    return new $.Point(
+                    return new Point(
                         window.innerWidth,
                         window.innerHeight
                     );
                 };
             } else if ( docElement.clientWidth || docElement.clientHeight ) {
                 $.getWindowSize = function(){
-                    return new $.Point(
+                    return new Point(
                         document.documentElement.clientWidth,
                         document.documentElement.clientHeight
                     );
                 };
             } else if ( body.clientWidth || body.clientHeight ) {
                 $.getWindowSize = function(){
-                    return new $.Point(
+                    return new Point(
                         document.body.clientWidth,
                         document.body.clientHeight
                     );
@@ -2768,9 +2769,9 @@ function OpenSeadragon( options ){
      * @static
      * @private
      */
-    const nullfunction = function( msg ){
+    function nullfunction( msg ){
         //document.location.hash = msg;
-    };
+    }
 
     $.console = window.console || {
         log:    nullfunction,
@@ -3142,27 +3143,5 @@ function OpenSeadragon( options ){
             });
         }
     };
-}(OpenSeadragon));
 
-
-// Universal Module Definition, supports CommonJS, AMD and simple script tag
-(function (root, $) {
-    if (typeof define === 'function' && define.amd) {
-        // expose as amd module
-        define([], function () {
-            return $;
-        });
-    } else if (typeof module === 'object' && module.exports) {
-        // expose as commonjs module
-        module.exports = $;
-    } else {
-        if (!root) {
-            root = typeof window === 'object' && window;
-            if (!root) {
-                $.console.error("OpenSeadragon must run in browser environment!");
-            }
-        }
-        // expose as window.OpenSeadragon
-        root.OpenSeadragon = $;
-    }
-}(this, OpenSeadragon));
+export default OpenSeadragon;

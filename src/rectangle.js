@@ -32,7 +32,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-(function($) {
+
+
+import $ from "./openseadragon.js";
+import { Point } from "./point.js";
 
 /**
  * @class Rect
@@ -52,7 +55,7 @@
  * @param {Number} [height=0] The vector component 'height'.
  * @param {Number} [degrees=0] Rotation of the rectangle around (x,y) in degrees.
  */
-$.Rect = function(x, y, width, height, degrees) {
+function Rect(x, y, width, height, degrees) {
     /**
      * The vector component 'x'.
      * @member {Number} x
@@ -110,7 +113,7 @@ $.Rect = function(x, y, width, height, degrees) {
         this.width = newWidth;
         this.degrees -= 90;
     }
-};
+}
 
 /**
  * Builds a rectangle having the 3 specified points as summits.
@@ -121,7 +124,7 @@ $.Rect = function(x, y, width, height, degrees) {
  * @param {OpenSeadragon.Point} bottomLeft
  * @returns {OpenSeadragon.Rect}
  */
-$.Rect.fromSummits = function(topLeft, topRight, bottomLeft) {
+Rect.fromSummits = function(topLeft, topRight, bottomLeft) {
     const width = topLeft.distanceTo(topRight);
     const height = topLeft.distanceTo(bottomLeft);
     const diff = topRight.minus(topLeft);
@@ -131,7 +134,7 @@ $.Rect.fromSummits = function(topLeft, topRight, bottomLeft) {
     } else if (diff.y < 0) {
         radians += 2 * Math.PI;
     }
-    return new $.Rect(
+    return new Rect(
         topLeft.x,
         topLeft.y,
         width,
@@ -140,13 +143,13 @@ $.Rect.fromSummits = function(topLeft, topRight, bottomLeft) {
 };
 
 /** @lends OpenSeadragon.Rect.prototype */
-$.Rect.prototype = {
+Rect.prototype = {
     /**
      * @function
      * @returns {OpenSeadragon.Rect} a duplicate of this Rect
      */
     clone: function() {
-        return new $.Rect(
+        return new Rect(
             this.x,
             this.y,
             this.width,
@@ -171,7 +174,7 @@ $.Rect.prototype = {
      *  the rectangle.
      */
     getTopLeft: function() {
-        return new $.Point(
+        return new Point(
             this.x,
             this.y
         );
@@ -185,7 +188,7 @@ $.Rect.prototype = {
      *  the rectangle.
      */
     getBottomRight: function() {
-        return new $.Point(this.x + this.width, this.y + this.height)
+        return new Point(this.x + this.width, this.y + this.height)
             .rotate(this.degrees, this.getTopLeft());
     },
 
@@ -197,7 +200,7 @@ $.Rect.prototype = {
      *  the rectangle.
      */
     getTopRight: function() {
-        return new $.Point(this.x + this.width, this.y)
+        return new Point(this.x + this.width, this.y)
             .rotate(this.degrees, this.getTopLeft());
     },
 
@@ -209,7 +212,7 @@ $.Rect.prototype = {
      *  the rectangle.
      */
     getBottomLeft: function() {
-        return new $.Point(this.x, this.y + this.height)
+        return new Point(this.x, this.y + this.height)
             .rotate(this.degrees, this.getTopLeft());
     },
 
@@ -220,7 +223,7 @@ $.Rect.prototype = {
      *  as represented by a 2-dimensional vector (x,y)
      */
     getCenter: function() {
-        return new $.Point(
+        return new Point(
             this.x + this.width / 2.0,
             this.y + this.height / 2.0
         ).rotate(this.degrees, this.getTopLeft());
@@ -233,7 +236,7 @@ $.Rect.prototype = {
      *  width and height of the rectangle.
      */
     getSize: function() {
-        return new $.Point(this.width, this.height);
+        return new Point(this.width, this.height);
     },
 
     /**
@@ -243,7 +246,7 @@ $.Rect.prototype = {
      * @returns {Boolean} 'true' if all components are equal, otherwise 'false'.
      */
     equals: function(other) {
-        return (other instanceof $.Rect) &&
+        return (other instanceof Rect) &&
             this.x === other.x &&
             this.y === other.y &&
             this.width === other.width &&
@@ -260,7 +263,7 @@ $.Rect.prototype = {
     *  of the vector components by the factor
     */
     times: function(factor) {
-        return new $.Rect(
+        return new Rect(
             this.x * factor,
             this.y * factor,
             this.width * factor,
@@ -275,7 +278,7 @@ $.Rect.prototype = {
     * @returns {OpenSeadragon.Rect} A new rect with altered position
     */
     translate: function(delta) {
-        return new $.Rect(
+        return new Rect(
             this.x + delta.x,
             this.y + delta.y,
             this.width,
@@ -302,7 +305,7 @@ $.Rect.prototype = {
             thisBoundingBox.y + thisBoundingBox.height,
             otherBoundingBox.y + otherBoundingBox.height);
 
-        return new $.Rect(
+        return new Rect(
             left,
             top,
             right - left,
@@ -392,7 +395,7 @@ $.Rect.prototype = {
 
             if (-EPSILON <= s && s <= 1 - EPSILON &&
                 -EPSILON <= t && t <= 1 - EPSILON) {
-                return new $.Point(a.x + t * abVector.x, a.y + t * abVector.y);
+                return new Point(a.x + t * abVector.x, a.y + t * abVector.y);
             }
             return null;
         }
@@ -420,7 +423,7 @@ $.Rect.prototype = {
                 maxY = point.y;
             }
         }
-        return new $.Rect(minX, minY, maxX - minX, maxY - minY);
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
     },
 
     // private
@@ -465,7 +468,7 @@ $.Rect.prototype = {
         } else if (diff.y < 0) {
             radians += 2 * Math.PI;
         }
-        return new $.Rect(
+        return new Rect(
             newTopLeft.x,
             newTopLeft.y,
             this.width,
@@ -490,7 +493,7 @@ $.Rect.prototype = {
         const maxX = Math.max(topLeft.x, topRight.x, bottomLeft.x, bottomRight.x);
         const minY = Math.min(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y);
         const maxY = Math.max(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y);
-        return new $.Rect(
+        return new Rect(
             minX,
             minY,
             maxX - minX,
@@ -508,7 +511,7 @@ $.Rect.prototype = {
         const y = Math.floor(boundingBox.y);
         const width = Math.ceil(boundingBox.width + boundingBox.x - x);
         const height = Math.ceil(boundingBox.height + boundingBox.y - y);
-        return new $.Rect(x, y, width, height);
+        return new Rect(x, y, width, height);
     },
 
     /**
@@ -559,5 +562,4 @@ $.Rect.prototype = {
     }
 };
 
-
-}(OpenSeadragon));
+export { Rect };

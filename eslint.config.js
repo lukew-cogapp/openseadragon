@@ -100,5 +100,20 @@ module.exports = [
             // Defensive initialisations signal intent, so they are allowed.
             "no-useless-assignment": ["off"]
         }
+    },
+    {
+        files: ["src/**/*.js"],
+        languageOptions: {
+            sourceType: "module",
+            globals: {
+                OpenSeadragon: "off",
+                __OSD_VERSION__: "readonly"
+            }
+        },
+        rules: {
+            // Modules are strict, so the rule now flags the event handlers
+            // that receive their `this` through call/apply.
+            "no-invalid-this": "off"
+        }
     }
 ];

@@ -34,7 +34,12 @@
  */
 
 
-(function($) {
+
+
+import $ from "./openseadragon.js";
+import { EventSource } from "./eventsource.js";
+import { Point } from "./point.js";
+import { TileSource } from "./tilesource.js";
 
   /**
    * @class IIPTileSource
@@ -62,14 +67,14 @@
    *          }
    */
 
-  $.IIPTileSource = function(options) {
+  function IIPTileSource(options) {
 
-    $.EventSource.call( this );
+    EventSource.call( this );
 
     if( options && options.iipsrv && options.image ){
       $.extend( this, options );
       this.aspectRatio = 1;
-      this.dimensions  = new $.Point( 10, 10 );
+      this.dimensions  = new Point( 10, 10 );
       this._tileWidth  = 0;
       this._tileHeight = 0;
       this.tileOverlap = 0;
@@ -81,10 +86,10 @@
       const url = this.getMetadataUrl();
       this.getImageInfo( url );
     }
-  };
+  }
 
 
-  $.extend($.IIPTileSource.prototype, $.TileSource.prototype, /** @lends OpenSeadragon.IIPTileSource.prototype */ {
+  $.extend(IIPTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.IIPTileSource.prototype */ {
 
     /**
      * Return URL string for image metadata
@@ -124,7 +129,7 @@
       let size = tmp[1].split(" ");
       this.width = parseInt( size[0], 10 );
       this.height = parseInt( size[1], 10 );
-      this.dimensions = new $.Point( this.width, this.height );
+      this.dimensions = new Point( this.width, this.height );
 
       // Calculate aspect ratio
       this.aspectRatio = this.width / this.height;
@@ -178,7 +183,7 @@
         headers: this.ajaxHeaders,
         success: function( xhr ) {
           try {
-            OpenSeadragon[ "IIPTileSource" ].prototype.parseIIP.call( _this, xhr.responseText );
+            $[ "IIPTileSource" ].prototype.parseIIP.call( _this, xhr.responseText );
             _this.ready = true;
             _this.raiseEvent( 'ready', { tileSource: _this } );
           }
@@ -226,7 +231,7 @@
         const levelSize = this.levelSizes[level];
         let x = Math.ceil( levelSize.width / this._tileWidth );
         let y = Math.ceil( levelSize.height / this._tileHeight );
-        return new $.Point( x, y );
+        return new Point( x, y );
     },
 
 
@@ -303,6 +308,6 @@
 
   });
 
-  $.extend( true, $.IIPTileSource.prototype, $.EventSource.prototype );
+  $.extend( true, IIPTileSource.prototype, EventSource.prototype );
 
-}(OpenSeadragon));
+export { IIPTileSource };

@@ -32,7 +32,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-(function( $ ){
+
+
+import $ from "./openseadragon.js";
+import { EventSource } from "./eventsource.js";
+import { Placement } from "./placement.js";
+import { Point } from "./point.js";
+import { Rect } from "./rectangle.js";
+import { Spring } from "./spring.js";
+import { Tile } from "./tile.js";
+import { converter } from "./datatypeconverter.js";
 
 /**
  * Object that keeps ready-to-draw tile state information. These properties might differ in time
@@ -105,7 +114,7 @@
  *      and this can optimize rendering or processing logics, for example, in case a plugin always requires a certain
  *      format to convert to.
  */
-$.TiledImage = function( options ) {
+function TiledImage( options ) {
     this._initialized = false;
     /**
      * The {@link OpenSeadragon.TileSource} that defines this TiledImage.
@@ -117,10 +126,10 @@ $.TiledImage = function( options ) {
     $.console.assert( options.viewer, "[TiledImage] options.viewer is required" );
     $.console.assert( options.imageLoader, "[TiledImage] options.imageLoader is required" );
     $.console.assert( options.source, "[TiledImage] options.source is required" );
-    $.console.assert(!options.clip || options.clip instanceof $.Rect,
+    $.console.assert(!options.clip || options.clip instanceof Rect,
         "[TiledImage] options.clip must be an OpenSeadragon.Rect if present");
 
-    $.EventSource.call( this );
+    EventSource.call( this );
     // Asynchronously loaded items remember where users wanted them
     this._optimalWorldIndex = undefined;
 
@@ -133,7 +142,7 @@ $.TiledImage = function( options ) {
     this._imageLoader = options.imageLoader;
     delete options.imageLoader;
 
-    if (options.clip instanceof $.Rect) {
+    if (options.clip instanceof Rect) {
         this._clip = options.clip.clone();
     }
 
@@ -164,7 +173,7 @@ $.TiledImage = function( options ) {
 
     const fitBounds = options.fitBounds;
     delete options.fitBounds;
-    const fitBoundsPlacement = options.fitBoundsPlacement || OpenSeadragon.Placement.CENTER;
+    const fitBoundsPlacement = options.fitBoundsPlacement || Placement.CENTER;
     delete options.fitBoundsPlacement;
 
     const degrees = options.degrees || 0;
@@ -237,25 +246,25 @@ $.TiledImage = function( options ) {
 
     this._fullyLoaded = false;
 
-    this._xSpring = new $.Spring({
+    this._xSpring = new Spring({
         initial: x,
         springStiffness: this.springStiffness,
         animationTime: this.animationTime
     });
 
-    this._ySpring = new $.Spring({
+    this._ySpring = new Spring({
         initial: y,
         springStiffness: this.springStiffness,
         animationTime: this.animationTime
     });
 
-    this._scaleSpring = new $.Spring({
+    this._scaleSpring = new Spring({
         initial: scale,
         springStiffness: this.springStiffness,
         animationTime: this.animationTime
     });
 
-    this._degreesSpring = new $.Spring({
+    this._degreesSpring = new Spring({
         initial: degrees,
         springStiffness: this.springStiffness,
         animationTime: this.animationTime
@@ -278,9 +287,9 @@ $.TiledImage = function( options ) {
     this.setAjaxHeaders(ajaxHeaders, false);
     this._initialized = true;
     // this.invalidatedAt = 0;
-};
+}
 
-$.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadragon.TiledImage.prototype */{
+$.extend(TiledImage.prototype, EventSource.prototype, /** @lends OpenSeadragon.TiledImage.prototype */{
     /**
      * @returns {Boolean} Whether the TiledImage needs to be drawn.
      */
@@ -490,12 +499,12 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      */
     getBoundsNoRotate: function(current) {
         return current ?
-            new $.Rect(
+            new Rect(
                 this._xSpring.current.value,
                 this._ySpring.current.value,
                 this._worldWidthCurrent,
                 this._worldHeightCurrent) :
-            new $.Rect(
+            new Rect(
                 this._xSpring.target.value,
                 this._ySpring.target.value,
                 this._worldWidthTarget,
@@ -521,7 +530,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
                 this._worldWidthCurrent : this._worldWidthTarget;
             const ratio = worldWidth / this.source.dimensions.x;
             const clip = this._clip.times(ratio);
-            bounds = new $.Rect(
+            bounds = new Rect(
                 bounds.x + clip.x,
                 bounds.y + clip.y,
                 clip.width,
@@ -554,16 +563,16 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      * @returns {OpenSeadragon.Point} This TiledImage's content size, in original pixels.
      */
     getContentSize: function() {
-        return new $.Point(this.source.dimensions.x, this.source.dimensions.y);
+        return new Point(this.source.dimensions.x, this.source.dimensions.y);
     },
 
     /**
      * @returns {OpenSeadragon.Point} The TiledImage's content size, in window coordinates.
      */
     getSizeInWindowCoordinates: function() {
-        const topLeft = this.imageToWindowCoordinates(new $.Point(0, 0));
+        const topLeft = this.imageToWindowCoordinates(new Point(0, 0));
         const bottomRight = this.imageToWindowCoordinates(this.getContentSize());
-        return new $.Point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
+        return new Point(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
     },
 
     /**
@@ -588,7 +597,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
     // private
     _viewportToImageDelta: function( viewerX, viewerY, current ) {
         const scale = (current ? this._scaleSpring.current.value : this._scaleSpring.target.value);
-        return new $.Point(viewerX * (this.source.dimensions.x / scale),
+        return new Point(viewerX * (this.source.dimensions.x / scale),
             viewerY * ((this.source.dimensions.y * this.contentAspectX) / scale));
     },
 
@@ -602,12 +611,12 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      */
     viewportToImageCoordinates: function(viewerX, viewerY, current) {
         let point;
-        if (viewerX instanceof $.Point) {
+        if (viewerX instanceof Point) {
             //they passed a point instead of individual components
             current = viewerY;
             point = viewerX;
         } else {
-            point = new $.Point(viewerX, viewerY);
+            point = new Point(viewerX, viewerY);
         }
 
         point = point.rotate(-this.getRotation(current), this._getRotationPoint(current));
@@ -623,7 +632,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
     // private
     _imageToViewportDelta: function( imageX, imageY, current ) {
         const scale = (current ? this._scaleSpring.current.value : this._scaleSpring.target.value);
-        return new $.Point((imageX / this.source.dimensions.x) * scale,
+        return new Point((imageX / this.source.dimensions.x) * scale,
             (imageY / this.source.dimensions.y / this.contentAspectX) * scale);
     },
 
@@ -636,7 +645,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      * @returns {OpenSeadragon.Point} A point representing the coordinates in the viewport.
      */
     imageToViewportCoordinates: function(imageX, imageY, current) {
-        if (imageX instanceof $.Point) {
+        if (imageX instanceof Point) {
             //they passed a point instead of individual components
             current = imageY;
             imageY = imageX.y;
@@ -668,17 +677,17 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      */
     imageToViewportRectangle: function(imageX, imageY, pixelWidth, pixelHeight, current) {
         let rect = imageX;
-        if (rect instanceof $.Rect) {
+        if (rect instanceof Rect) {
             //they passed a rect instead of individual components
             current = imageY;
         } else {
-            rect = new $.Rect(imageX, imageY, pixelWidth, pixelHeight);
+            rect = new Rect(imageX, imageY, pixelWidth, pixelHeight);
         }
 
         const coordA = this.imageToViewportCoordinates(rect.getTopLeft(), current);
         const coordB = this._imageToViewportDelta(rect.width, rect.height, current);
 
-        return new $.Rect(
+        return new Rect(
             coordA.x,
             coordA.y,
             coordB.x,
@@ -700,17 +709,17 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      */
     viewportToImageRectangle: function( viewerX, viewerY, pointWidth, pointHeight, current ) {
         let rect = viewerX;
-        if (viewerX instanceof $.Rect) {
+        if (viewerX instanceof Rect) {
             //they passed a rect instead of individual components
             current = viewerY;
         } else {
-            rect = new $.Rect(viewerX, viewerY, pointWidth, pointHeight);
+            rect = new Rect(viewerX, viewerY, pointWidth, pointHeight);
         }
 
         const coordA = this.viewportToImageCoordinates(rect.getTopLeft(), current);
         const coordB = this._viewportToImageDelta(rect.width, rect.height, current);
 
-        return new $.Rect(
+        return new Rect(
             coordA.x,
             coordA.y,
             coordB.x,
@@ -748,7 +757,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      */
     windowToImageCoordinates: function( pixel ) {
         const viewerCoordinates = pixel.minus(
-            OpenSeadragon.getElementPosition( this.viewer.element ));
+            $.getElementPosition( this.viewer.element ));
         return this.viewerElementToImageCoordinates( viewerCoordinates );
     },
 
@@ -760,7 +769,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
     imageToWindowCoordinates: function( pixel ) {
         const viewerCoordinates = this.imageToViewerElementCoordinates( pixel );
         return viewerCoordinates.plus(
-            OpenSeadragon.getElementPosition( this.viewer.element ));
+            $.getElementPosition( this.viewer.element ));
     },
 
     // private
@@ -769,7 +778,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
     _viewportToTiledImageRectangle: function(rect) {
         const scale = this._scaleSpring.current.value;
         rect = rect.rotate(-this.getRotation(true), this._getRotationPoint(true));
-        return new $.Rect(
+        return new Rect(
             (rect.x - this._xSpring.current.value) / scale,
             (rect.y - this._ySpring.current.value) / scale,
             rect.width / scale,
@@ -877,7 +886,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      */
     setCroppingPolygons: function( polygons ) {
         const isXYObject = function(obj) {
-            return obj instanceof $.Point || (typeof obj.x === 'number' && typeof obj.y === 'number');
+            return obj instanceof Point || (typeof obj.x === 'number' && typeof obj.y === 'number');
         };
 
         const objectToSimpleXYObject = function(objs) {
@@ -930,8 +939,8 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      * @fires OpenSeadragon.TiledImage.event:bounds-change
      */
     fitBounds: function(bounds, anchor, immediately) {
-        anchor = anchor || $.Placement.CENTER;
-        const anchorProperties = $.Placement.properties[anchor];
+        anchor = anchor || Placement.CENTER;
+        const anchorProperties = Placement.properties[anchor];
         let aspectRatio = this.contentAspectX;
         let xOffset = 0;
         let yOffset = 0;
@@ -961,7 +970,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
                 marginLeft = bounds.width - bounds.height * aspectRatio;
             }
             this.setPosition(
-                new $.Point(bounds.x - xOffset + marginLeft, bounds.y - yOffset),
+                new Point(bounds.x - xOffset + marginLeft, bounds.y - yOffset),
                 immediately);
             this.setHeight(height, immediately);
         } else {
@@ -974,7 +983,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
                 marginTop = bounds.height - bounds.width / aspectRatio;
             }
             this.setPosition(
-                new $.Point(bounds.x - xOffset, bounds.y - yOffset + marginTop),
+                new Point(bounds.x - xOffset, bounds.y - yOffset + marginTop),
                 immediately);
             this.setWidth(width, immediately);
         }
@@ -999,10 +1008,10 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
      * @fires OpenSeadragon.TiledImage.event:clip-change
      */
     setClip: function(newClip) {
-        $.console.assert(!newClip || newClip instanceof $.Rect,
+        $.console.assert(!newClip || newClip instanceof Rect,
             "[TiledImage.setClip] newClip must be an OpenSeadragon.Rect or null");
 
-        if (newClip instanceof $.Rect) {
+        if (newClip instanceof Rect) {
             this._clip = newClip.clone();
         } else {
             this._clip = null;
@@ -2040,7 +2049,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
 
         if(this.getDrawer().minimumOverlapRequired(this)){
             if ( !overlap ) {
-                sizeC = sizeC.plus( new $.Point(1, 1));
+                sizeC = sizeC.plus( new Point(1, 1));
             }
 
             if (tile.isRightMost && this.wrapHorizontal) {
@@ -2080,8 +2089,8 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
             bottomY = Math.min(aspectRatio, bottomRightBound.y);
         }
 
-        const topLeftTile = this.source.getTileAtPoint(level, new $.Point(leftX, topY));
-        const bottomRightTile = this.source.getTileAtPoint(level, new $.Point(rightX, bottomY));
+        const topLeftTile = this.source.getTileAtPoint(level, new Point(leftX, topY));
+        const bottomRightTile = this.source.getTileAtPoint(level, new Point(rightX, bottomY));
         const numTiles  = this.source.getNumTiles(level);
 
         if (this.wrapHorizontal) {
@@ -2174,7 +2183,7 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
                 ajaxHeaders = null;
             }
 
-            tile = new $.Tile(
+            tile = new Tile(
                 level,
                 x,
                 y,
@@ -2311,10 +2320,10 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
 
         if (this.originalDataType) {
             // First fetch conversion path to ensure safe conversion and to deduce target type it chooses as optimal one
-            const conversion = $.converter.getConversionPath(dataType, this.originalDataType);
+            const conversion = converter.getConversionPath(dataType, this.originalDataType);
             if (conversion) {
-                const desiredType = $.converter.getConversionPathFinalType(conversion);
-                $.converter.convert(tile, data, dataType, desiredType).then(newData => {
+                const desiredType = converter.getConversionPathFinalType(conversion);
+                converter.convert(tile, data, dataType, desiredType).then(newData => {
                     this._setTileLoaded(tile, newData, tileRequest, desiredType);
                 }).catch(e => {
                     $.console.warn("Failed to satisfy original type [%s] %s from %s: %s", desiredType, tile, dataType, e);
@@ -2697,6 +2706,4 @@ $.extend($.TiledImage.prototype, $.EventSource.prototype, /** @lends OpenSeadrag
     }
 });
 
-
-
-}( OpenSeadragon ));
+export { TiledImage };

@@ -31,7 +31,11 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-(function ($) {
+
+import $ from "./openseadragon.js";
+import { Point } from "./point.js";
+import { TileSource } from "./tilesource.js";
+
 /**
  * @class ImageTileSource
  * @classdesc The ImageTileSource allows a simple image to be loaded
@@ -57,7 +61,7 @@
  * @param {String|Boolean} [options.ajaxWithCredentials=false] Whether to set
  * the withCredentials XHR flag for AJAX requests (when loading tile sources).
  */
-$.ImageTileSource = class extends $.TileSource {
+class ImageTileSource extends TileSource {
 
     constructor(props) {
         super($.extend({
@@ -149,9 +153,9 @@ $.ImageTileSource = class extends $.TileSource {
      */
     getNumTiles(level) {
         if (this.getLevelScale(level)) {
-            return new $.Point(1, 1);
+            return new Point(1, 1);
         }
-        return new $.Point(0, 0);
+        return new Point(0, 0);
     }
     /**
      * Retrieves a tile url
@@ -251,6 +255,6 @@ $.ImageTileSource = class extends $.TileSource {
         context.drawImage(data, 0, 0, w, h);
         return context;
     }
-};
+}
 
-}(OpenSeadragon));
+export { ImageTileSource };
