@@ -1,14 +1,20 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "noEmit": true,
-    "strict": false,
+    "strict": true,
     "target": "ES2019",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "lib": ["ES2019", "DOM"],
+    "lib": [
+      "ES2019",
+      "DOM"
+    ],
     "types": []
   },
-  "include": ["src/**/*.js", "src/**/*.d.ts"]
+  "include": [
+    "src/**/*.js",
+    "src/**/*.d.ts"
+  ]
 }

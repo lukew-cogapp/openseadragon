@@ -113,7 +113,10 @@ module.exports = [
         rules: {
             // Modules are strict, so the rule now flags the event handlers
             // that receive their `this` through call/apply.
-            "no-invalid-this": "off"
+            "no-invalid-this": "off",
+            // `/** @type {T} */ this.x;` declares a field for TypeScript
+            // without assigning it.
+            "no-unused-expressions": "off"
         }
     }
 ];

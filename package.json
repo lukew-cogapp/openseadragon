@@ -63,7 +63,7 @@
         "vite-plugin-istanbul": "^9.0.1"
     },
     "scripts": {
-        "test": "npm run build && node test/run-tests.mjs && npm run dts",
+        "test": "npm run build && npm run typecheck && node test/run-tests.mjs && npm run dts",
         "coverage": "vite build --mode coverage && node test/run-tests.mjs --coverage && nyc report",
         "prepare": "npm run build",
         "build": "eslint src && vite build && vite build --mode min && vite build --mode esm",
@@ -73,7 +73,8 @@
         "audit-dts": "node scripts/audit-dts.js",
         "package": "npm run build && node scripts/package.mjs",
         "lint": "eslint src",
-        "dts": "tsc --noEmit -p tsconfig.dts.json && tsd"
+        "dts": "tsc --noEmit -p tsconfig.dts.json && tsd",
+        "typecheck": "tsc -p tsconfig.json"
     },
     "bundlesize": [
         {
