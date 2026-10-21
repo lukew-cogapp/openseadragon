@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - registry
  *
@@ -38,8 +39,11 @@ import { DrawerBase } from "./drawerbase.js";
 // The viewer only knows the drawers, tile sources and optional features
 // registered here, so a bundler can leave out the ones an application never
 // registers. The UMD build registers everything.
+/** @type {Function[]} */
 const drawers = [];
+/** @type {Function[]} */
 const tileSources = [];
+/** @type {Object<string, Function>} */
 const viewerFeatures = {};
 
 /**
@@ -47,7 +51,7 @@ const viewerFeatures = {};
  * to viewers. Tile sources are tried in registration order when detecting the
  * type of a tile source configuration.
  * @function OpenSeadragon.register
- * @param {...Function} classes
+ * @param {...(Function & {viewerFeature?: string})} classes
  * @since 7.0.0
  */
 function register(...classes) {
@@ -66,16 +70,24 @@ function register(...classes) {
 
 // Classes assigned straight onto the namespace, as plugins written for
 // earlier versions do, are still found after the registered ones.
+/**
+ * @param {Function[]} registered
+ * @param {function(Function, string): boolean} isMatch
+ * @returns {Function[]}
+ */
 function candidates(registered, isMatch) {
+    const namespace = /** @type {Record<string, any>} */ ($);
     const extra = Object.keys($).filter((key) =>
-        $.isFunction($[key]) && !registered.includes($[key]) && isMatch($[key], key));
-    return registered.concat(extra.map((key) => $[key]));
+        $.isFunction(namespace[key]) && !registered.includes(namespace[key]) && isMatch(namespace[key], key));
+    return registered.concat(extra.map((key) => namespace[key]));
 }
 
+/** @param {Function} Drawer */
 function drawerType(Drawer) {
     return Drawer.prototype.getType.call(Drawer);
 }
 
+/** @param {Function} Class */
 function isDrawer(Class) {
     return Class.prototype instanceof DrawerBase && $.isFunction(Class.prototype.getType);
 }
@@ -113,13 +125,13 @@ function determineDrawer(id) {
  * registered tile source.
  * @private
  * @param {OpenSeadragon.TileSource|OpenSeadragon.Viewer} tileSource - `this` for the `supports` call
- * @param {Object|Array|Document} data - the tile source configuration object
+ * @param {Object|Array<any>|Document} data - the tile source configuration object
  * @param {String} url - the url where the tile source configuration object was
  *      loaded from, if any.
  * @returns {Function|null}
  */
 function determineTileSourceType(tileSource, data, url) {
-    const isTileSource = (Class, key) => /.+TileSource$/.test(key) && $.isFunction(Class.prototype.supports);
+    const isTileSource = /** @param {Function} Class @param {string} key */ (Class, key) => /.+TileSource$/.test(key) && $.isFunction(Class.prototype.supports);
     const found = candidates(tileSources, isTileSource).find(
         (TileSource) => TileSource.prototype.supports.call(tileSource, data, url));
     if (!found) {

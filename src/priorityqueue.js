@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - Queue
  *
@@ -12,13 +13,22 @@
 
 
 /**
+ * @typedef {Object} PriorityQueueNode
+ * @property {number} key
+ * @property {*} value
+ * @property {number|undefined} index
+ * @property {function(): PriorityQueueNode} clone
+ * @private
+ */
+
+/**
  * @class OpenSeadragon.PriorityQueue
  * @classdesc Fast priority queue. Implemented as a Heap.
  */
 class PriorityQueue {
 
     /**
-     * @param {?OpenSeadragon.PriorityQueue} optHeap Optional Heap
+     * @param {OpenSeadragon.PriorityQueue|undefined} [optHeap] Optional Heap
      *     to initialize heap with.
      */
     constructor(optHeap = undefined) {
@@ -33,6 +43,7 @@ class PriorityQueue {
          *
          * The only invariant is that children's keys must be greater than parents'.
          *
+         * @type {PriorityQueueNode[]}
          * @private
          */
         this.nodes_ = [];
@@ -44,22 +55,22 @@ class PriorityQueue {
 
     /**
      * Insert the given value into the heap with the given key.
-     * @param {K} key The key.
-     * @param {V} value The value.
+     * @param {number} key The key.
+     * @param {*} value The value.
      */
     insert(key, value) {
-        this.insertNode(new Node(key, value));
+        this.insertNode(new (/** @type {typeof PriorityQueue.Node} */ (/** @type {unknown} */ (Node)))(key, value));
     }
 
     /**
      * Insert node item.
-     * @param node
+     * @param {PriorityQueueNode} node
      */
     insertNode(node) {
         const nodes = this.nodes_;
         node.index = nodes.length;
         nodes.push(node);
-        this.moveUp_(node.index);
+        this.moveUp_(/** @type {number} */ (node.index));
     }
 
     /**
@@ -78,7 +89,7 @@ class PriorityQueue {
             if (this.getCount() <= 0) {
                 const nodes = this.nodes_;
                 for (let i = 0; i < keys.length; i++) {
-                    const node = new Node(keys[i], values[i]);
+                    const node = new (/** @type {typeof PriorityQueue.Node} */ (/** @type {unknown} */ (Node)))(keys[i], values[i]);
                     node.index = nodes.length;
                     nodes.push(node);
                 }
@@ -95,7 +106,7 @@ class PriorityQueue {
 
     /**
      * Retrieves and removes the root value of this heap.
-     * @return {Node} The root node item removed from the root of the heap. Returns
+     * @return {PriorityQueueNode|undefined} The root node item removed from the root of the heap. Returns
      *     undefined if the heap is empty.
      */
     remove() {
@@ -107,7 +118,7 @@ class PriorityQueue {
         } else if (count == 1) {  // eslint-disable-line
             nodes.length = 0;
         } else {
-            nodes[0] = nodes.pop();
+            nodes[0] = /** @type {PriorityQueueNode} */ (nodes.pop());
             if (nodes[0]) {
                 nodes[0].index = 0;
             }
@@ -121,7 +132,7 @@ class PriorityQueue {
 
     /**
      * Retrieves but does not remove the root value of this heap.
-     * @return {V} The value at the root of the heap. Returns
+     * @return {*} The value at the root of the heap. Returns
      *     undefined if the heap is empty.
      */
     peek() {
@@ -134,7 +145,7 @@ class PriorityQueue {
 
     /**
      * Retrieves but does not remove the key of the root node of this heap.
-     * @return {string} The key at the root of the heap. Returns undefined if the
+     * @return {number|undefined} The key at the root of the heap. Returns undefined if the
      *     heap is empty.
      */
     peekKey() {
@@ -143,8 +154,8 @@ class PriorityQueue {
 
     /**
      * Move the node up in hierarchy
-     * @param {Node} node the node
-     * @param {K} key new ley, must be smaller than current key
+     * @param {PriorityQueueNode} node the node
+     * @param {number} key new ley, must be smaller than current key
      */
     decreaseKey(node, key) {
         if (node.index === undefined) {
@@ -152,7 +163,7 @@ class PriorityQueue {
             this.insertNode(node);
         } else {
             node.key = key;
-            this.moveUp_(node.index);
+            this.moveUp_(/** @type {number} */ (node.index));
         }
     }
 
@@ -263,7 +274,7 @@ class PriorityQueue {
 
     /**
      * Gets the keys of the heap.
-     * @return {!Array<string>} The keys in the heap.
+     * @return {!Array<number>} The keys in the heap.
      */
     getKeys() {
         return this.nodes_.map(n => n.key);
@@ -271,7 +282,7 @@ class PriorityQueue {
 
     /**
      * Whether the heap contains the given value.
-     * @param {V} val The value to check for.
+     * @param {*} val The value to check for.
      * @return {boolean} Whether the heap contains the value.
      */
     containsValue(val) {
@@ -280,7 +291,7 @@ class PriorityQueue {
 
     /**
      * Whether the heap contains the given key.
-     * @param {string} key The key to check for.
+     * @param {number} key The key to check for.
      * @return {boolean} Whether the heap contains the key.
      */
     containsKey(key) {
@@ -320,28 +331,29 @@ class PriorityQueue {
 }
 
 /**
- * @private
+ * @ignore
  */
 PriorityQueue.Node = class Node {
+    /**
+     * @param {number} key
+     * @param {*} value
+     */
     constructor(key, value) {
         /**
          * The key.
-         * @type {K}
-         * @private
+         * @type {number}
          */
         this.key = key;
 
         /**
          * The value.
-         * @type {V}
-         * @private
+         * @type {*}
          */
         this.value = value;
 
         /**
          * The node index value. Updated in the heap.
-         * @type {number}
-         * @private
+         * @type {number|undefined}
          */
         this.index = 0;
     }

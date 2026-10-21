@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - getString/setString
  *
@@ -39,6 +40,7 @@ import $ from "./openseadragon.js";
 //TODO: I guess this is where the i18n needs to be reimplemented.  I'll look
 //      into existing patterns for i18n in javascript but i think that mimicking
 //      pythons gettext might be a reasonable approach.
+/** @type {Object<string, any>} */
 const I18N = {
     Errors: {
         Dzc:            "Sorry, we don't support Deep Zoom Collections!",
@@ -71,7 +73,7 @@ const I18N = {
 
 /**
  * @function OpenSeadragon.getString
- * @param {String} property
+ * @param {String} prop
  */
 function getString( prop ) {
     const props   = prop.split('.');
@@ -92,7 +94,7 @@ function getString( prop ) {
     }
 
     return string.replace(/\{\d+\}/g, function(capture) {
-        const i = parseInt( capture.match( /\d+/ ), 10 ) + 1;
+        const i = parseInt( /** @type {string} */ (/** @type {unknown} */ (capture.match( /\d+/ ))), 10 ) + 1;
         return i < args.length ?
             args[ i ] :
             "";
@@ -101,7 +103,7 @@ function getString( prop ) {
 
 /**
  * @function OpenSeadragon.setString
- * @param {String} property
+ * @param {String} prop
  * @param {*} value
  */
 function setString( prop, value ) {

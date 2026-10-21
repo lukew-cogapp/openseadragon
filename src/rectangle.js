@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - Rect
  *
@@ -215,7 +216,7 @@ class Rect {
     /**
      * Determines if two Rectangles have equivalent components.
      * @function
-     * @param {OpenSeadragon.Rect} rectangle The Rectangle to compare to.
+     * @param {OpenSeadragon.Rect} other The Rectangle to compare to.
      * @returns {Boolean} 'true' if all components are equal, otherwise 'false'.
      */
     equals(other) {
@@ -289,7 +290,7 @@ class Rect {
      * Returns the bounding box of the intersection of this rectangle with the
      * given rectangle.
      * @param {OpenSeadragon.Rect} rect
-     * @returns {OpenSeadragon.Rect} the bounding box of the intersection
+     * @returns {OpenSeadragon.Rect|null} the bounding box of the intersection
      * or null if the rectangles don't intersect.
      */
     intersection(rect) {
@@ -352,6 +353,13 @@ class Rect {
             }
         }
 
+        /**
+         * @param {OpenSeadragon.Point} a
+         * @param {OpenSeadragon.Point} b
+         * @param {OpenSeadragon.Point} c
+         * @param {OpenSeadragon.Point} d
+         * @returns {OpenSeadragon.Point|null}
+         */
         // Get intersection point of segments [a,b] and [c,d]
         function getIntersection(a, b, c, d) {
             // http://stackoverflow.com/a/1968345/1440403
@@ -431,7 +439,7 @@ class Rect {
 
         let diff = newTopRight.minus(newTopLeft);
         // Handle floating point error
-        diff = diff.apply(function(x) {
+        diff = diff.apply(/** @param {Number} x */ function(x) {
             const EPSILON = 1e-15;
             return Math.abs(x) < EPSILON ? 0 : x;
         });

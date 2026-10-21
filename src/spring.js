@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - Spring
  *
@@ -93,8 +94,16 @@ class Spring {
 
         $.extend( true, this, options);
 
+        /** @type {Number|undefined} */
+        this.initial;
+        /** @type {Number} */
+        this.springStiffness;
+        /** @type {Number} */
+        this.animationTime;
+
         /**
          * @member {Object} current
+         * @type {{value: Number, time: Number, _logValue?: Number}}
          * @memberof OpenSeadragon.Spring#
          * @property {Number} value
          * @property {Number} time
@@ -111,6 +120,7 @@ class Spring {
 
         /**
          * @member {Object} start
+         * @type {{value: Number, time: Number, _logValue?: Number}}
          * @memberof OpenSeadragon.Spring#
          * @property {Number} value
          * @property {Number} time
@@ -122,6 +132,7 @@ class Spring {
 
         /**
          * @member {Object} target
+         * @type {{value: Number, time: Number, _logValue?: Number}}
          * @memberof OpenSeadragon.Spring#
          * @property {Number} value
          * @property {Number} time
@@ -192,6 +203,9 @@ class Spring {
         }
     }
 
+    /**
+     * @param {Boolean} value
+     */
     setExponential(value) {
         this._exponential = value;
 
@@ -215,8 +229,8 @@ class Spring {
 
         let startValue, targetValue;
         if (this._exponential) {
-            startValue = this.start._logValue;
-            targetValue = this.target._logValue;
+            startValue = /** @type {Number} */ (this.start._logValue);
+            targetValue = /** @type {Number} */ (this.target._logValue);
         } else {
             startValue = this.start.value;
             targetValue = this.target.value;
@@ -256,6 +270,9 @@ class Spring {
 
 /**
  * @private
+ * @param {Number} stiffness
+ * @param {Number} x
+ * @returns {Number}
  */
 function transform( stiffness, x ) {
     return ( 1.0 - Math.exp( stiffness * -x ) ) /

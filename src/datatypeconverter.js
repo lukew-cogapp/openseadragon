@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon.converter (static property)
  *
@@ -39,23 +40,52 @@ import { PriorityQueue } from "./priorityqueue.js";
 
 
 /**
+ * @typedef {Object} GraphNode
+ * @property {number} key
+ * @property {string} value
+ * @property {number} [index]
+ * @property {GraphNode|null} [_previous]
+ * @private
+ */
+
+/**
+ * @typedef {Object} GraphQueue
+ * @property {function(GraphNode): void} insertNode
+ * @property {function(): GraphNode} remove
+ * @property {function(): number} getCount
+ * @property {function(GraphNode, number): void} decreaseKey
+ * @private
+ */
+
+/**
+ * @typedef {Object} GraphEdge
+ * @property {GraphNode} target
+ * @property {GraphNode} origin
+ * @property {number} weight
+ * @property {OpenSeadragon.TypeConverter} transform
+ * @private
+ */
+
+/**
  * modified from https://gist.github.com/Prottoy2938/66849e04b0bac459606059f5f9f3aa1a
  * @private
  */
 class WeightedGraph {
     constructor() {
+        /** @type {Object<string, GraphEdge[]>} */
         this.adjacencyList = {};
+        /** @type {Object<string, GraphNode>} */
         this.vertices = {};
     }
 
     /**
      * Add vertex to graph
-     * @param vertex unique vertex ID
+     * @param {string} vertex unique vertex ID
      * @return {boolean} true if inserted, false if exists (no-op)
      */
     addVertex(vertex) {
         if (!this.vertices[vertex]) {
-            this.vertices[vertex] = new PriorityQueue.Node(0, vertex);
+            this.vertices[vertex] = /** @type {GraphNode} */ (/** @type {unknown} */ (new (/** @type {any} */ (PriorityQueue).Node)(0, vertex)));
             this.adjacencyList[vertex] = [];
             return true;
         }
@@ -64,10 +94,10 @@ class WeightedGraph {
 
     /**
      * Add edge to graph
-     * @param vertex1 id, must exist by calling addVertex()
-     * @param vertex2 id, must exist by calling addVertex()
-     * @param weight
-     * @param transform function that transforms on path vertex1 -> vertex2
+     * @param {string} vertex1 id, must exist by calling addVertex()
+     * @param {string} vertex2 id, must exist by calling addVertex()
+     * @param {number} weight
+     * @param {OpenSeadragon.TypeConverter} transform function that transforms on path vertex1 -> vertex2
      * @return {boolean} true if new edge, false if replaced existing
      */
     addEdge(vertex1, vertex2, weight, transform) {
@@ -86,26 +116,30 @@ class WeightedGraph {
     }
 
     /**
-     * @return {{path: ConversionStep[], cost: number}|undefined} cheapest path from start to finish
+     * @param {string} start
+     * @param {string} finish
+     * @return {{path: OpenSeadragon.ConversionStep[], cost: number}|undefined} cheapest path from start to finish
      */
     dijkstra(start, finish) {
+        /** @type {any[]} */
         const path = []; //to return at end
         if (start === finish) {
             return { path: path, cost: 0 };
         }
-        const nodes = new PriorityQueue();
+        const nodes = /** @type {GraphQueue} */ (/** @type {unknown} */ (new PriorityQueue()));
+        /** @type {GraphNode|undefined} */
         let smallestNode;
         //build up initial state
         for (let vertex in this.vertices) {
-            vertex = this.vertices[vertex];
-            if (vertex.value === start) {
-                vertex.key = 0; //keys are known distances
-                nodes.insertNode(vertex);
+            vertex = /** @type {any} */ (this.vertices[vertex]);
+            if (/** @type {any} */ (vertex).value === start) {
+                /** @type {any} */ (vertex).key = 0; //keys are known distances
+                nodes.insertNode(/** @type {any} */ (vertex));
             } else {
-                vertex.key = Infinity;
-                delete vertex.index;
+                /** @type {any} */ (vertex).key = Infinity;
+                delete /** @type {any} */ (vertex).index;
             }
-            vertex._previous = null;
+            /** @type {any} */ (vertex)._previous = null;
         }
         // as long as there is something to visit
         while (nodes.getCount() > 0) {
@@ -137,7 +171,7 @@ class WeightedGraph {
         while (smallestNode._previous) {
             //backtrack
             const to = smallestNode.value,
-                parent = smallestNode._previous,
+                parent = /** @type {GraphNode} */ (smallestNode._previous),
                 from = parent.value;
 
             path.push(this.adjacencyList[from].find(x => x.target.value === to));
@@ -151,9 +185,11 @@ class WeightedGraph {
     }
 }
 
+/** @type {Worker|undefined} */
 let _imageConversionWorker;
 let _conversionId = 0;
 // id -> { resolve, reject, timer? }
+/** @type {Map<number, {resolve: Function, reject: Function, timer: any}>} */
 const _pendingConversions = new Map();
 let __warnedNoSAB = false;
 const __hasSAB = typeof SharedArrayBuffer !== 'undefined' && self.crossOriginIsolated === true;
@@ -230,6 +266,12 @@ self.onmessage = async (e) => {
     return _imageConversionWorker;
 }
 
+/**
+ * @param {string} op
+ * @param {Object<string, any>} payload
+ * @param {{timeoutMs?: number}} [options]
+ * @returns {Promise<any>}
+ */
 function postWorker(op, payload, { timeoutMs = 15000 } = {}) {
     const worker = getIBWorker();
     const id = ++_conversionId;
@@ -239,6 +281,7 @@ function postWorker(op, payload, { timeoutMs = 15000 } = {}) {
         payload.id = id;
         payload.op = op;
 
+        /** @type {{resolve: Function, reject: Function, timer: any}} */
         const entry = { resolve, reject, timer: null };
         if (timeoutMs > 0) {
             entry.timer = setTimeout(() => {
@@ -307,12 +350,12 @@ function postWorker(op, payload, { timeoutMs = 15000 } = {}) {
  * Node on the conversion path in OpenSeadragon.converter.getConversionPath().
  *
  * @typedef {Object} ConversionStep
- * @param {OpenSeadragon.PriorityQueue.Node} target - Target node of the conversion step.
+ * @property {GraphNode} target - Target node of the conversion step.
  *  Its value is the target format.
- * @param {OpenSeadragon.PriorityQueue.Node} origin - Origin node of the conversion step.
+ * @property {GraphNode} origin - Origin node of the conversion step.
  *  Its value is the origin format.
- * @param {number} weight cost of the conversion
- * @param {TypeConverter} transform the conversion itself
+ * @property {number} weight cost of the conversion
+ * @property {OpenSeadragon.TypeConverter} transform the conversion itself
  * @memberof OpenSeadragon
  */
 
@@ -348,15 +391,24 @@ class DataTypeConverter {
 
     constructor() {
         this.graph = new WeightedGraph();
+        /** @type {Object<string, OpenSeadragon.TypeDestructor>} */
         this.destructors = {};
+        /** @type {Object<string, OpenSeadragon.TypeConverter>} */
         this.copyings = {};
+        /** @type {Object<string, Object<string, {path: OpenSeadragon.ConversionStep[], cost: number}|undefined>>} */
+        this._known;
 
         // Teaching OpenSeadragon built-in conversions:
+        /**
+         * @param {OpenSeadragon.Tile} tile
+         * @param {HTMLImageElement|HTMLCanvasElement|ImageBitmap} imageData
+         * @returns {CanvasRenderingContext2D}
+         */
         const canvasContextCreator = (tile, imageData) => {
             const canvas = document.createElement('canvas');
             canvas.width = imageData.width;
             canvas.height = imageData.height;
-            const context = canvas.getContext('2d', { willReadFrequently: true });
+            const context = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d', { willReadFrequently: true }));
             context.drawImage(imageData, 0, 0);
             return context;
         };
@@ -376,7 +428,7 @@ class DataTypeConverter {
             const urlApi = window.URL || window.webkitURL;
             const url = urlApi.createObjectURL(blob);
             const img = new Image();
-            img.onerror = img.onabort = e => {
+            img.onerror = img.onabort = /** @param {any} e */ e => {
                 urlApi.revokeObjectURL(url);
                 reject(e);
             };
@@ -395,7 +447,7 @@ class DataTypeConverter {
             }
             // toBlob() reports failure by passing null, which would otherwise be resolved as if it were
             // valid data and only fail further down the conversion path.
-            ctx.canvas.toBlob(blob => {
+            ctx.canvas.toBlob(/** @param {Blob|null} blob */ blob => {
                 if (blob) {
                     resolve(blob);
                 } else {
@@ -423,7 +475,7 @@ class DataTypeConverter {
             const canvas = document.createElement('canvas');
             canvas.width = bmp.width;
             canvas.height = bmp.height;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d', { willReadFrequently: true }));
             ctx.drawImage(bmp, 0, 0);
             return ctx;
         }, 1, 2);
@@ -482,7 +534,7 @@ class DataTypeConverter {
      * Note: although we try to implement the type guessing, do
      * not rely on this functionality! Prefer explicit type declaration.
      *
-     * @param x object to get unique identifier for
+     * @param {any} x object to get unique identifier for
      *  - can be array, in that case, alphabetically-ordered list of inner unique types
      *    is returned (null, undefined are ignored)
      *  - if $.isPlainObject(x) is true, then the object can define
@@ -492,6 +544,7 @@ class DataTypeConverter {
      */
     guessType(x) {
         if (Array.isArray(x)) {
+            /** @type {string[]} */
             const types = [];
             for (const item of x) {
                 if (item === undefined || item === null) {
@@ -510,7 +563,7 @@ class DataTypeConverter {
         const guessType = $.type(x);
         if (guessType === "dom-node") {
             //distinguish nodes
-            return guessType.nodeName.toLowerCase();
+            return /** @type {any} */ (guessType).nodeName.toLowerCase();
         }
 
         if (guessType === "object") {
@@ -577,7 +630,7 @@ class DataTypeConverter {
      * @param {OpenSeadragon.Tile} tile
      * @param {any} data data item to convert
      * @param {string} from data item type
-     * @param {string} to desired type(s)
+     * @param {...string} to desired type(s)
      * @return {OpenSeadragon.Promise<?>} promise resolution with type 'to', or rejection if conversion failed.
      */
     convert(tile, data, from, ...to) {
@@ -592,6 +645,12 @@ class DataTypeConverter {
 
         const stepCount = conversionPath.length;
         const _this = this;
+        /**
+         * @param {any} x
+         * @param {number} i
+         * @param {boolean} [destroy]
+         * @returns {Promise<any>}
+         */
         const step = (x, i, destroy = true) => {
             if (i >= stepCount) {
                 return $.Promise.resolve(x);
@@ -617,7 +676,7 @@ class DataTypeConverter {
                 _this.destroy(x, edge.origin.value);
             }
             const result = $.type(y) === "promise" ? y : $.Promise.resolve(y);
-            return result.then(res => step(res, i + 1));
+            return result.then(/** @param {any} res */ res => step(res, i + 1));
         };
         //destroy only mid-results, but not the original value
         return step(data, 0, false);
@@ -758,6 +817,7 @@ converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new $.Promi
     if (!$.supportsAsync) {
         return reject("Not supported in sync mode!");
     }
+    /** @type {RequestInit|undefined} */
     let setup;
     if (tile.tiledImage && tile.tiledImage.crossOriginPolicy) {
         const policy = tile.tiledImage.crossOriginPolicy;

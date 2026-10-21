@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - full-screen support functions
  *
@@ -35,11 +36,22 @@
 
 import $ from "./openseadragon.js";
 
+/**
+ * Prefixed fullscreen members are not in the DOM typings, so they are dynamic.
+ * @private
+ * @typedef {Document & Record<string, any>} VendorDocument
+ */
+
+/**
+ * @private
+ * @typedef {Element & Record<string, any>} VendorElement
+ */
+
     /**
      * Determine native full screen support we can get from the browser.
      * @member fullScreenApi
      * @memberof OpenSeadragon
-     * @type {object}
+     * @type {{supportsFullScreen: boolean, isFullScreen: function(): boolean, getFullScreenElement: function(): (Element|null|undefined), requestFullScreen: function(VendorElement): any, exitFullScreen: function(): void, cancelFullScreen: function(): void, fullScreenEventName: string, fullScreenErrorEventName: string}}
      * @property {Boolean} supportsFullScreen Return true if full screen API is supported.
      * @property {Function} isFullScreen Return true if currently in full screen mode.
      * @property {Function} getFullScreenElement Return the element currently in full screen mode.
@@ -68,71 +80,71 @@ if ( document.exitFullscreen ) {
     fullScreenApi.getFullScreenElement = function() {
         return document.fullscreenElement;
     };
-    fullScreenApi.requestFullScreen = function( element ) {
-        return element.requestFullscreen().catch(function (msg) {
+    fullScreenApi.requestFullScreen = /** @param {VendorElement} element */ function( element ) {
+        return element.requestFullscreen().catch(/** @param {any} msg */ function (msg) {
             $.console.error('Fullscreen request failed: ', msg);
         });
     };
     fullScreenApi.exitFullScreen = function() {
-        document.exitFullscreen().catch(function (msg) {
+        document.exitFullscreen().catch(/** @param {any} msg */ function (msg) {
             $.console.error('Error while exiting fullscreen: ', msg);
         });
     };
     fullScreenApi.fullScreenEventName = "fullscreenchange";
     fullScreenApi.fullScreenErrorEventName = "fullscreenerror";
-} else if ( document.msExitFullscreen ) {
+} else if ( /** @type {VendorDocument} */ (document).msExitFullscreen ) {
     // IE 11
     fullScreenApi.supportsFullScreen = true;
     fullScreenApi.getFullScreenElement = function() {
-        return document.msFullscreenElement;
+        return /** @type {VendorDocument} */ (document).msFullscreenElement;
     };
-    fullScreenApi.requestFullScreen = function( element ) {
+    fullScreenApi.requestFullScreen = /** @param {VendorElement} element */ function( element ) {
         return element.msRequestFullscreen();
     };
     fullScreenApi.exitFullScreen = function() {
-        document.msExitFullscreen();
+        /** @type {VendorDocument} */ (document).msExitFullscreen();
     };
     fullScreenApi.fullScreenEventName = "MSFullscreenChange";
     fullScreenApi.fullScreenErrorEventName = "MSFullscreenError";
-} else if ( document.webkitExitFullscreen ) {
+} else if ( /** @type {VendorDocument} */ (document).webkitExitFullscreen ) {
     // Recent webkit
     fullScreenApi.supportsFullScreen = true;
     fullScreenApi.getFullScreenElement = function() {
-        return document.webkitFullscreenElement;
+        return /** @type {VendorDocument} */ (document).webkitFullscreenElement;
     };
-    fullScreenApi.requestFullScreen = function( element ) {
+    fullScreenApi.requestFullScreen = /** @param {VendorElement} element */ function( element ) {
         return element.webkitRequestFullscreen();
     };
     fullScreenApi.exitFullScreen = function() {
-        document.webkitExitFullscreen();
+        /** @type {VendorDocument} */ (document).webkitExitFullscreen();
     };
     fullScreenApi.fullScreenEventName = "webkitfullscreenchange";
     fullScreenApi.fullScreenErrorEventName = "webkitfullscreenerror";
-} else if ( document.webkitCancelFullScreen ) {
+} else if ( /** @type {VendorDocument} */ (document).webkitCancelFullScreen ) {
     // Old webkit
     fullScreenApi.supportsFullScreen = true;
     fullScreenApi.getFullScreenElement = function() {
-        return document.webkitCurrentFullScreenElement;
+        return /** @type {VendorDocument} */ (document).webkitCurrentFullScreenElement;
     };
-    fullScreenApi.requestFullScreen = function( element ) {
+    fullScreenApi.requestFullScreen = /** @param {VendorElement} element */ function( element ) {
         return element.webkitRequestFullScreen();
     };
     fullScreenApi.exitFullScreen = function() {
-        document.webkitCancelFullScreen();
+        /** @type {VendorDocument} */ (document).webkitCancelFullScreen();
     };
     fullScreenApi.fullScreenEventName = "webkitfullscreenchange";
     fullScreenApi.fullScreenErrorEventName = "webkitfullscreenerror";
-} else if ( document.mozCancelFullScreen ) {
+} else if ( /** @type {VendorDocument} */ (document).mozCancelFullScreen ) {
     // Firefox
     fullScreenApi.supportsFullScreen = true;
     fullScreenApi.getFullScreenElement = function() {
-        return document.mozFullScreenElement;
+        return /** @type {VendorDocument} */ (document).mozFullScreenElement;
     };
-    fullScreenApi.requestFullScreen = function( element ) {
+    fullScreenApi.requestFullScreen = /** @param {VendorElement} element */ function( element ) {
         return element.mozRequestFullScreen();
     };
     fullScreenApi.exitFullScreen = function() {
-        document.mozCancelFullScreen();
+        /** @type {VendorDocument} */ (document).mozCancelFullScreen();
     };
     fullScreenApi.fullScreenEventName = "mozfullscreenchange";
     fullScreenApi.fullScreenErrorEventName = "mozfullscreenerror";

@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - Point
  *
@@ -193,7 +194,7 @@ class Point {
      * Rotates the point around the specified pivot
      * From http://stackoverflow.com/questions/4465931/rotate-rectangle-around-a-point
      * @function
-     * @param {Number} degress to rotate around the pivot.
+     * @param {Number} degrees to rotate around the pivot.
      * @param {OpenSeadragon.Point} [pivot=(0,0)] Point around which to rotate.
      * Defaults to the origin.
      * @returns {OpenSeadragon.Point}. A new point representing the point rotated around the specified pivot
@@ -228,8 +229,10 @@ class Point {
             cos = Math.cos(angle);
             sin = Math.sin(angle);
         }
-        const x = cos * (this.x - pivot.x) - sin * (this.y - pivot.y) + pivot.x;
-        const y = sin * (this.x - pivot.x) + cos * (this.y - pivot.y) + pivot.y;
+        const c = /** @type {Number} */ (cos);
+        const s = /** @type {Number} */ (sin);
+        const x = c * (this.x - pivot.x) - s * (this.y - pivot.y) + pivot.x;
+        const y = s * (this.x - pivot.x) + c * (this.y - pivot.y) + pivot.y;
         return new Point(x, y);
     }
 

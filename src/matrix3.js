@@ -1,3 +1,4 @@
+// @ts-check
 /* eslint-disable @stylistic/one-var-declaration-per-line */
 
 /*
@@ -88,7 +89,7 @@
  **/
 class Mat3{
     /**
-     * @param {Array} [values] - Initial values for the matrix
+     * @param {Number[]} [values] - Initial values for the matrix
      *
      */
     constructor(values){
@@ -197,15 +198,15 @@ class Mat3{
 
     /**
      * Sets the values of the matrix.
-     * @param a00 top left
-     * @param a01 top middle
-     * @param a02 top right
-     * @param a10 middle left
-     * @param a11 middle middle
-     * @param a12 middle right
-     * @param a20 bottom left
-     * @param a21 bottom middle
-     * @param a22 bottom right
+     * @param {Number} a00 top left
+     * @param {Number} a01 top middle
+     * @param {Number} a02 top right
+     * @param {Number} a10 middle left
+     * @param {Number} a11 middle middle
+     * @param {Number} a12 middle right
+     * @param {Number} a20 bottom left
+     * @param {Number} a21 bottom middle
+     * @param {Number} a22 bottom right
      */
     setValues(a00, a01, a02,
               a10, a11, a12,
@@ -224,6 +225,10 @@ class Mat3{
     /**
      * Scaling & translation only changes certain values, no need to compute full matrix multiplication.
      * @memberof OpenSeadragon.Mat3
+     * @param {Number} sx
+     * @param {Number} sy
+     * @param {Number} tx
+     * @param {Number} ty
      * @returns {OpenSeadragon.Mat3} The result of matrix multiplication
      */
     scaleAndTranslate(sx, sy, tx, ty) {
@@ -251,6 +256,10 @@ class Mat3{
      * Scaling & translation only changes certain values, no need to compute full matrix multiplication.
      * Optimization: in case the original matrix can be thrown away, optimize instead by computing in-place.
      * @memberof OpenSeadragon.Mat3
+     * @param {Number} sx
+     * @param {Number} sy
+     * @param {Number} tx
+     * @param {Number} ty
      */
     scaleAndTranslateSelf(sx, sy, tx, ty) {
         const a = this.values;

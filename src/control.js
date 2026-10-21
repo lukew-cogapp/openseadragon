@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - Control
  *
@@ -41,7 +42,7 @@ import $ from "./openseadragon.js";
  * @member ControlAnchor
  * @memberof OpenSeadragon
  * @static
- * @type {Object}
+ * @type {{readonly NONE: 0, readonly TOP_LEFT: 1, readonly TOP_RIGHT: 2, readonly BOTTOM_RIGHT: 3, readonly BOTTOM_LEFT: 4, readonly ABSOLUTE: 5}}
  * @property {Number} NONE
  * @property {Number} TOP_LEFT
  * @property {Number} TOP_RIGHT
@@ -68,18 +69,22 @@ const ControlAnchor = {
  */
 class Control {
     /**
-     * @param {Element} element - the control element to be anchored in the container.
-     * @param {Object } options - All required and optional settings for configuring a control element.
+     * @param {HTMLElement} element - the control element to be anchored in the container.
+     * @param {Object} options - All required and optional settings for configuring a control element.
      * @param {OpenSeadragon.ControlAnchor} [options.anchor=OpenSeadragon.ControlAnchor.NONE] - the position of the control
      *  relative to the container.
      * @param {Boolean} [options.attachToViewer=true] - Whether the control should be added directly to the viewer, or
      *  directly to the container
      * @param {Boolean} [options.autoFade=true] - Whether the control should have the autofade behavior
-     * @param {Element} container - the element to control will be anchored too.
+     * @param {Number|String} [options.top] - the top offset, used with the ABSOLUTE anchor
+     * @param {Number|String} [options.left] - the left offset, used with the ABSOLUTE anchor
+     * @param {Number|String} [options.height] - the height, used with the ABSOLUTE anchor
+     * @param {Number|String} [options.width] - the width, used with the ABSOLUTE anchor
+     * @param {HTMLElement} container - the element to control will be anchored too.
      */
     constructor(element, options, container) {
 
-        const parent = element.parentNode;
+        const parent = /** @type {Node} */ (element.parentNode);
         if (typeof options === 'number')
         {
             $.console.error("Passing an anchor directly into the OpenSeadragon.Control constructor is deprecated; " +
@@ -96,7 +101,7 @@ class Control {
         this.autoFade = (typeof options.autoFade === 'undefined') ? true : options.autoFade;
         /**
          * The element providing the user interface with some type of control (e.g. a zoom-in button).
-         * @member {Element} element
+         * @member {HTMLElement} element
          * @memberof OpenSeadragon.Control#
          */
         this.element    = element;
@@ -108,22 +113,22 @@ class Control {
         this.anchor     = options.anchor;
         /**
          * The Control's containing element.
-         * @member {Element} container
+         * @member {HTMLElement} container
          * @memberof OpenSeadragon.Control#
          */
         this.container  = container;
         /**
          * A neutral element surrounding the control element.
-         * @member {Element} wrapper
+         * @member {HTMLElement} wrapper
          * @memberof OpenSeadragon.Control#
          */
         if ( this.anchor === ControlAnchor.ABSOLUTE ) {
-            this.wrapper    = $.makeNeutralElement( "div" );
+            this.wrapper    = /** @type {HTMLElement} */ ($.makeNeutralElement( "div" ));
             this.wrapper.style.position = "absolute";
-            this.wrapper.style.top = typeof (options.top) === "number" ? (options.top + 'px') : options.top;
-            this.wrapper.style.left  = typeof (options.left) === "number" ? (options.left + 'px') : options.left;
-            this.wrapper.style.height = typeof (options.height) === "number" ? (options.height + 'px') : options.height;
-            this.wrapper.style.width  = typeof (options.width) === "number" ? (options.width + 'px') : options.width;
+            this.wrapper.style.top = /** @type {string} */ (typeof (options.top) === "number" ? (options.top + 'px') : options.top);
+            this.wrapper.style.left  = /** @type {string} */ (typeof (options.left) === "number" ? (options.left + 'px') : options.left);
+            this.wrapper.style.height = /** @type {string} */ (typeof (options.height) === "number" ? (options.height + 'px') : options.height);
+            this.wrapper.style.width  = /** @type {string} */ (typeof (options.width) === "number" ? (options.width + 'px') : options.width);
             this.wrapper.style.margin = "0px";
             this.wrapper.style.padding = "0px";
 
@@ -133,7 +138,7 @@ class Control {
             this.element.style.height = "100%";
             this.element.style.width = "100%";
         } else {
-            this.wrapper    = $.makeNeutralElement( "div" );
+            this.wrapper    = /** @type {HTMLElement} */ ($.makeNeutralElement( "div" ));
             this.wrapper.style.display = "inline-block";
             if ( this.anchor === ControlAnchor.NONE ) {
                 // IE6 fix
@@ -191,7 +196,7 @@ class Control {
     /**
      * Sets the opacity level for the control.
      * @function
-     * @param {Number} opactiy - a value between 1 and 0 inclusively.
+     * @param {Number} opacity - a value between 1 and 0 inclusively.
      */
     setOpacity(opacity) {
         $.setElementOpacity( this.wrapper, opacity, true );

@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - ControlDock
  *
@@ -44,9 +45,20 @@ import { Control, ControlAnchor } from "./control.js";
      * @memberof OpenSeadragon
      */
 class ControlDock extends EventSource {
+    /**
+     * @param {Object} [options]
+     */
     constructor(options) {
         super();
-        const layouts = [ 'topleft', 'topright', 'bottomright', 'bottomleft'];
+        /** @type {string} */
+        this.id;
+        /** @type {HTMLElement|string|null|undefined} */
+        this.element;
+        /** @type {HTMLElement} */
+        this.container;
+        /** @type {OpenSeadragon.Control[] & {topleft: HTMLElement, topright: HTMLElement, bottomright: HTMLElement, bottomleft: HTMLElement}} */
+        this.controls;
+        const layouts = /** @type {('topleft'|'topright'|'bottomright'|'bottomleft')[]} */ ([ 'topleft', 'topright', 'bottomright', 'bottomleft']);
 
         $.extend( true, this, {
             id: 'controldock-' + $.now() + '-' + Math.floor(Math.random() * 1000000),
@@ -61,7 +73,7 @@ class ControlDock extends EventSource {
         };
 
         if( this.element ){
-            this.element = $.getElement( this.element );
+            this.element = /** @type {HTMLElement} */ ($.getElement( this.element ));
             this.element.appendChild( this.container );
             if( $.getElementStyle(this.element).position === 'static' ){
                 this.element.style.position = 'relative';
@@ -72,7 +84,7 @@ class ControlDock extends EventSource {
 
         for( let i = 0; i < layouts.length; i++ ){
             let layout = layouts[ i ];
-            this.controls[ layout ] = $.makeNeutralElement( "div" );
+            this.controls[ layout ] = /** @type {HTMLElement} */ ($.makeNeutralElement( "div" ));
             this.controls[ layout ].style.position = 'absolute';
             if ( layout.match( 'left' ) ){
                 this.controls[ layout ].style.left = '0px';
@@ -96,9 +108,12 @@ class ControlDock extends EventSource {
 
     /**
      * @function
+     * @param {HTMLElement|string} element
+     * @param {Object} controlOptions
+     * @param {OpenSeadragon.ControlAnchor} [controlOptions.anchor]
      */
     addControl(element, controlOptions) {
-        element = $.getElement( element );
+        element = /** @type {HTMLElement} */ ($.getElement( element ));
         let div;
 
         if ( getControlIndex( this, element ) >= 0 ) {
@@ -151,10 +166,11 @@ class ControlDock extends EventSource {
 
     /**
      * @function
+     * @param {HTMLElement|string} element
      * @returns {OpenSeadragon.ControlDock} Chainable.
      */
     removeControl(element) {
-        element = $.getElement( element );
+        element = /** @type {HTMLElement} */ ($.getElement( element ));
         const i = getControlIndex( this, element );
 
         if ( i >= 0 ) {
@@ -171,7 +187,7 @@ class ControlDock extends EventSource {
      */
     clearControls() {
         while ( this.controls.length > 0 ) {
-            this.controls.pop().destroy();
+            /** @type {OpenSeadragon.Control} */ (this.controls.pop()).destroy();
         }
 
         return this;
@@ -193,6 +209,7 @@ class ControlDock extends EventSource {
 
     /**
      * @function
+     * @param {Boolean} enabled
      * @returns {OpenSeadragon.ControlDock} Chainable.
      */
     setControlsEnabled(enabled) {
@@ -208,6 +225,11 @@ class ControlDock extends EventSource {
 ///////////////////////////////////////////////////////////////////////////////
 // Utility methods
 ///////////////////////////////////////////////////////////////////////////////
+/**
+ * @param {ControlDock} dock
+ * @param {HTMLElement} element
+ * @returns {Number}
+ */
 function getControlIndex( dock, element ) {
     const controls = dock.controls;
 

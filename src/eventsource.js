@@ -1,3 +1,4 @@
+// @ts-check
 /*
  * OpenSeadragon - EventSource
  *
@@ -39,6 +40,8 @@ import $ from "./openseadragon.js";
  * @typedef {Object} Event
  * @property {boolean|function} [stopPropagation=undefined] - If set to true or the functional predicate returns true,
  *   the event exits after handling the current call.
+ * @property {OpenSeadragon.EventSource} [eventSource] - The object that raised the event, set before each handler call.
+ * @property {Object|null} [userData] - The userData given when the handler was added, set before each handler call.
  * @memberof OpenSeadragon
  */
 
@@ -69,7 +72,9 @@ import $ from "./openseadragon.js";
  */
 class EventSource {
     constructor() {
+        /** @type {Object<string, {handler: OpenSeadragon.EventHandler|OpenSeadragon.AsyncEventHandler, userData: Object|null, priority: number}[]>} */
         this.events = {};
+        /** @type {Object<string, string>} */
         this._rejectedEventList = {};
     }
 
@@ -91,7 +96,7 @@ class EventSource {
         const self = this;
         times = times || 1;
         let count = 0;
-        const onceHandler = function(event) {
+        const onceHandler = /** @param {OpenSeadragon.Event} event */ function(event) {
             count++;
             if (count === times) {
                 self.removeHandler(eventName, onceHandler);
@@ -189,6 +194,7 @@ class EventSource {
      * Get a function which iterates the list of all handlers registered for a given event, calling the handler for each.
      * @function
      * @param {String} eventName - Name of event to get handlers for.
+     * @returns {(function(OpenSeadragon.EventSource, OpenSeadragon.Event): void)|null}
      */
     getHandler(eventName) {
         let events = this.events[ eventName ];
@@ -197,7 +203,7 @@ class EventSource {
         }
         events = events.length === 1 ?
             [ events[ 0 ] ] :
-            Array.apply( null, events );
+            /** @type {typeof events} */ (Array.apply( null, events ));
         return function ( source, args ) {
             let length = events.length;
             for ( let i = 0; i < length; i++ ) {
@@ -220,6 +226,7 @@ class EventSource {
      * @function
      * @param {String} eventName - Name of event to get handlers for.
      * @param {any} bindTarget - Bound target to return with the promise on finish
+     * @returns {(function(OpenSeadragon.EventSource, OpenSeadragon.Event): Promise<any>)|null}
      */
     getAwaitingHandler(eventName, bindTarget) {
         let events = this.events[ eventName ];
@@ -228,7 +235,7 @@ class EventSource {
         }
         events = events.length === 1 ?
             [ events[ 0 ] ] :
-            Array.apply( null, events );
+            /** @type {typeof events} */ (Array.apply( null, events ));
 
         return function ( source, args ) {
             // We return a promise that gets resolved after all the events finish.
@@ -236,6 +243,10 @@ class EventSource {
             // and outer code could process finishing logics in the middle of event loop.
             return new $.Promise((resolve, reject) => {
                 const length = events.length;
+                /**
+                 * @param {number} index
+                 * @returns {Promise<any>|null|void}
+                 */
                 function loop(index) {
                     if ( index >= length || !events[ index ] ) {
                         resolve(bindTarget);
@@ -257,7 +268,7 @@ class EventSource {
                         return loop(length);
                     });
                 }
-                loop(0).catch(reject);
+                /** @type {Promise<any>} */ (loop(0)).catch(reject);
             });
         };
     }
@@ -267,7 +278,7 @@ class EventSource {
      * OpenSeadragon.AsyncEventHandler.
      * @function
      * @param {String} eventName - Name of event to register.
-     * @param {Object|undefined} eventArgs - Event-specific data.
+     * @param {OpenSeadragon.Event|Object|undefined} eventArgs - Event-specific data.
      * @returns {Boolean} True if the event was fired, false if it was rejected because of rejectEventHandler(eventName)
      */
     raiseEvent(eventName, eventArgs) {
@@ -293,7 +304,7 @@ class EventSource {
      * @param {String} eventName - Name of event to register.
      * @param {Object|undefined} eventArgs - Event-specific data.
      * @param {?} [bindTarget = null] - Promise-resolved value on the event finish
-     * @return {OpenSeadragon.Promise|undefined} - Promise resolved upon the event completion.
+     * @return {Promise<any>|undefined} - Promise resolved upon the event completion.
      */
     raiseEventAwaiting(eventName, eventArgs, bindTarget = null) {
         //uncomment if you want to get a log of all events
