@@ -929,7 +929,8 @@ import { Point } from "./point.js";
   */
 
 function OpenSeadragon( options ){
-    return new OpenSeadragon.Viewer( options );
+    // Viewer is assigned onto the namespace by the UMD build (umd.js).
+    return new (/** @type {any} */ (OpenSeadragon).Viewer)( options );
 }
 const $ = OpenSeadragon;
 
@@ -946,7 +947,7 @@ const $ = OpenSeadragon;
      * @property {Number} revision - The revision number.
      * @since 1.0.0
      */
-    $.version = {
+    OpenSeadragon.version = {
         versionStr: __OSD_VERSION__,
         major: parseInt(__OSD_VERSION__.split('.')[0], 10),
         minor: parseInt(__OSD_VERSION__.split('.')[1], 10),
@@ -985,7 +986,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @see {@link http://www.jquery.com/ jQuery}
      */
-    $.isFunction = function( obj ) {
+    OpenSeadragon.isFunction = function( obj ) {
         return $.type(obj) === "function";
     };
 
@@ -995,7 +996,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @see {@link http://www.jquery.com/ jQuery}
      */
-    $.isArray = Array.isArray || function( obj ) {
+    OpenSeadragon.isArray = Array.isArray || function( obj ) {
         return $.type(obj) === "array";
     };
 
@@ -1007,7 +1008,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @see {@link http://www.jquery.com/ jQuery}
      */
-    $.isWindow = function( obj ) {
+    OpenSeadragon.isWindow = function( obj ) {
         return obj && typeof obj === "object" && "setInterval" in obj;
     };
 
@@ -1018,7 +1019,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @see {@link http://www.jquery.com/ jQuery}
      */
-    $.type = function( obj ) {
+    OpenSeadragon.type = function( obj ) {
         return ( obj === null ) || ( obj === undefined ) ?
             String( obj ) :
             class2type[ toString.call(obj) ] || "object";
@@ -1031,7 +1032,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @see {@link http://www.jquery.com/ jQuery}
      */
-    $.isPlainObject = function( obj ) {
+    OpenSeadragon.isPlainObject = function( obj ) {
         // Must be an Object.
         // Because of IE, we also have to check the presence of the constructor property.
         // Make sure that DOM nodes and window objects don't pass through, as well
@@ -1064,7 +1065,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @see {@link http://www.jquery.com/ jQuery}
      */
-    $.isEmptyObject = function( obj ) {
+    OpenSeadragon.isEmptyObject = function( obj ) {
         for ( const name in obj ) {
             return false;
         }
@@ -1076,7 +1077,7 @@ const $ = OpenSeadragon;
      * @param {Object} obj The object to freeze.
      * @returns {Object} obj The frozen object.
      */
-    $.freezeObject = function(obj) {
+    OpenSeadragon.freezeObject = function(obj) {
         if (Object.freeze) {
             $.freezeObject = Object.freeze;
         } else {
@@ -1092,7 +1093,7 @@ const $ = OpenSeadragon;
      * @member {Boolean} supportsCanvas
      * @memberof OpenSeadragon
      */
-    $.supportsCanvas = (function () {
+    OpenSeadragon.supportsCanvas = (function () {
         const canvasElement = document.createElement( 'canvas' );
         return !!( $.isFunction( canvasElement.getContext ) &&
                     canvasElement.getContext( '2d' ) );
@@ -1103,7 +1104,7 @@ const $ = OpenSeadragon;
      * @argument {Canvas} canvas The canvas to test.
      * @returns {Boolean} True if the canvas is tainted.
      */
-    $.isCanvasTainted = function(canvas) {
+    OpenSeadragon.isCanvasTainted = function(canvas) {
         let isTainted = false;
         try {
             // We test if the canvas is tainted by retrieving data from it.
@@ -1120,7 +1121,7 @@ const $ = OpenSeadragon;
      * @member {Boolean} supportsAddEventListener
      * @memberof OpenSeadragon
      */
-    $.supportsAddEventListener = (function () {
+    OpenSeadragon.supportsAddEventListener = (function () {
         return !!(document.documentElement.addEventListener && document.addEventListener);
     }());
 
@@ -1129,7 +1130,7 @@ const $ = OpenSeadragon;
      * @member {Boolean} supportsRemoveEventListener
      * @memberof OpenSeadragon
      */
-    $.supportsRemoveEventListener = (function () {
+    OpenSeadragon.supportsRemoveEventListener = (function () {
         return !!(document.documentElement.removeEventListener && document.removeEventListener);
     }());
 
@@ -1138,7 +1139,7 @@ const $ = OpenSeadragon;
      * @member {Boolean} supportsEventListenerOptions
      * @memberof OpenSeadragon
      */
-    $.supportsEventListenerOptions = (function () {
+    OpenSeadragon.supportsEventListenerOptions = (function () {
         let supported = 0;
 
         if ( $.supportsAddEventListener ) {
@@ -1173,7 +1174,7 @@ const $ = OpenSeadragon;
      * @member {boolean}
      * @memberof OpenSeadragon
      */
-    $.supportsAsync = true;
+    OpenSeadragon.supportsAsync = true;
 
     /**
      * A ratio comparing the device screen's pixel density to the canvas's backing store pixel density,
@@ -1182,7 +1183,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @returns {Number}
      */
-    $.getCurrentPixelDensityRatio = function() {
+    OpenSeadragon.getCurrentPixelDensityRatio = function() {
         if ( $.supportsCanvas ) {
             const context = document.createElement('canvas').getContext('2d');
             const devicePixelRatio = window.devicePixelRatio || 1;
@@ -1203,7 +1204,7 @@ const $ = OpenSeadragon;
      * @member {Number} pixelDensityRatio
      * @memberof OpenSeadragon
      */
-    $.pixelDensityRatio = $.getCurrentPixelDensityRatio();
+    OpenSeadragon.pixelDensityRatio = $.getCurrentPixelDensityRatio();
 
 
 
@@ -1227,7 +1228,7 @@ const $ = OpenSeadragon;
      * @memberof OpenSeadragon
      * @see {@link http://www.jquery.com/ jQuery}
      */
-    $.extend = function() {
+    OpenSeadragon.extend = function() {
         let options;
         let name;
         let src;
@@ -1323,1439 +1324,1413 @@ const $ = OpenSeadragon;
                userAgent.indexOf('iPod') !== -1;
     }
 
-    $.extend( $, /** @lends OpenSeadragon */{
-        /**
-         * The default values for the optional settings documented at {@link OpenSeadragon.Options}.
-         * @static
-         * @type {Object}
-         */
-        DEFAULT_SETTINGS: {
-            //DATA SOURCE DETAILS
-            xmlPath:                null,
-            tileSources:            null,
-            tileHost:               null,
-            initialPage:            0,
-            crossOriginPolicy:      false,
-            ajaxWithCredentials:    false,
-            loadTilesWithAjax:      false,
-            ajaxHeaders:            {},
-            splitHashDataForPost:   false,
-            callTileLoadedWithCachedData: false,
+    /**
+     * The default values for the optional settings documented at {@link OpenSeadragon.Options}.
+     * @static
+     * @type {Object}
+     */
+    OpenSeadragon.DEFAULT_SETTINGS = {
+        //DATA SOURCE DETAILS
+        xmlPath:                null,
+        tileSources:            null,
+        tileHost:               null,
+        initialPage:            0,
+        crossOriginPolicy:      false,
+        ajaxWithCredentials:    false,
+        loadTilesWithAjax:      false,
+        ajaxHeaders:            {},
+        splitHashDataForPost:   false,
+        callTileLoadedWithCachedData: false,
 
-            //PAN AND ZOOM SETTINGS AND CONSTRAINTS
-            panHorizontal:          true,
-            panVertical:            true,
-            constrainDuringPan:     false,
-            wrapHorizontal:         false,
-            wrapVertical:           false,
-            visibilityRatio:        0.5, //-> how much of the viewer can be negative space
-            minPixelRatio:          0.5, //->closer to 0 draws tiles meant for a higher zoom at this zoom
-            discardLevelsBelowDownsampleRatio: 1,
-            defaultZoomLevel:       0,
-            minZoomLevel:           null,
-            maxZoomLevel:           null,
-            homeFillsViewer:        false,
+        //PAN AND ZOOM SETTINGS AND CONSTRAINTS
+        panHorizontal:          true,
+        panVertical:            true,
+        constrainDuringPan:     false,
+        wrapHorizontal:         false,
+        wrapVertical:           false,
+        visibilityRatio:        0.5, //-> how much of the viewer can be negative space
+        minPixelRatio:          0.5, //->closer to 0 draws tiles meant for a higher zoom at this zoom
+        discardLevelsBelowDownsampleRatio: 1,
+        defaultZoomLevel:       0,
+        minZoomLevel:           null,
+        maxZoomLevel:           null,
+        homeFillsViewer:        false,
 
-            //UI RESPONSIVENESS AND FEEL
-            clickTimeThreshold:     300,
-            clickDistThreshold:     5,
-            dblClickTimeThreshold:  300,
-            dblClickDistThreshold:  20,
-            springStiffness:        6.5,
-            animationTime:          1.2,
-            loadDestinationTilesOnAnimation: true,
-            gestureSettingsMouse:   {
-                dragToPan: true,
-                scrollToZoom: true,
-                clickToZoom: true,
-                dblClickToZoom: false,
-                dblClickDragToZoom: false,
-                pinchToZoom: false,
-                zoomToRefPoint: true,
-                flickEnabled: false,
-                flickMinSpeed: 120,
-                flickMomentum: 0.25,
-                pinchRotate: false
-            },
-            gestureSettingsTouch:   {
-                dragToPan: true,
-                scrollToZoom: false,
-                clickToZoom: false,
-                dblClickToZoom: true,
-                dblClickDragToZoom: true,
-                pinchToZoom: true,
-                zoomToRefPoint: true,
-                flickEnabled: true,
-                flickMinSpeed: 120,
-                flickMomentum: 0.25,
-                pinchRotate: false
-            },
-            gestureSettingsPen:     {
-                dragToPan: true,
-                scrollToZoom: false,
-                clickToZoom: true,
-                dblClickToZoom: false,
-                dblClickDragToZoom: false,
-                pinchToZoom: false,
-                zoomToRefPoint: true,
-                flickEnabled: false,
-                flickMinSpeed: 120,
-                flickMomentum: 0.25,
-                pinchRotate: false
-            },
-            gestureSettingsUnknown: {
-                dragToPan: true,
-                scrollToZoom: false,
-                clickToZoom: false,
-                dblClickToZoom: true,
-                dblClickDragToZoom: false,
-                pinchToZoom: true,
-                zoomToRefPoint: true,
-                flickEnabled: true,
-                flickMinSpeed: 120,
-                flickMomentum: 0.25,
-                pinchRotate: false
-            },
-            cooperativeGestures:    false,
-            zoomPerClick:           2,
-            zoomPerScroll:          1.2,
-            zoomPerDblClickDrag:    1.2,
-            zoomPerSecond:          1.0,
-            blendTime:              0,
-            alwaysBlend:            false,
-            autoHideControls:       true,
-            immediateRender:        false,
-            minZoomImageRatio:      0.9, //-> closer to 0 allows zoom out to infinity
-            maxZoomPixelRatio:      1.1, //-> higher allows 'over zoom' into pixels
-            smoothTileEdgesMinZoom: 1.1, //-> higher than maxZoomPixelRatio disables it
-            iOSDevice:              isIOSDevice(),
-            pixelsPerWheelLine:     40,
-            pixelsPerArrowPress:    40,
-            autoResize:             true,
-            preserveImageSizeOnResize: false, // requires autoResize=true
-            minScrollDeltaTime:     50,
-            rotationIncrement:      90,
-            maxTilesPerFrame:       1,
+        //UI RESPONSIVENESS AND FEEL
+        clickTimeThreshold:     300,
+        clickDistThreshold:     5,
+        dblClickTimeThreshold:  300,
+        dblClickDistThreshold:  20,
+        springStiffness:        6.5,
+        animationTime:          1.2,
+        loadDestinationTilesOnAnimation: true,
+        gestureSettingsMouse:   {
+            dragToPan: true,
+            scrollToZoom: true,
+            clickToZoom: true,
+            dblClickToZoom: false,
+            dblClickDragToZoom: false,
+            pinchToZoom: false,
+            zoomToRefPoint: true,
+            flickEnabled: false,
+            flickMinSpeed: 120,
+            flickMomentum: 0.25,
+            pinchRotate: false
+        },
+        gestureSettingsTouch:   {
+            dragToPan: true,
+            scrollToZoom: false,
+            clickToZoom: false,
+            dblClickToZoom: true,
+            dblClickDragToZoom: true,
+            pinchToZoom: true,
+            zoomToRefPoint: true,
+            flickEnabled: true,
+            flickMinSpeed: 120,
+            flickMomentum: 0.25,
+            pinchRotate: false
+        },
+        gestureSettingsPen:     {
+            dragToPan: true,
+            scrollToZoom: false,
+            clickToZoom: true,
+            dblClickToZoom: false,
+            dblClickDragToZoom: false,
+            pinchToZoom: false,
+            zoomToRefPoint: true,
+            flickEnabled: false,
+            flickMinSpeed: 120,
+            flickMomentum: 0.25,
+            pinchRotate: false
+        },
+        gestureSettingsUnknown: {
+            dragToPan: true,
+            scrollToZoom: false,
+            clickToZoom: false,
+            dblClickToZoom: true,
+            dblClickDragToZoom: false,
+            pinchToZoom: true,
+            zoomToRefPoint: true,
+            flickEnabled: true,
+            flickMinSpeed: 120,
+            flickMomentum: 0.25,
+            pinchRotate: false
+        },
+        cooperativeGestures:    false,
+        zoomPerClick:           2,
+        zoomPerScroll:          1.2,
+        zoomPerDblClickDrag:    1.2,
+        zoomPerSecond:          1.0,
+        blendTime:              0,
+        alwaysBlend:            false,
+        autoHideControls:       true,
+        immediateRender:        false,
+        minZoomImageRatio:      0.9, //-> closer to 0 allows zoom out to infinity
+        maxZoomPixelRatio:      1.1, //-> higher allows 'over zoom' into pixels
+        smoothTileEdgesMinZoom: 1.1, //-> higher than maxZoomPixelRatio disables it
+        iOSDevice:              isIOSDevice(),
+        pixelsPerWheelLine:     40,
+        pixelsPerArrowPress:    40,
+        autoResize:             true,
+        preserveImageSizeOnResize: false, // requires autoResize=true
+        minScrollDeltaTime:     50,
+        rotationIncrement:      90,
+        maxTilesPerFrame:       1,
 
-            //DEFAULT CONTROL SETTINGS
-            showSequenceControl:     true,  //SEQUENCE
-            sequenceControlAnchor:   null,  //SEQUENCE
-            preserveViewport:        false, //SEQUENCE
-            preserveOverlays:        false, //SEQUENCE
-            navPrevNextWrap:         false, //SEQUENCE
-            showNavigationControl:   true,  //ZOOM/HOME/FULL/ROTATION
-            navigationControlAnchor: null,  //ZOOM/HOME/FULL/ROTATION
-            showZoomControl:         true,  //ZOOM
-            showHomeControl:         true,  //HOME
-            showFullPageControl:     true,  //FULL
-            showRotationControl:     false, //ROTATION
-            showFlipControl:         false,  //FLIP
-            controlsFadeDelay:       2000,  //ZOOM/HOME/FULL/SEQUENCE
-            controlsFadeLength:      1500,  //ZOOM/HOME/FULL/SEQUENCE
-            mouseNavEnabled:         true,  //GENERAL MOUSE INTERACTIVITY
-            keyboardNavEnabled:      true,  //GENERAL KEYBOARD INTERACTIVITY
+        //DEFAULT CONTROL SETTINGS
+        showSequenceControl:     true,  //SEQUENCE
+        sequenceControlAnchor:   null,  //SEQUENCE
+        preserveViewport:        false, //SEQUENCE
+        preserveOverlays:        false, //SEQUENCE
+        navPrevNextWrap:         false, //SEQUENCE
+        showNavigationControl:   true,  //ZOOM/HOME/FULL/ROTATION
+        navigationControlAnchor: null,  //ZOOM/HOME/FULL/ROTATION
+        showZoomControl:         true,  //ZOOM
+        showHomeControl:         true,  //HOME
+        showFullPageControl:     true,  //FULL
+        showRotationControl:     false, //ROTATION
+        showFlipControl:         false,  //FLIP
+        controlsFadeDelay:       2000,  //ZOOM/HOME/FULL/SEQUENCE
+        controlsFadeLength:      1500,  //ZOOM/HOME/FULL/SEQUENCE
+        mouseNavEnabled:         true,  //GENERAL MOUSE INTERACTIVITY
+        keyboardNavEnabled:      true,  //GENERAL KEYBOARD INTERACTIVITY
 
-            //VIEWPORT NAVIGATOR SETTINGS
-            showNavigator:              false,
-            navigatorElement:           null,
-            navigatorId:                null,
-            navigatorPosition:          null,
-            navigatorSizeRatio:         0.2,
-            navigatorMaintainSizeRatio: false,
-            navigatorTop:               null,
-            navigatorLeft:              null,
-            navigatorHeight:            null,
-            navigatorWidth:             null,
-            navigatorAutoFade:          true,
-            navigatorRotate:            true,
-            navigatorBackground:        '#000',
-            navigatorOpacity:           0.8,
-            navigatorBorderColor:       '#555',
-            navigatorDisplayRegionColor: '#900',
-            navigatorDrawer:            null,
+        //VIEWPORT NAVIGATOR SETTINGS
+        showNavigator:              false,
+        navigatorElement:           null,
+        navigatorId:                null,
+        navigatorPosition:          null,
+        navigatorSizeRatio:         0.2,
+        navigatorMaintainSizeRatio: false,
+        navigatorTop:               null,
+        navigatorLeft:              null,
+        navigatorHeight:            null,
+        navigatorWidth:             null,
+        navigatorAutoFade:          true,
+        navigatorRotate:            true,
+        navigatorBackground:        '#000',
+        navigatorOpacity:           0.8,
+        navigatorBorderColor:       '#555',
+        navigatorDisplayRegionColor: '#900',
+        navigatorDrawer:            null,
 
-            // INITIAL ROTATION
-            degrees:                    0,
+        // INITIAL ROTATION
+        degrees:                    0,
 
-            // INITIAL FLIP STATE
-            flipped:                          false,
-            overlayPreserveContentDirection:  true,
+        // INITIAL FLIP STATE
+        flipped:                          false,
+        overlayPreserveContentDirection:  true,
 
-            // APPEARANCE
-            opacity:                           1, // to be passed into each TiledImage
-            compositeOperation:                null, // to be passed into each TiledImage
+        // APPEARANCE
+        opacity:                           1, // to be passed into each TiledImage
+        compositeOperation:                null, // to be passed into each TiledImage
 
-            // DRAWER SETTINGS
-            drawer:                            ['auto', 'webgl', 'canvas', 'html'], // prefer using auto, then webgl (with WebGL2 if available), then canvas (i.e. context2d), then fallback to html
-            // DRAWER CONFIGURATIONS
-            drawerOptions: {
-                // [drawer-id]: {options} map
-            },
-
-            // TILED IMAGE SETTINGS
-            preload:                           false, // to be passed into each TiledImage
-            imageSmoothingEnabled:             true,  // to be passed into each TiledImage
-            placeholderFillStyle:              null,  // to be passed into each TiledImage
-            subPixelRoundingForTransparency:   null,  // to be passed into each TiledImage
-
-            //REFERENCE STRIP SETTINGS
-            showReferenceStrip:          false,
-            referenceStripScroll:       'horizontal',
-            referenceStripElement:       null,
-            referenceStripHeight:        null,
-            referenceStripWidth:         null,
-            referenceStripPosition:      'BOTTOM_LEFT',
-            referenceStripSizeRatio:     0.2,
-
-            //COLLECTION VISUALIZATION SETTINGS
-            collectionRows:         3, //or columns depending on layout
-            collectionColumns:      0, //columns in horizontal layout, rows in vertical layout
-            collectionLayout:       'horizontal', //vertical
-            collectionMode:         false,
-            collectionTileSize:     800,
-            collectionTileMargin:   80,
-
-            //PERFORMANCE SETTINGS
-            imageLoaderLimit:       0,
-            maxImageCacheCount:     200,
-            timeout:                30000,
-            tileRetryMax:           0,
-            tileRetryDelay:         2500,
-
-            //INTERFACE RESOURCE SETTINGS
-            prefixUrl:              "/images/",
-            navImages: {
-                zoomIn: {
-                    REST:   'zoomin_rest.png',
-                    GROUP:  'zoomin_grouphover.png',
-                    HOVER:  'zoomin_hover.png',
-                    DOWN:   'zoomin_pressed.png'
-                },
-                zoomOut: {
-                    REST:   'zoomout_rest.png',
-                    GROUP:  'zoomout_grouphover.png',
-                    HOVER:  'zoomout_hover.png',
-                    DOWN:   'zoomout_pressed.png'
-                },
-                home: {
-                    REST:   'home_rest.png',
-                    GROUP:  'home_grouphover.png',
-                    HOVER:  'home_hover.png',
-                    DOWN:   'home_pressed.png'
-                },
-                fullpage: {
-                    REST:   'fullpage_rest.png',
-                    GROUP:  'fullpage_grouphover.png',
-                    HOVER:  'fullpage_hover.png',
-                    DOWN:   'fullpage_pressed.png'
-                },
-                rotateleft: {
-                    REST:   'rotateleft_rest.png',
-                    GROUP:  'rotateleft_grouphover.png',
-                    HOVER:  'rotateleft_hover.png',
-                    DOWN:   'rotateleft_pressed.png'
-                },
-                rotateright: {
-                    REST:   'rotateright_rest.png',
-                    GROUP:  'rotateright_grouphover.png',
-                    HOVER:  'rotateright_hover.png',
-                    DOWN:   'rotateright_pressed.png'
-                },
-                flip: { // Flip icon designed by Yaroslav Samoylov from the Noun Project and modified by Nelson Campos ncampos@criteriamarathon.com, https://thenounproject.com/term/flip/136289/
-                    REST:   'flip_rest.png',
-                    GROUP:  'flip_grouphover.png',
-                    HOVER:  'flip_hover.png',
-                    DOWN:   'flip_pressed.png'
-                },
-                previous: {
-                    REST:   'previous_rest.png',
-                    GROUP:  'previous_grouphover.png',
-                    HOVER:  'previous_hover.png',
-                    DOWN:   'previous_pressed.png'
-                },
-                next: {
-                    REST:   'next_rest.png',
-                    GROUP:  'next_grouphover.png',
-                    HOVER:  'next_hover.png',
-                    DOWN:   'next_pressed.png'
-                }
-            },
-
-            //DEVELOPER SETTINGS
-            debugMode:              false,
-            debugGridColor:         ['#437AB2', '#1B9E77', '#D95F02', '#7570B3', '#E7298A', '#66A61E', '#E6AB02', '#A6761D', '#666666'],
-            silenceMultiImageWarnings: false
-
+        // DRAWER SETTINGS
+        drawer:                            ['auto', 'webgl', 'canvas', 'html'], // prefer using auto, then webgl (with WebGL2 if available), then canvas (i.e. context2d), then fallback to html
+        // DRAWER CONFIGURATIONS
+        drawerOptions: {
+            // [drawer-id]: {options} map
         },
 
-        /**
-         * Returns a function which invokes the method as if it were a method belonging to the object.
-         * @function
-         * @param {Object} object
-         * @param {Function} method
-         * @returns {Function}
-         */
-        delegate: function( object, method ) {
-            return function(){
-                let args = arguments;
-                if ( args === undefined ){
-                    args = [];
-                }
-                return method.apply( object, args );
-            };
-        },
+        // TILED IMAGE SETTINGS
+        preload:                           false, // to be passed into each TiledImage
+        imageSmoothingEnabled:             true,  // to be passed into each TiledImage
+        placeholderFillStyle:              null,  // to be passed into each TiledImage
+        subPixelRoundingForTransparency:   null,  // to be passed into each TiledImage
 
+        //REFERENCE STRIP SETTINGS
+        showReferenceStrip:          false,
+        referenceStripScroll:       'horizontal',
+        referenceStripElement:       null,
+        referenceStripHeight:        null,
+        referenceStripWidth:         null,
+        referenceStripPosition:      'BOTTOM_LEFT',
+        referenceStripSizeRatio:     0.2,
 
-        /**
-         * An enumeration of Browser vendors.
-         * @static
-         * @type {Object}
-         * @property {Number} UNKNOWN
-         * @property {Number} IE
-         * @property {Number} FIREFOX
-         * @property {Number} SAFARI
-         * @property {Number} CHROME
-         * @property {Number} OPERA
-         * @property {Number} EDGE
-         * @property {Number} CHROMEEDGE
-         */
-        BROWSERS: {
-            UNKNOWN:    0,
-            IE:         1,
-            FIREFOX:    2,
-            SAFARI:     3,
-            CHROME:     4,
-            OPERA:      5,
-            EDGE:       6,
-            CHROMEEDGE: 7
-        },
+        //COLLECTION VISUALIZATION SETTINGS
+        collectionRows:         3, //or columns depending on layout
+        collectionColumns:      0, //columns in horizontal layout, rows in vertical layout
+        collectionLayout:       'horizontal', //vertical
+        collectionMode:         false,
+        collectionTileSize:     800,
+        collectionTileMargin:   80,
 
-        /**
-         * An enumeration of when subpixel rounding should occur.
-         * @static
-         * @type {Object}
-         * @property {Number} NEVER Never apply subpixel rounding for transparency.
-         * @property {Number} ONLY_AT_REST Do not apply subpixel rounding for transparency during animation (panning, zoom, rotation) and apply it once animation is over.
-         * @property {Number} ALWAYS Apply subpixel rounding for transparency during animation and when animation is over.
-         */
-        SUBPIXEL_ROUNDING_OCCURRENCES: {
-            NEVER:        0,
-            ONLY_AT_REST: 1,
-            ALWAYS:       2
-        },
+        //PERFORMANCE SETTINGS
+        imageLoaderLimit:       0,
+        maxImageCacheCount:     200,
+        timeout:                30000,
+        tileRetryMax:           0,
+        tileRetryDelay:         2500,
 
-        /**
-         * Keep track of which {@link Viewer}s have been created.
-         * - Key: {@link Element} to which a Viewer is attached.
-         * - Value: {@link Viewer} of the element defined by the key.
-         * @private
-         * @static
-         * @type {Object}
-         */
-        _viewers: new Map(),
-
-       /**
-         * Returns the {@link Viewer} attached to a given DOM element. If there is
-         * no viewer attached to the provided element, undefined is returned.
-         * @function
-         * @param {String|Element} element Accepts an id or element.
-         * @returns {Viewer} The viewer attached to the given element, or undefined.
-         */
-        getViewer: function(element) {
-            return $._viewers.get(this.getElement(element));
-        },
-
-        /**
-         * Returns a DOM Element for the given id or element.
-         * @function
-         * @param {String|Element} element Accepts an id or element.
-         * @returns {Element} The element with the given id, null, or the element itself.
-         */
-        getElement: function( element ) {
-            if ( typeof ( element ) === "string" ) {
-                element = document.getElementById( element );
+        //INTERFACE RESOURCE SETTINGS
+        prefixUrl:              "/images/",
+        navImages: {
+            zoomIn: {
+                REST:   'zoomin_rest.png',
+                GROUP:  'zoomin_grouphover.png',
+                HOVER:  'zoomin_hover.png',
+                DOWN:   'zoomin_pressed.png'
+            },
+            zoomOut: {
+                REST:   'zoomout_rest.png',
+                GROUP:  'zoomout_grouphover.png',
+                HOVER:  'zoomout_hover.png',
+                DOWN:   'zoomout_pressed.png'
+            },
+            home: {
+                REST:   'home_rest.png',
+                GROUP:  'home_grouphover.png',
+                HOVER:  'home_hover.png',
+                DOWN:   'home_pressed.png'
+            },
+            fullpage: {
+                REST:   'fullpage_rest.png',
+                GROUP:  'fullpage_grouphover.png',
+                HOVER:  'fullpage_hover.png',
+                DOWN:   'fullpage_pressed.png'
+            },
+            rotateleft: {
+                REST:   'rotateleft_rest.png',
+                GROUP:  'rotateleft_grouphover.png',
+                HOVER:  'rotateleft_hover.png',
+                DOWN:   'rotateleft_pressed.png'
+            },
+            rotateright: {
+                REST:   'rotateright_rest.png',
+                GROUP:  'rotateright_grouphover.png',
+                HOVER:  'rotateright_hover.png',
+                DOWN:   'rotateright_pressed.png'
+            },
+            flip: { // Flip icon designed by Yaroslav Samoylov from the Noun Project and modified by Nelson Campos ncampos@criteriamarathon.com, https://thenounproject.com/term/flip/136289/
+                REST:   'flip_rest.png',
+                GROUP:  'flip_grouphover.png',
+                HOVER:  'flip_hover.png',
+                DOWN:   'flip_pressed.png'
+            },
+            previous: {
+                REST:   'previous_rest.png',
+                GROUP:  'previous_grouphover.png',
+                HOVER:  'previous_hover.png',
+                DOWN:   'previous_pressed.png'
+            },
+            next: {
+                REST:   'next_rest.png',
+                GROUP:  'next_grouphover.png',
+                HOVER:  'next_hover.png',
+                DOWN:   'next_pressed.png'
             }
-            return element;
         },
 
+        //DEVELOPER SETTINGS
+        debugMode:              false,
+        debugGridColor:         ['#437AB2', '#1B9E77', '#D95F02', '#7570B3', '#E7298A', '#66A61E', '#E6AB02', '#A6761D', '#666666'],
+        silenceMultiImageWarnings: false
 
-        /**
-         * Determines the position of the upper-left corner of the element.
-         * @function
-         * @param {Element|String} element - the element we want the position for.
-         * @returns {OpenSeadragon.Point} - the position of the upper left corner of the element.
-         */
-        getElementPosition: function( element ) {
-            let result = new Point();
-            let isFixed;
-            let offsetParent;
+    };
 
-            element      = $.getElement( element );
-            isFixed      = $.getElementStyle( element ).position === "fixed";
+    /**
+     * Returns a function which invokes the method as if it were a method belonging to the object.
+     * @function
+     * @param {Object} object
+     * @param {Function} method
+     * @returns {Function}
+     */
+    OpenSeadragon.delegate = function( object, method ) {
+        return function(){
+            let args = arguments;
+            if ( args === undefined ){
+                args = [];
+            }
+            return method.apply( object, args );
+        };
+    };
+
+    /**
+     * An enumeration of Browser vendors.
+     * @static
+     * @type {Object}
+     * @property {Number} UNKNOWN
+     * @property {Number} IE
+     * @property {Number} FIREFOX
+     * @property {Number} SAFARI
+     * @property {Number} CHROME
+     * @property {Number} OPERA
+     * @property {Number} EDGE
+     * @property {Number} CHROMEEDGE
+     */
+    OpenSeadragon.BROWSERS = {
+        UNKNOWN:    0,
+        IE:         1,
+        FIREFOX:    2,
+        SAFARI:     3,
+        CHROME:     4,
+        OPERA:      5,
+        EDGE:       6,
+        CHROMEEDGE: 7
+    };
+
+    /**
+     * An enumeration of when subpixel rounding should occur.
+     * @static
+     * @type {Object}
+     * @property {Number} NEVER Never apply subpixel rounding for transparency.
+     * @property {Number} ONLY_AT_REST Do not apply subpixel rounding for transparency during animation (panning, zoom, rotation) and apply it once animation is over.
+     * @property {Number} ALWAYS Apply subpixel rounding for transparency during animation and when animation is over.
+     */
+    OpenSeadragon.SUBPIXEL_ROUNDING_OCCURRENCES = {
+        NEVER:        0,
+        ONLY_AT_REST: 1,
+        ALWAYS:       2
+    };
+
+    /**
+     * Keep track of which {@link Viewer}s have been created.
+     * - Key: {@link Element} to which a Viewer is attached.
+     * - Value: {@link Viewer} of the element defined by the key.
+     * @private
+     * @static
+     * @type {Object}
+     */
+    OpenSeadragon._viewers = new Map();
+
+   /**
+     * Returns the {@link Viewer} attached to a given DOM element. If there is
+     * no viewer attached to the provided element, undefined is returned.
+     * @function
+     * @param {String|Element} element Accepts an id or element.
+     * @returns {Viewer} The viewer attached to the given element, or undefined.
+     */
+    OpenSeadragon.getViewer = function(element) {
+        return $._viewers.get(this.getElement(element));
+    };
+
+    /**
+     * Returns a DOM Element for the given id or element.
+     * @function
+     * @param {String|Element} element Accepts an id or element.
+     * @returns {Element} The element with the given id, null, or the element itself.
+     */
+    OpenSeadragon.getElement = function( element ) {
+        if ( typeof ( element ) === "string" ) {
+            element = document.getElementById( element );
+        }
+        return element;
+    };
+
+    /**
+     * Determines the position of the upper-left corner of the element.
+     * @function
+     * @param {Element|String} element - the element we want the position for.
+     * @returns {OpenSeadragon.Point} - the position of the upper left corner of the element.
+     */
+    OpenSeadragon.getElementPosition = function( element ) {
+        let result = new Point();
+        let isFixed;
+        let offsetParent;
+
+        element      = $.getElement( element );
+        isFixed      = $.getElementStyle( element ).position === "fixed";
+        offsetParent = getOffsetParent( element, isFixed );
+
+        while ( offsetParent ) {
+
+            result.x += element.offsetLeft;
+            result.y += element.offsetTop;
+
+            if ( isFixed ) {
+                result = result.plus( $.getPageScroll() );
+            }
+
+            element = offsetParent;
+            isFixed = $.getElementStyle( element ).position === "fixed";
             offsetParent = getOffsetParent( element, isFixed );
+        }
 
-            while ( offsetParent ) {
+        return result;
+    };
 
-                result.x += element.offsetLeft;
-                result.y += element.offsetTop;
+    /**
+     * Determines the position of the upper-left corner of the element adjusted for current page and/or element scroll.
+     * @function
+     * @param {Element|String} element - the element we want the position for.
+     * @returns {OpenSeadragon.Point} - the position of the upper left corner of the element adjusted for current page and/or element scroll.
+     */
+    OpenSeadragon.getElementOffset = function( element ) {
+        element = $.getElement( element );
 
-                if ( isFixed ) {
-                    result = result.plus( $.getPageScroll() );
-                }
+        const doc = element && element.ownerDocument;
+        let boundingRect = { top: 0, left: 0 };
 
-                element = offsetParent;
-                isFixed = $.getElementStyle( element ).position === "fixed";
-                offsetParent = getOffsetParent( element, isFixed );
-            }
+        if ( !doc ) {
+            return new Point();
+        }
 
-            return result;
-        },
+        const docElement = doc.documentElement;
 
+        if ( typeof element.getBoundingClientRect !== typeof undefined ) {
+            boundingRect = element.getBoundingClientRect();
+        }
 
-        /**
-         * Determines the position of the upper-left corner of the element adjusted for current page and/or element scroll.
-         * @function
-         * @param {Element|String} element - the element we want the position for.
-         * @returns {OpenSeadragon.Point} - the position of the upper left corner of the element adjusted for current page and/or element scroll.
-         */
-        getElementOffset: function( element ) {
+        const win = ( doc === doc.window ) ?
+            doc :
+            ( doc.nodeType === 9 ) ?
+                doc.defaultView || doc.parentWindow :
+                false;
+
+        return new Point(
+            boundingRect.left + ( win.pageXOffset || docElement.scrollLeft ) - ( docElement.clientLeft || 0 ),
+            boundingRect.top + ( win.pageYOffset || docElement.scrollTop ) - ( docElement.clientTop || 0 )
+        );
+    };
+
+    /**
+     * Determines the height and width of the given element.
+     * @function
+     * @param {Element|String} element
+     * @returns {OpenSeadragon.Point}
+     */
+    OpenSeadragon.getElementSize = function( element ) {
+        element = $.getElement( element );
+
+        return new Point(
+            element.clientWidth,
+            element.clientHeight
+        );
+    };
+
+    /**
+     * Returns the CSSStyle object for the given element.
+     * @function
+     * @param {Element|String} element
+     * @returns {CSSStyle}
+     */
+    OpenSeadragon.getElementStyle = document.documentElement.currentStyle ?
+        function( element ) {
             element = $.getElement( element );
-
-            const doc = element && element.ownerDocument;
-            let boundingRect = { top: 0, left: 0 };
-
-            if ( !doc ) {
-                return new Point();
-            }
-
-            const docElement = doc.documentElement;
-
-            if ( typeof element.getBoundingClientRect !== typeof undefined ) {
-                boundingRect = element.getBoundingClientRect();
-            }
-
-            const win = ( doc === doc.window ) ?
-                doc :
-                ( doc.nodeType === 9 ) ?
-                    doc.defaultView || doc.parentWindow :
-                    false;
-
-            return new Point(
-                boundingRect.left + ( win.pageXOffset || docElement.scrollLeft ) - ( docElement.clientLeft || 0 ),
-                boundingRect.top + ( win.pageYOffset || docElement.scrollTop ) - ( docElement.clientTop || 0 )
-            );
-        },
-
-
-        /**
-         * Determines the height and width of the given element.
-         * @function
-         * @param {Element|String} element
-         * @returns {OpenSeadragon.Point}
-         */
-        getElementSize: function( element ) {
+            return element.currentStyle;
+        } :
+        function( element ) {
             element = $.getElement( element );
+            return window.getComputedStyle( element, "" );
+        };
 
-            return new Point(
-                element.clientWidth,
-                element.clientHeight
-            );
-        },
+    /**
+     * Returns the property with the correct vendor prefix appended.
+     * @param {String} property the property name
+     * @returns {String} the property with the correct prefix or null if not
+     * supported.
+     */
+    OpenSeadragon.getCssPropertyWithVendorPrefix = function(property) {
+        const memo = {};
 
-
-        /**
-         * Returns the CSSStyle object for the given element.
-         * @function
-         * @param {Element|String} element
-         * @returns {CSSStyle}
-         */
-        getElementStyle:
-            document.documentElement.currentStyle ?
-            function( element ) {
-                element = $.getElement( element );
-                return element.currentStyle;
-            } :
-            function( element ) {
-                element = $.getElement( element );
-                return window.getComputedStyle( element, "" );
-            },
-
-        /**
-         * Returns the property with the correct vendor prefix appended.
-         * @param {String} property the property name
-         * @returns {String} the property with the correct prefix or null if not
-         * supported.
-         */
-        getCssPropertyWithVendorPrefix: function(property) {
-            const memo = {};
-
-            $.getCssPropertyWithVendorPrefix = function(property) {
-                if (memo[property] !== undefined) {
-                    return memo[property];
-                }
-                const style = document.createElement('div').style;
-                let result = null;
-                if (style[property] !== undefined) {
-                    result = property;
-                } else {
-                    const prefixes = ['Webkit', 'Moz', 'MS', 'O',
-                        'webkit', 'moz', 'ms', 'o'];
-                    const suffix = $.capitalizeFirstLetter(property);
-                    for (let i = 0; i < prefixes.length; i++) {
-                        const prop = prefixes[i] + suffix;
-                        if (style[prop] !== undefined) {
-                            result = prop;
-                            break;
-                        }
+        $.getCssPropertyWithVendorPrefix = function(property) {
+            if (memo[property] !== undefined) {
+                return memo[property];
+            }
+            const style = document.createElement('div').style;
+            let result = null;
+            if (style[property] !== undefined) {
+                result = property;
+            } else {
+                const prefixes = ['Webkit', 'Moz', 'MS', 'O',
+                    'webkit', 'moz', 'ms', 'o'];
+                const suffix = $.capitalizeFirstLetter(property);
+                for (let i = 0; i < prefixes.length; i++) {
+                    const prop = prefixes[i] + suffix;
+                    if (style[prop] !== undefined) {
+                        result = prop;
+                        break;
                     }
                 }
-                memo[property] = result;
+            }
+            memo[property] = result;
+            return result;
+        };
+        return $.getCssPropertyWithVendorPrefix(property);
+    };
+
+    /**
+     * Capitalizes the first letter of a string
+     * @param {String} string
+     * @returns {String} The string with the first letter capitalized
+     */
+    OpenSeadragon.capitalizeFirstLetter = function(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    };
+
+    /**
+     * Compute the modulo of a number but makes sure to always return
+     * a positive value (also known as Euclidean modulo).
+     * @param {Number} number the number to compute the modulo of
+     * @param {Number} modulo the modulo
+     * @returns {Number} the result of the modulo of number
+     */
+    OpenSeadragon.positiveModulo = function(number, modulo) {
+        let result = number % modulo;
+        if (result < 0) {
+            result += modulo;
+        }
+        return result;
+    };
+
+    /**
+     * Determines if a point is within the bounding rectangle of the given element (hit-test).
+     * @function
+     * @param {Element|String} element
+     * @param {OpenSeadragon.Point} point
+     * @returns {Boolean}
+     */
+    OpenSeadragon.pointInElement = function( element, point ) {
+        element = $.getElement( element );
+        const offset = $.getElementOffset( element );
+        const size = $.getElementSize( element );
+        return point.x >= offset.x && point.x < offset.x + size.x && point.y < offset.y + size.y && point.y >= offset.y;
+    };
+
+    /**
+     * Gets the position of the mouse on the screen for a given event.
+     * @function
+     * @param {Event} [event]
+     * @returns {OpenSeadragon.Point}
+     */
+    OpenSeadragon.getMousePosition = function( event ) {
+
+        if ( typeof ( event.pageX ) === "number" ) {
+            $.getMousePosition = function( event ){
+                const result = new Point();
+
+                result.x = event.pageX;
+                result.y = event.pageY;
+
                 return result;
             };
-            return $.getCssPropertyWithVendorPrefix(property);
-        },
+        } else if ( typeof ( event.clientX ) === "number" ) {
+            $.getMousePosition = function( event ){
+                const result = new Point();
 
-        /**
-         * Capitalizes the first letter of a string
-         * @param {String} string
-         * @returns {String} The string with the first letter capitalized
-         */
-        capitalizeFirstLetter: function(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
-        },
+                result.x =
+                    event.clientX +
+                    document.body.scrollLeft +
+                    document.documentElement.scrollLeft;
+                result.y =
+                    event.clientY +
+                    document.body.scrollTop +
+                    document.documentElement.scrollTop;
 
-        /**
-         * Compute the modulo of a number but makes sure to always return
-         * a positive value (also known as Euclidean modulo).
-         * @param {Number} number the number to compute the modulo of
-         * @param {Number} modulo the modulo
-         * @returns {Number} the result of the modulo of number
-         */
-        positiveModulo: function(number, modulo) {
-            let result = number % modulo;
-            if (result < 0) {
-                result += modulo;
-            }
-            return result;
-        },
+                return result;
+            };
+        } else {
+            throw new Error(
+                "Unknown event mouse position, no known technique."
+            );
+        }
 
+        return $.getMousePosition( event );
+    };
 
-        /**
-         * Determines if a point is within the bounding rectangle of the given element (hit-test).
-         * @function
-         * @param {Element|String} element
-         * @param {OpenSeadragon.Point} point
-         * @returns {Boolean}
-         */
-        pointInElement: function( element, point ) {
-            element = $.getElement( element );
-            const offset = $.getElementOffset( element );
-            const size = $.getElementSize( element );
-            return point.x >= offset.x && point.x < offset.x + size.x && point.y < offset.y + size.y && point.y >= offset.y;
-        },
+    /**
+     * Determines the page's current scroll position.
+     * @function
+     * @returns {OpenSeadragon.Point}
+     */
+    OpenSeadragon.getPageScroll = function() {
+        const docElement = document.documentElement || {};
+        const body = document.body || {};
 
-
-        /**
-         * Gets the position of the mouse on the screen for a given event.
-         * @function
-         * @param {Event} [event]
-         * @returns {OpenSeadragon.Point}
-         */
-        getMousePosition: function( event ) {
-
-            if ( typeof ( event.pageX ) === "number" ) {
-                $.getMousePosition = function( event ){
-                    const result = new Point();
-
-                    result.x = event.pageX;
-                    result.y = event.pageY;
-
-                    return result;
-                };
-            } else if ( typeof ( event.clientX ) === "number" ) {
-                $.getMousePosition = function( event ){
-                    const result = new Point();
-
-                    result.x =
-                        event.clientX +
-                        document.body.scrollLeft +
-                        document.documentElement.scrollLeft;
-                    result.y =
-                        event.clientY +
-                        document.body.scrollTop +
-                        document.documentElement.scrollTop;
-
-                    return result;
-                };
-            } else {
-                throw new Error(
-                    "Unknown event mouse position, no known technique."
+        if ( typeof ( window.pageXOffset ) === "number" ) {
+            $.getPageScroll = function(){
+                return new Point(
+                    window.pageXOffset,
+                    window.pageYOffset
                 );
+            };
+        } else if ( body.scrollLeft || body.scrollTop ) {
+            $.getPageScroll = function(){
+                return new Point(
+                    document.body.scrollLeft,
+                    document.body.scrollTop
+                );
+            };
+        } else if ( docElement.scrollLeft || docElement.scrollTop ) {
+            $.getPageScroll = function(){
+                return new Point(
+                    document.documentElement.scrollLeft,
+                    document.documentElement.scrollTop
+                );
+            };
+        } else {
+            // We can't reassign the function yet, as there was no scroll.
+            return new Point(0, 0);
+        }
+
+        return $.getPageScroll();
+    };
+
+    /**
+     * Set the page scroll position.
+     * @function
+     * @returns {OpenSeadragon.Point}
+     */
+    OpenSeadragon.setPageScroll = function( scroll ) {
+        if ( typeof ( window.scrollTo ) !== "undefined" ) {
+            $.setPageScroll = function( scroll ) {
+                window.scrollTo( scroll.x, scroll.y );
+            };
+        } else {
+            const originalScroll = $.getPageScroll();
+            if ( originalScroll.x === scroll.x &&
+                originalScroll.y === scroll.y ) {
+                // We are already correctly positioned and there
+                // is no way to detect the correct method.
+                return;
             }
 
-            return $.getMousePosition( event );
-        },
-
-
-        /**
-         * Determines the page's current scroll position.
-         * @function
-         * @returns {OpenSeadragon.Point}
-         */
-        getPageScroll: function() {
-            const docElement = document.documentElement || {};
-            const body = document.body || {};
-
-            if ( typeof ( window.pageXOffset ) === "number" ) {
-                $.getPageScroll = function(){
-                    return new Point(
-                        window.pageXOffset,
-                        window.pageYOffset
-                    );
-                };
-            } else if ( body.scrollLeft || body.scrollTop ) {
-                $.getPageScroll = function(){
-                    return new Point(
-                        document.body.scrollLeft,
-                        document.body.scrollTop
-                    );
-                };
-            } else if ( docElement.scrollLeft || docElement.scrollTop ) {
-                $.getPageScroll = function(){
-                    return new Point(
-                        document.documentElement.scrollLeft,
-                        document.documentElement.scrollTop
-                    );
-                };
-            } else {
-                // We can't reassign the function yet, as there was no scroll.
-                return new Point(0, 0);
-            }
-
-            return $.getPageScroll();
-        },
-
-        /**
-         * Set the page scroll position.
-         * @function
-         * @returns {OpenSeadragon.Point}
-         */
-        setPageScroll: function( scroll ) {
-            if ( typeof ( window.scrollTo ) !== "undefined" ) {
+            document.body.scrollLeft = scroll.x;
+            document.body.scrollTop = scroll.y;
+            let currentScroll = $.getPageScroll();
+            if ( currentScroll.x !== originalScroll.x &&
+                currentScroll.y !== originalScroll.y ) {
                 $.setPageScroll = function( scroll ) {
-                    window.scrollTo( scroll.x, scroll.y );
+                    document.body.scrollLeft = scroll.x;
+                    document.body.scrollTop = scroll.y;
                 };
-            } else {
-                const originalScroll = $.getPageScroll();
-                if ( originalScroll.x === scroll.x &&
-                    originalScroll.y === scroll.y ) {
-                    // We are already correctly positioned and there
-                    // is no way to detect the correct method.
-                    return;
-                }
+                return;
+            }
 
-                document.body.scrollLeft = scroll.x;
-                document.body.scrollTop = scroll.y;
-                let currentScroll = $.getPageScroll();
-                if ( currentScroll.x !== originalScroll.x &&
-                    currentScroll.y !== originalScroll.y ) {
-                    $.setPageScroll = function( scroll ) {
-                        document.body.scrollLeft = scroll.x;
-                        document.body.scrollTop = scroll.y;
-                    };
-                    return;
-                }
-
-                document.documentElement.scrollLeft = scroll.x;
-                document.documentElement.scrollTop = scroll.y;
-                currentScroll = $.getPageScroll();
-                if ( currentScroll.x !== originalScroll.x &&
-                    currentScroll.y !== originalScroll.y ) {
-                    $.setPageScroll = function( scroll ) {
-                        document.documentElement.scrollLeft = scroll.x;
-                        document.documentElement.scrollTop = scroll.y;
-                    };
-                    return;
-                }
-
-                // We can't find anything working, so we do nothing.
+            document.documentElement.scrollLeft = scroll.x;
+            document.documentElement.scrollTop = scroll.y;
+            currentScroll = $.getPageScroll();
+            if ( currentScroll.x !== originalScroll.x &&
+                currentScroll.y !== originalScroll.y ) {
                 $.setPageScroll = function( scroll ) {
+                    document.documentElement.scrollLeft = scroll.x;
+                    document.documentElement.scrollTop = scroll.y;
                 };
+                return;
             }
 
-            $.setPageScroll( scroll );
-        },
+            // We can't find anything working, so we do nothing.
+            $.setPageScroll = function( scroll ) {
+            };
+        }
 
-        /**
-         * Determines the size of the browsers window.
-         * @function
-         * @returns {OpenSeadragon.Point}
+        $.setPageScroll( scroll );
+    };
+
+    /**
+     * Determines the size of the browsers window.
+     * @function
+     * @returns {OpenSeadragon.Point}
+     */
+    OpenSeadragon.getWindowSize = function() {
+        const docElement = document.documentElement || {};
+        const body = document.body || {};
+
+        if ( typeof ( window.innerWidth ) === 'number' ) {
+            $.getWindowSize = function(){
+                return new Point(
+                    window.innerWidth,
+                    window.innerHeight
+                );
+            };
+        } else if ( docElement.clientWidth || docElement.clientHeight ) {
+            $.getWindowSize = function(){
+                return new Point(
+                    document.documentElement.clientWidth,
+                    document.documentElement.clientHeight
+                );
+            };
+        } else if ( body.clientWidth || body.clientHeight ) {
+            $.getWindowSize = function(){
+                return new Point(
+                    document.body.clientWidth,
+                    document.body.clientHeight
+                );
+            };
+        } else {
+            throw new Error("Unknown window size, no known technique.");
+        }
+
+        return $.getWindowSize();
+    };
+
+    /**
+     * Wraps the given element in a nest of divs so that the element can
+     * be easily centered using CSS tables
+     * @function
+     * @param {Element|String} element
+     * @returns {Element} outermost wrapper element
+     */
+    OpenSeadragon.makeCenteredNode = function( element ) {
+        // Convert a possible ID to an actual HTMLElement
+        element = $.getElement( element );
+
+        /*
+            CSS tables require you to have a display:table/row/cell hierarchy so we need to create
+            three nested wrapper divs:
          */
-        getWindowSize: function() {
-            const docElement = document.documentElement || {};
-            const body = document.body || {};
 
-            if ( typeof ( window.innerWidth ) === 'number' ) {
-                $.getWindowSize = function(){
-                    return new Point(
-                        window.innerWidth,
-                        window.innerHeight
-                    );
-                };
-            } else if ( docElement.clientWidth || docElement.clientHeight ) {
-                $.getWindowSize = function(){
-                    return new Point(
-                        document.documentElement.clientWidth,
-                        document.documentElement.clientHeight
-                    );
-                };
-            } else if ( body.clientWidth || body.clientHeight ) {
-                $.getWindowSize = function(){
-                    return new Point(
-                        document.body.clientWidth,
-                        document.body.clientHeight
-                    );
-                };
-            } else {
-                throw new Error("Unknown window size, no known technique.");
+        const wrappers = [
+            $.makeNeutralElement( 'div' ),
+            $.makeNeutralElement( 'div' ),
+            $.makeNeutralElement( 'div' )
+        ];
+
+        // It feels like we should be able to pass style dicts to makeNeutralElement:
+        $.extend(wrappers[0].style, {
+            display: "table",
+            height: "100%",
+            width: "100%"
+        });
+
+        $.extend(wrappers[1].style, {
+            display: "table-row"
+        });
+
+        $.extend(wrappers[2].style, {
+            display: "table-cell",
+            verticalAlign: "middle",
+            textAlign: "center"
+        });
+
+        wrappers[0].appendChild(wrappers[1]);
+        wrappers[1].appendChild(wrappers[2]);
+        wrappers[2].appendChild(element);
+
+        return wrappers[0];
+    };
+
+    /**
+     * Log trace information from the system. Useful for logging and debugging
+     * async events. Calls to this function SHOULD NOT BE present in the release.
+     * (or at least used only in debug mode).
+     * @param {OpenSeadragon.Tile|OpenSeadragon.CacheRecord|string} tile message to log or tile to inspect
+     * @param {boolean} stacktrace if true log the stacktrace
+     */
+    OpenSeadragon.trace = function(tile, stacktrace = false) {
+        this.__traceLogs = [];
+        setInterval(() => {
+            if (!this.__traceLogs.length) {
+                return;
             }
-
-            return $.getWindowSize();
-        },
-
-
-        /**
-         * Wraps the given element in a nest of divs so that the element can
-         * be easily centered using CSS tables
-         * @function
-         * @param {Element|String} element
-         * @returns {Element} outermost wrapper element
-         */
-        makeCenteredNode: function( element ) {
-            // Convert a possible ID to an actual HTMLElement
-            element = $.getElement( element );
-
-            /*
-                CSS tables require you to have a display:table/row/cell hierarchy so we need to create
-                three nested wrapper divs:
-             */
-
-            const wrappers = [
-                $.makeNeutralElement( 'div' ),
-                $.makeNeutralElement( 'div' ),
-                $.makeNeutralElement( 'div' )
-            ];
-
-            // It feels like we should be able to pass style dicts to makeNeutralElement:
-            $.extend(wrappers[0].style, {
-                display: "table",
-                height: "100%",
-                width: "100%"
-            });
-
-            $.extend(wrappers[1].style, {
-                display: "table-row"
-            });
-
-            $.extend(wrappers[2].style, {
-                display: "table-cell",
-                verticalAlign: "middle",
-                textAlign: "center"
-            });
-
-            wrappers[0].appendChild(wrappers[1]);
-            wrappers[1].appendChild(wrappers[2]);
-            wrappers[2].appendChild(element);
-
-            return wrappers[0];
-        },
-
-        /**
-         * Log trace information from the system. Useful for logging and debugging
-         * async events. Calls to this function SHOULD NOT BE present in the release.
-         * (or at least used only in debug mode).
-         * @param {OpenSeadragon.Tile|OpenSeadragon.CacheRecord|string} tile message to log or tile to inspect
-         * @param {boolean} stacktrace if true log the stacktrace
-         */
-        trace: function(tile, stacktrace = false) {
+            console.log(this.__traceLogs.join('\n'));
             this.__traceLogs = [];
-            setInterval(() => {
-                if (!this.__traceLogs.length) {
-                    return;
-                }
-                console.log(this.__traceLogs.join('\n'));
-                this.__traceLogs = [];
-            }, 2000);
-            this.trace = function (tile, stacktrace = false) {
-                if (typeof tile === 'string') {
-                    this.__traceLogs.push(tile);
-                    if (stacktrace) {
-                        this.__traceLogs.push(...new Error().stack.split('\n').slice(1));
-                    }
-                    return;
-                }
-                if (tile instanceof OpenSeadragon.Tile) {
-                    tile = tile.getCache(tile.originalCacheKey);
-                }
-                const cacheTile = tile._tiles[0];
-                this.__traceLogs.push(`Cache ${cacheTile.toString()} loaded ${cacheTile.loaded} loading ${cacheTile.loading} cacheCount ${Object.keys(cacheTile._caches).length} - CACHE ${tile.__invStamp}`);
+        }, 2000);
+        this.trace = function (tile, stacktrace = false) {
+            if (typeof tile === 'string') {
+                this.__traceLogs.push(tile);
                 if (stacktrace) {
                     this.__traceLogs.push(...new Error().stack.split('\n').slice(1));
                 }
+                return;
+            }
+            if (typeof tile.getCache === 'function') {
+                tile = tile.getCache(tile.originalCacheKey);
+            }
+            const cacheTile = tile._tiles[0];
+            this.__traceLogs.push(`Cache ${cacheTile.toString()} loaded ${cacheTile.loaded} loading ${cacheTile.loading} cacheCount ${Object.keys(cacheTile._caches).length} - CACHE ${tile.__invStamp}`);
+            if (stacktrace) {
+                this.__traceLogs.push(...new Error().stack.split('\n').slice(1));
+            }
+        };
+        this.trace(tile, stacktrace);
+    };
+
+    /**
+     * Creates an easily positionable element of the given type that therefor
+     * serves as an excellent container element.
+     * @function
+     * @param {String} tagName
+     * @returns {Element}
+     */
+    OpenSeadragon.makeNeutralElement = function( tagName ) {
+        const element = document.createElement( tagName );
+        const style   = element.style;
+
+        style.background = "transparent none";
+        style.border     = "none";
+        style.margin     = "0px";
+        style.padding    = "0px";
+        style.position   = "static";
+
+        return element;
+    };
+
+    /**
+     * Returns the current milliseconds, using Date.now() if available
+     * @function
+     */
+    OpenSeadragon.now = function( ) {
+        if (Date.now) {
+            $.now = Date.now;
+        } else {
+            $.now = function() {
+                return new Date().getTime();
             };
-            this.trace(tile, stacktrace);
-        },
+        }
 
+        return $.now();
+    };
 
-        /**
-         * Creates an easily positionable element of the given type that therefor
-         * serves as an excellent container element.
-         * @function
-         * @param {String} tagName
-         * @returns {Element}
-         */
-        makeNeutralElement: function( tagName ) {
-            const element = document.createElement( tagName );
-            const style   = element.style;
+    /**
+     * Ensures an image is loaded correctly to support alpha transparency.
+     * @function
+     * @param {String} src
+     * @returns {Element}
+     */
+    OpenSeadragon.makeTransparentImage = function( src ) {
+        const img = $.makeNeutralElement( "img" );
 
-            style.background = "transparent none";
-            style.border     = "none";
-            style.margin     = "0px";
-            style.padding    = "0px";
-            style.position   = "static";
+        img.src = src;
 
-            return element;
-        },
+        return img;
+    };
 
+    /**
+     * Sets the opacity of the specified element.
+     * @function
+     * @param {Element|String} element
+     * @param {Number} opacity
+     * @param {Boolean} [usesAlpha]
+     */
+    OpenSeadragon.setElementOpacity = function( element, opacity, usesAlpha ) {
 
-        /**
-         * Returns the current milliseconds, using Date.now() if available
-         * @function
-         */
-        now: function( ) {
-            if (Date.now) {
-                $.now = Date.now;
+        let ieOpacity;
+        let ieFilter;
+
+        element = $.getElement( element );
+
+        if ( usesAlpha && !$.Browser.alpha ) {
+            opacity = Math.round( opacity );
+        }
+
+        if ( $.Browser.opacity ) {
+            element.style.opacity = opacity < 1 ? opacity : "";
+        } else {
+            if ( opacity < 1 ) {
+                ieOpacity = Math.round( 100 * opacity );
+                ieFilter  = "alpha(opacity=" + ieOpacity + ")";
+                element.style.filter = ieFilter;
             } else {
-                $.now = function() {
-                    return new Date().getTime();
-                };
+                element.style.filter = "";
             }
+        }
+    };
 
-            return $.now();
-        },
+    /**
+     * Sets the specified element's touch-action style attribute to the given value.
+     * @function
+     * @param {Element|String} element
+     * @param {String} value - CSS touch-action value, e.g. 'none' or 'pan-x pan-y'.
+     */
+    OpenSeadragon.setElementTouchAction = function( element, value ) {
+        element = $.getElement( element );
+        if ( typeof element.style.touchAction !== 'undefined' ) {
+            element.style.touchAction = value;
+        } else if ( typeof element.style.msTouchAction !== 'undefined' ) {
+            element.style.msTouchAction = value;
+        }
+    };
 
+    /**
+     * Sets the specified element's touch-action style attribute to 'none'.
+     * @function
+     * @param {Element|String} element
+     */
+    OpenSeadragon.setElementTouchActionNone = function( element ) {
+        $.setElementTouchAction( element, 'none' );
+    };
 
-        /**
-         * Ensures an image is loaded correctly to support alpha transparency.
-         * @function
-         * @param {String} src
-         * @returns {Element}
-         */
-        makeTransparentImage: function( src ) {
-            const img = $.makeNeutralElement( "img" );
+    /**
+     * Sets the specified element's pointer-events style attribute to the passed value.
+     * @function
+     * @param {Element|String} element
+     * @param {String} value
+     */
+    OpenSeadragon.setElementPointerEvents = function( element, value ) {
+        element = $.getElement( element );
+        if (typeof element.style !== 'undefined' && typeof element.style.pointerEvents !== 'undefined' ) {
+            element.style.pointerEvents = value;
+        }
+    };
 
-            img.src = src;
+    /**
+     * Sets the specified element's pointer-events style attribute to 'none'.
+     * @function
+     * @param {Element|String} element
+     */
+    OpenSeadragon.setElementPointerEventsNone = function( element ) {
+        $.setElementPointerEvents( element, 'none' );
+    };
 
-            return img;
-        },
+    /**
+     * Add the specified CSS class to the element if not present.
+     * @function
+     * @param {Element|String} element
+     * @param {String} className
+     */
+    OpenSeadragon.addClass = function( element, className ) {
+        element = $.getElement( element );
 
+        if (!element.className) {
+            element.className = className;
+        } else if ( ( ' ' + element.className + ' ' ).
+            indexOf( ' ' + className + ' ' ) === -1 ) {
+            element.className += ' ' + className;
+        }
+    };
 
-        /**
-         * Sets the opacity of the specified element.
-         * @function
-         * @param {Element|String} element
-         * @param {Number} opacity
-         * @param {Boolean} [usesAlpha]
-         */
-        setElementOpacity: function( element, opacity, usesAlpha ) {
-
-            let ieOpacity;
-            let ieFilter;
-
-            element = $.getElement( element );
-
-            if ( usesAlpha && !$.Browser.alpha ) {
-                opacity = Math.round( opacity );
-            }
-
-            if ( $.Browser.opacity ) {
-                element.style.opacity = opacity < 1 ? opacity : "";
-            } else {
-                if ( opacity < 1 ) {
-                    ieOpacity = Math.round( 100 * opacity );
-                    ieFilter  = "alpha(opacity=" + ieOpacity + ")";
-                    element.style.filter = ieFilter;
-                } else {
-                    element.style.filter = "";
+    /**
+     * Find the first index at which an element is found in an array or -1
+     * if not present.
+     *
+     * Code taken and adapted from
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf#Compatibility
+     *
+     * @function
+     * @param {Array} array The array from which to find the element
+     * @param {Object} searchElement The element to find
+     * @param {Number} [fromIndex=0] Index to start research.
+     * @returns {Number} The index of the element in the array.
+     */
+    OpenSeadragon.indexOf = function( array, searchElement, fromIndex ) {
+        if ( Array.prototype.indexOf ) {
+            this.indexOf = function( array, searchElement, fromIndex ) {
+                return array.indexOf( searchElement, fromIndex );
+            };
+        } else {
+            this.indexOf = function( array, searchElement, fromIndex ) {
+                let pivot = ( fromIndex ) ? fromIndex : 0;
+                if ( !array ) {
+                    throw new TypeError( );
                 }
-            }
-        },
 
-
-        /**
-         * Sets the specified element's touch-action style attribute to the given value.
-         * @function
-         * @param {Element|String} element
-         * @param {String} value - CSS touch-action value, e.g. 'none' or 'pan-x pan-y'.
-         */
-        setElementTouchAction: function( element, value ) {
-            element = $.getElement( element );
-            if ( typeof element.style.touchAction !== 'undefined' ) {
-                element.style.touchAction = value;
-            } else if ( typeof element.style.msTouchAction !== 'undefined' ) {
-                element.style.msTouchAction = value;
-            }
-        },
-
-        /**
-         * Sets the specified element's touch-action style attribute to 'none'.
-         * @function
-         * @param {Element|String} element
-         */
-        setElementTouchActionNone: function( element ) {
-            $.setElementTouchAction( element, 'none' );
-        },
-
-
-        /**
-         * Sets the specified element's pointer-events style attribute to the passed value.
-         * @function
-         * @param {Element|String} element
-         * @param {String} value
-         */
-        setElementPointerEvents: function( element, value ) {
-            element = $.getElement( element );
-            if (typeof element.style !== 'undefined' && typeof element.style.pointerEvents !== 'undefined' ) {
-                element.style.pointerEvents = value;
-            }
-        },
-
-
-        /**
-         * Sets the specified element's pointer-events style attribute to 'none'.
-         * @function
-         * @param {Element|String} element
-         */
-        setElementPointerEventsNone: function( element ) {
-            $.setElementPointerEvents( element, 'none' );
-        },
-
-
-        /**
-         * Add the specified CSS class to the element if not present.
-         * @function
-         * @param {Element|String} element
-         * @param {String} className
-         */
-        addClass: function( element, className ) {
-            element = $.getElement( element );
-
-            if (!element.className) {
-                element.className = className;
-            } else if ( ( ' ' + element.className + ' ' ).
-                indexOf( ' ' + className + ' ' ) === -1 ) {
-                element.className += ' ' + className;
-            }
-        },
-
-        /**
-         * Find the first index at which an element is found in an array or -1
-         * if not present.
-         *
-         * Code taken and adapted from
-         * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf#Compatibility
-         *
-         * @function
-         * @param {Array} array The array from which to find the element
-         * @param {Object} searchElement The element to find
-         * @param {Number} [fromIndex=0] Index to start research.
-         * @returns {Number} The index of the element in the array.
-         */
-        indexOf: function( array, searchElement, fromIndex ) {
-            if ( Array.prototype.indexOf ) {
-                this.indexOf = function( array, searchElement, fromIndex ) {
-                    return array.indexOf( searchElement, fromIndex );
-                };
-            } else {
-                this.indexOf = function( array, searchElement, fromIndex ) {
-                    let pivot = ( fromIndex ) ? fromIndex : 0;
-                    if ( !array ) {
-                        throw new TypeError( );
-                    }
-
-                    const length = array.length;
-                    if ( length === 0 || pivot >= length ) {
-                        return -1;
-                    }
-
-                    if ( pivot < 0 ) {
-                        pivot = length - Math.abs( pivot );
-                    }
-
-                    for ( let i = pivot; i < length; i++ ) {
-                        if ( array[i] === searchElement ) {
-                            return i;
-                        }
-                    }
+                const length = array.length;
+                if ( length === 0 || pivot >= length ) {
                     return -1;
-                };
-            }
-            return this.indexOf( array, searchElement, fromIndex );
-        },
-
-        /**
-         * Remove the specified CSS class from the element.
-         * @function
-         * @param {Element|String} element
-         * @param {String} className
-         */
-        removeClass: function( element, className ) {
-            const newClasses = [];
-
-            element = $.getElement( element );
-            const oldClasses = element.className.split( /\s+/ );
-            for ( let i = 0; i < oldClasses.length; i++ ) {
-                if ( oldClasses[ i ] && oldClasses[ i ] !== className ) {
-                    newClasses.push( oldClasses[ i ] );
                 }
-            }
-            element.className = newClasses.join(' ');
-        },
 
-        /**
-         * Convert passed addEventListener() options to boolean or options object,
-         * depending on browser support.
-         * @function
-         * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
-         * @param {Boolean} [options.capture]
-         * @param {Boolean} [options.passive]
-         * @param {Boolean} [options.once]
-         * @returns {String} The protocol (http:, https:, file:, ftp: ...)
-         */
-        normalizeEventListenerOptions: function (options) {
-            let opts;
-            if ( typeof options !== 'undefined' ) {
-                if ( typeof options === 'boolean' ) {
-                    // Legacy Boolean useCapture
-                    opts = $.supportsEventListenerOptions ? { capture: options } : options;
-                } else {
-                    // Options object
-                    opts = $.supportsEventListenerOptions ? options :
-                        ( ( typeof options.capture !== 'undefined' ) ? options.capture : false );
+                if ( pivot < 0 ) {
+                    pivot = length - Math.abs( pivot );
                 }
-            } else {
-                // No options specified - Legacy optional useCapture argument
-                //   (for IE, first supported on version 9, so we'll pass a Boolean)
-                opts = $.supportsEventListenerOptions ? { capture: false } : false;
-            }
-            return opts;
-        },
 
-        /**
-         * Adds an event listener for the given element, eventName and handler.
-         * @function
-         * @param {Element|String} element
-         * @param {String} eventName
-         * @param {Function} handler
-         * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
-         * @param {Boolean} [options.capture]
-         * @param {Boolean} [options.passive]
-         * @param {Boolean} [options.once]
-         */
-        addEvent: (function () {
-            if ( $.supportsAddEventListener ) {
-                return function ( element, eventName, handler, options ) {
-                    options = $.normalizeEventListenerOptions(options);
-                    element = $.getElement( element );
-                    element.addEventListener( eventName, handler, options );
-                };
-            } else if ( document.documentElement.attachEvent && document.attachEvent ) {
-                return function ( element, eventName, handler ) {
-                    element = $.getElement( element );
-                    element.attachEvent( 'on' + eventName, handler );
-                };
-            } else {
-                throw new Error( "No known event model." );
-            }
-        }()),
-
-
-        /**
-         * Remove a given event listener for the given element, event type and
-         * handler.
-         * @function
-         * @param {Element|String} element
-         * @param {String} eventName
-         * @param {Function} handler
-         * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
-         * @param {Boolean} [options.capture]
-         */
-        removeEvent: (function () {
-            if ( $.supportsRemoveEventListener ) {
-                return function ( element, eventName, handler, options ) {
-                    options = $.normalizeEventListenerOptions(options);
-                    element = $.getElement( element );
-                    element.removeEventListener( eventName, handler, options );
-                };
-            } else if ( document.documentElement.detachEvent && document.detachEvent ) {
-                return function( element, eventName, handler ) {
-                    element = $.getElement( element );
-                    element.detachEvent( 'on' + eventName, handler );
-                };
-            } else {
-                throw new Error( "No known event model." );
-            }
-        }()),
-
-
-        /**
-         * Cancels the default browser behavior had the event propagated all
-         * the way up the DOM to the window object.
-         * @function
-         * @param {Event} [event]
-         */
-        cancelEvent: function( event ) {
-            event.preventDefault();
-        },
-
-
-        /**
-         * Returns true if {@link OpenSeadragon.cancelEvent|cancelEvent} has been called on
-         * the event, otherwise returns false.
-         * @function
-         * @param {Event} [event]
-         */
-        eventIsCanceled: function( event ) {
-            return event.defaultPrevented;
-        },
-
-
-        /**
-         * Stops the propagation of the event through the DOM in the capturing and bubbling phases.
-         * @function
-         * @param {Event} [event]
-         */
-        stopEvent: function( event ) {
-            event.stopPropagation();
-        },
-
-
-        /**
-         * Retrieves the value of a url parameter from the window.location string.
-         * @function
-         * @param {String} key
-         * @returns {String} The value of the url parameter or null if no param matches.
-         */
-        getUrlParameter: function( key ) {
-            // eslint-disable-next-line no-use-before-define
-            const value = URLPARAMS[ key ];
-            return value ? value : null;
-        },
-
-        /**
-         * Retrieves the protocol used by the url. The url can either be absolute
-         * or relative.
-         * @function
-         * @private
-         * @param {String} url The url to retrieve the protocol from.
-         * @returns {String} The protocol (http:, https:, file:, ftp: ...)
-         */
-        getUrlProtocol: function( url ) {
-            const match = url.match(/^([a-z]+:)\/\//i);
-            if ( match === null ) {
-                // Relative URL, retrive the protocol from window.location
-                return window.location.protocol;
-            }
-            return match[1].toLowerCase();
-        },
-
-        /**
-         * Create an XHR object
-         * @private
-         * @param {type} [local] Deprecated. Ignored (IE/ActiveXObject file protocol no longer supported).
-         * @returns {XMLHttpRequest}
-         */
-        createAjaxRequest: function() {
-            if ( window.XMLHttpRequest ) {
-                $.createAjaxRequest = function() {
-                    return new XMLHttpRequest();
-                };
-                return new XMLHttpRequest();
-            } else {
-                throw new Error( "Browser doesn't support XMLHttpRequest." );
-            }
-        },
-
-        /**
-         * Makes an AJAX request.
-         * @param {String} url - the url to request
-         * @param {Function} onSuccess
-         * @param {Function} onError
-         * @throws {Error}
-         * @returns {XMLHttpRequest}
-         * @deprecated deprecated way of calling this function
-         *//**
-         * Makes an AJAX request.
-         * @param {Object} options
-         * @param {String} options.url - the url to request
-         * @param {Function} options.success - a function to call on a successful response
-         * @param {Function} options.error - a function to call on when an error occurs
-         * @param {Object} options.headers - headers to add to the AJAX request
-         * @param {String} options.responseType - the response type of the AJAX request
-         * @param {String} options.postData - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
-         *      see TileSource::getTilePostData), GET method used if null
-         * @param {Boolean} [options.withCredentials=false] - whether to set the XHR's withCredentials
-         * @throws {Error}
-         * @returns {XMLHttpRequest}
-         */
-        makeAjaxRequest: function( url, onSuccess, onError ) {
-            let withCredentials;
-            let headers;
-            let responseType;
-            let postData;
-
-            // Note that our preferred API is that you pass in a single object; the named
-            // arguments are for legacy support.
-            if( $.isPlainObject( url ) ){
-                onSuccess = url.success;
-                onError = url.error;
-                withCredentials = url.withCredentials;
-                headers = url.headers;
-                responseType = url.responseType || null;
-                postData = url.postData || null;
-                url = url.url;
-            } else {
-                $.console.warn("OpenSeadragon.makeAjaxRequest() deprecated usage!");
-            }
-
-            const protocol = $.getUrlProtocol( url );
-            const request = $.createAjaxRequest();
-
-            if ( !$.isFunction( onSuccess ) ) {
-                throw new Error( "makeAjaxRequest requires a success callback" );
-            }
-
-            request.onreadystatechange = function() {
-                // 4 = DONE (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Properties)
-                if ( request.readyState === 4 ) {
-                    request.onreadystatechange = function(){};
-
-                    // With protocols other than http/https, a successful request status is in
-                    // the 200's on Firefox and 0 on other browsers
-                    if ( (request.status >= 200 && request.status < 300) ||
-                        ( request.status === 0 &&
-                          protocol !== "http:" &&
-                          protocol !== "https:" )) {
-                        onSuccess( request );
-                    } else {
-                        if ( $.isFunction( onError ) ) {
-                            onError( request );
-                        } else {
-                            $.console.error( "AJAX request returned %d: %s", request.status, url );
-                        }
+                for ( let i = pivot; i < length; i++ ) {
+                    if ( array[i] === searchElement ) {
+                        return i;
                     }
                 }
+                return -1;
             };
+        }
+        return this.indexOf( array, searchElement, fromIndex );
+    };
 
-            const method = postData ? "POST" : "GET";
-            try {
-                request.open( method, url, true );
+    /**
+     * Remove the specified CSS class from the element.
+     * @function
+     * @param {Element|String} element
+     * @param {String} className
+     */
+    OpenSeadragon.removeClass = function( element, className ) {
+        const newClasses = [];
 
-                if (responseType) {
-                    request.responseType = responseType;
-                }
+        element = $.getElement( element );
+        const oldClasses = element.className.split( /\s+/ );
+        for ( let i = 0; i < oldClasses.length; i++ ) {
+            if ( oldClasses[ i ] && oldClasses[ i ] !== className ) {
+                newClasses.push( oldClasses[ i ] );
+            }
+        }
+        element.className = newClasses.join(' ');
+    };
 
-                if (headers) {
-                    for (const headerName in headers) {
-                        if (Object.prototype.hasOwnProperty.call(headers, headerName) && headers[headerName]) {
-                            request.setRequestHeader(headerName, headers[headerName]);
-                        }
-                    }
-                }
+    /**
+     * Convert passed addEventListener() options to boolean or options object,
+     * depending on browser support.
+     * @function
+     * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
+     * @param {Boolean} [options.capture]
+     * @param {Boolean} [options.passive]
+     * @param {Boolean} [options.once]
+     * @returns {String} The protocol (http:, https:, file:, ftp: ...)
+     */
+    OpenSeadragon.normalizeEventListenerOptions = function (options) {
+        let opts;
+        if ( typeof options !== 'undefined' ) {
+            if ( typeof options === 'boolean' ) {
+                // Legacy Boolean useCapture
+                opts = $.supportsEventListenerOptions ? { capture: options } : options;
+            } else {
+                // Options object
+                opts = $.supportsEventListenerOptions ? options :
+                    ( ( typeof options.capture !== 'undefined' ) ? options.capture : false );
+            }
+        } else {
+            // No options specified - Legacy optional useCapture argument
+            //   (for IE, first supported on version 9, so we'll pass a Boolean)
+            opts = $.supportsEventListenerOptions ? { capture: false } : false;
+        }
+        return opts;
+    };
 
-                if (withCredentials) {
-                    request.withCredentials = true;
-                }
+    /**
+     * Adds an event listener for the given element, eventName and handler.
+     * @function
+     * @param {Element|String} element
+     * @param {String} eventName
+     * @param {Function} handler
+     * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
+     * @param {Boolean} [options.capture]
+     * @param {Boolean} [options.passive]
+     * @param {Boolean} [options.once]
+     */
+    OpenSeadragon.addEvent = function () {
+        if ( $.supportsAddEventListener ) {
+            return function ( element, eventName, handler, options ) {
+                options = $.normalizeEventListenerOptions(options);
+                element = $.getElement( element );
+                element.addEventListener( eventName, handler, options );
+            };
+        } else if ( document.documentElement.attachEvent && document.attachEvent ) {
+            return function ( element, eventName, handler ) {
+                element = $.getElement( element );
+                element.attachEvent( 'on' + eventName, handler );
+            };
+        } else {
+            throw new Error( "No known event model." );
+        }
+    }();
 
-                request.send(postData);
-            } catch (e) {
-                $.console.error( "%s while making AJAX request: %s", e.name, e.message );
+    /**
+     * Remove a given event listener for the given element, event type and
+     * handler.
+     * @function
+     * @param {Element|String} element
+     * @param {String} eventName
+     * @param {Function} handler
+     * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
+     * @param {Boolean} [options.capture]
+     */
+    OpenSeadragon.removeEvent = function () {
+        if ( $.supportsRemoveEventListener ) {
+            return function ( element, eventName, handler, options ) {
+                options = $.normalizeEventListenerOptions(options);
+                element = $.getElement( element );
+                element.removeEventListener( eventName, handler, options );
+            };
+        } else if ( document.documentElement.detachEvent && document.detachEvent ) {
+            return function( element, eventName, handler ) {
+                element = $.getElement( element );
+                element.detachEvent( 'on' + eventName, handler );
+            };
+        } else {
+            throw new Error( "No known event model." );
+        }
+    }();
 
+    /**
+     * Cancels the default browser behavior had the event propagated all
+     * the way up the DOM to the window object.
+     * @function
+     * @param {Event} [event]
+     */
+    OpenSeadragon.cancelEvent = function( event ) {
+        event.preventDefault();
+    };
+
+    /**
+     * Returns true if {@link OpenSeadragon.cancelEvent|cancelEvent} has been called on
+     * the event, otherwise returns false.
+     * @function
+     * @param {Event} [event]
+     */
+    OpenSeadragon.eventIsCanceled = function( event ) {
+        return event.defaultPrevented;
+    };
+
+    /**
+     * Stops the propagation of the event through the DOM in the capturing and bubbling phases.
+     * @function
+     * @param {Event} [event]
+     */
+    OpenSeadragon.stopEvent = function( event ) {
+        event.stopPropagation();
+    };
+
+    /**
+     * Retrieves the value of a url parameter from the window.location string.
+     * @function
+     * @param {String} key
+     * @returns {String} The value of the url parameter or null if no param matches.
+     */
+    OpenSeadragon.getUrlParameter = function( key ) {
+        // eslint-disable-next-line no-use-before-define
+        const value = URLPARAMS[ key ];
+        return value ? value : null;
+    };
+
+    /**
+     * Retrieves the protocol used by the url. The url can either be absolute
+     * or relative.
+     * @function
+     * @private
+     * @param {String} url The url to retrieve the protocol from.
+     * @returns {String} The protocol (http:, https:, file:, ftp: ...)
+     */
+    OpenSeadragon.getUrlProtocol = function( url ) {
+        const match = url.match(/^([a-z]+:)\/\//i);
+        if ( match === null ) {
+            // Relative URL, retrive the protocol from window.location
+            return window.location.protocol;
+        }
+        return match[1].toLowerCase();
+    };
+
+    /**
+     * Create an XHR object
+     * @private
+     * @param {type} [local] Deprecated. Ignored (IE/ActiveXObject file protocol no longer supported).
+     * @returns {XMLHttpRequest}
+     */
+    OpenSeadragon.createAjaxRequest = function() {
+        if ( window.XMLHttpRequest ) {
+            $.createAjaxRequest = function() {
+                return new XMLHttpRequest();
+            };
+            return new XMLHttpRequest();
+        } else {
+            throw new Error( "Browser doesn't support XMLHttpRequest." );
+        }
+    };
+
+    /**
+     * Makes an AJAX request.
+     * @param {String} url - the url to request
+     * @param {Function} onSuccess
+     * @param {Function} onError
+     * @throws {Error}
+     * @returns {XMLHttpRequest}
+     * @deprecated deprecated way of calling this function
+     *//**
+     * Makes an AJAX request.
+     * @param {Object} options
+     * @param {String} options.url - the url to request
+     * @param {Function} options.success - a function to call on a successful response
+     * @param {Function} options.error - a function to call on when an error occurs
+     * @param {Object} options.headers - headers to add to the AJAX request
+     * @param {String} options.responseType - the response type of the AJAX request
+     * @param {String} options.postData - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+     *      see TileSource::getTilePostData), GET method used if null
+     * @param {Boolean} [options.withCredentials=false] - whether to set the XHR's withCredentials
+     * @throws {Error}
+     * @returns {XMLHttpRequest}
+     */
+    OpenSeadragon.makeAjaxRequest = function( url, onSuccess, onError ) {
+        let withCredentials;
+        let headers;
+        let responseType;
+        let postData;
+
+        // Note that our preferred API is that you pass in a single object; the named
+        // arguments are for legacy support.
+        if( $.isPlainObject( url ) ){
+            onSuccess = url.success;
+            onError = url.error;
+            withCredentials = url.withCredentials;
+            headers = url.headers;
+            responseType = url.responseType || null;
+            postData = url.postData || null;
+            url = url.url;
+        } else {
+            $.console.warn("OpenSeadragon.makeAjaxRequest() deprecated usage!");
+        }
+
+        const protocol = $.getUrlProtocol( url );
+        const request = $.createAjaxRequest();
+
+        if ( !$.isFunction( onSuccess ) ) {
+            throw new Error( "makeAjaxRequest requires a success callback" );
+        }
+
+        request.onreadystatechange = function() {
+            // 4 = DONE (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Properties)
+            if ( request.readyState === 4 ) {
                 request.onreadystatechange = function(){};
 
-                if ( $.isFunction( onError ) ) {
-                    onError( request, e );
-                }
-            }
-
-            return request;
-        },
-
-        /**
-         * Taken from jQuery 1.6.1
-         * @function
-         * @param {Object} options
-         * @param {String} options.url
-         * @param {Function} options.callback
-         * @param {String} [options.param='callback'] The name of the url parameter
-         *      to request the jsonp provider with.
-         * @param {String} [options.callbackName=] The name of the callback to
-         *      request the jsonp provider with.
-         */
-        jsonp: function( options ){
-            let script;
-            let url     = options.url;
-            const head    = document.head ||
-                    document.getElementsByTagName( "head" )[ 0 ] ||
-                    document.documentElement;
-            const jsonpCallback = options.callbackName || 'openseadragon' + $.now();
-            const previous      = window[ jsonpCallback ];
-            const replace       = "$1" + jsonpCallback + "$2";
-            const callbackParam = options.param || 'callback';
-            const callback      = options.callback;
-
-            url = url.replace( /(=)\?(&|$)|\?\?/i, replace );
-            // Add callback manually
-            url += (/\?/.test( url ) ? "&" : "?") + callbackParam + "=" + jsonpCallback;
-
-            // Install callback
-            window[ jsonpCallback ] = function( response ) {
-                if ( !previous ){
-                    try{
-                        delete window[ jsonpCallback ];
-                    }catch(e){
-                        //swallow
-                    }
+                // With protocols other than http/https, a successful request status is in
+                // the 200's on Firefox and 0 on other browsers
+                if ( (request.status >= 200 && request.status < 300) ||
+                    ( request.status === 0 &&
+                      protocol !== "http:" &&
+                      protocol !== "https:" )) {
+                    onSuccess( request );
                 } else {
-                    window[ jsonpCallback ] = previous;
-                }
-                if( callback && $.isFunction( callback ) ){
-                    callback( response );
-                }
-            };
-
-            script = document.createElement( "script" );
-
-            //TODO: having an issue with async info requests
-            if( undefined !== options.async || false !== options.async ){
-                script.async = "async";
-            }
-
-            if ( options.scriptCharset ) {
-                script.charset = options.scriptCharset;
-            }
-
-            script.src = url;
-
-            // Attach handlers for all browsers
-            script.onload = script.onreadystatechange = function( _, isAbort ) {
-
-                if ( isAbort || !script.readyState || /loaded|complete/.test( script.readyState ) ) {
-
-                    // Handle memory leak in IE
-                    script.onload = script.onreadystatechange = null;
-
-                    // Remove the script
-                    if ( head && script.parentNode ) {
-                        head.removeChild( script );
+                    if ( $.isFunction( onError ) ) {
+                        onError( request );
+                    } else {
+                        $.console.error( "AJAX request returned %d: %s", request.status, url );
                     }
-
-                    // Dereference the script
-                    script = undefined;
                 }
-            };
-            // Use insertBefore instead of appendChild  to circumvent an IE6 bug.
-            // This arises when a base node is used (#2709 and #4378).
-            head.insertBefore( script, head.firstChild );
+            }
+        };
 
-        },
+        const method = postData ? "POST" : "GET";
+        try {
+            request.open( method, url, true );
 
-
-        /**
-         * Fully deprecated. Will throw an error.
-         * @function
-         * @deprecated use {@link OpenSeadragon.Viewer#open}
-         */
-        createFromDZI: function() {
-            throw "OpenSeadragon.createFromDZI is deprecated, use Viewer.open.";
-        },
-
-        /**
-         * Parses an XML string into a DOM Document.
-         * @function
-         * @param {String} string
-         * @returns {Document}
-         */
-        parseXml: function( string ) {
-            if ( window.DOMParser ) {
-
-                $.parseXml = function( string ) {
-                    const parser = new DOMParser();
-                    return parser.parseFromString( string, "text/xml" );
-                };
-
-            } else {
-                throw new Error( "Browser doesn't support XML DOM." );
+            if (responseType) {
+                request.responseType = responseType;
             }
 
-            return $.parseXml( string );
-        },
+            if (headers) {
+                for (const headerName in headers) {
+                    if (Object.prototype.hasOwnProperty.call(headers, headerName) && headers[headerName]) {
+                        request.setRequestHeader(headerName, headers[headerName]);
+                    }
+                }
+            }
 
-        /**
-         * Parses a JSON string into a Javascript object.
-         * @function
-         * @param {String} string
-         * @returns {Object}
-         */
-        parseJSON: function(string) {
-            $.parseJSON = window.JSON.parse;
-            return $.parseJSON(string);
-        },
+            if (withCredentials) {
+                request.withCredentials = true;
+            }
 
-        /**
-         * Reports whether the image format is supported for tiling in this
-         * version.
-         * @function
-         * @param {String} [extension]
-         * @returns {Boolean}
-         */
-        imageFormatSupported: function( extension ) {
-            extension = extension ? extension : "";
-            // eslint-disable-next-line no-use-before-define
-            return !!FILEFORMATS[ extension.toLowerCase() ];
-        },
+            request.send(postData);
+        } catch (e) {
+            $.console.error( "%s while making AJAX request: %s", e.name, e.message );
 
-        /**
-         * Updates supported image formats with user-specified values.
-         * Preexisting formats that are not being updated are left unchanged.
-         * By default, the defined formats are
-         * <pre><code>{
-         *      avif: true,
-         *      bmp:  false,
-         *      jpeg: true,
-         *      jpg:  true,
-         *      png:  true,
-         *      tif:  false,
-         *      wdp:  false,
-         *      webp: true
-         * }
-         * </code></pre>
-         * @function
-         * @example
-         * // sets bmp as supported and png as unsupported
-         * setImageFormatsSupported({bmp: true, png: false});
-         * @param {Object} formats An object containing format extensions as
-         * keys and booleans as values.
-         */
-        setImageFormatsSupported: function(formats) {
-            //TODO: how to deal with this within the data pipeline?
-            // $.console.warn("setImageFormatsSupported method is deprecated. You should check that" +
-            //     " the system supports your TileSources by implementing corresponding data type converters.");
+            request.onreadystatechange = function(){};
 
-            // eslint-disable-next-line no-use-before-define
-            $.extend(FILEFORMATS, formats);
-        },
-    });
+            if ( $.isFunction( onError ) ) {
+                onError( request, e );
+            }
+        }
+
+        return request;
+    };
+
+    /**
+     * Taken from jQuery 1.6.1
+     * @function
+     * @param {Object} options
+     * @param {String} options.url
+     * @param {Function} options.callback
+     * @param {String} [options.param='callback'] The name of the url parameter
+     *      to request the jsonp provider with.
+     * @param {String} [options.callbackName=] The name of the callback to
+     *      request the jsonp provider with.
+     */
+    OpenSeadragon.jsonp = function( options ){
+        let script;
+        let url     = options.url;
+        const head    = document.head ||
+                document.getElementsByTagName( "head" )[ 0 ] ||
+                document.documentElement;
+        const jsonpCallback = options.callbackName || 'openseadragon' + $.now();
+        const previous      = window[ jsonpCallback ];
+        const replace       = "$1" + jsonpCallback + "$2";
+        const callbackParam = options.param || 'callback';
+        const callback      = options.callback;
+
+        url = url.replace( /(=)\?(&|$)|\?\?/i, replace );
+        // Add callback manually
+        url += (/\?/.test( url ) ? "&" : "?") + callbackParam + "=" + jsonpCallback;
+
+        // Install callback
+        window[ jsonpCallback ] = function( response ) {
+            if ( !previous ){
+                try{
+                    delete window[ jsonpCallback ];
+                }catch(e){
+                    //swallow
+                }
+            } else {
+                window[ jsonpCallback ] = previous;
+            }
+            if( callback && $.isFunction( callback ) ){
+                callback( response );
+            }
+        };
+
+        script = document.createElement( "script" );
+
+        //TODO: having an issue with async info requests
+        if( undefined !== options.async || false !== options.async ){
+            script.async = "async";
+        }
+
+        if ( options.scriptCharset ) {
+            script.charset = options.scriptCharset;
+        }
+
+        script.src = url;
+
+        // Attach handlers for all browsers
+        script.onload = script.onreadystatechange = function( _, isAbort ) {
+
+            if ( isAbort || !script.readyState || /loaded|complete/.test( script.readyState ) ) {
+
+                // Handle memory leak in IE
+                script.onload = script.onreadystatechange = null;
+
+                // Remove the script
+                if ( head && script.parentNode ) {
+                    head.removeChild( script );
+                }
+
+                // Dereference the script
+                script = undefined;
+            }
+        };
+        // Use insertBefore instead of appendChild  to circumvent an IE6 bug.
+        // This arises when a base node is used (#2709 and #4378).
+        head.insertBefore( script, head.firstChild );
+
+    };
+
+    /**
+     * Fully deprecated. Will throw an error.
+     * @function
+     * @deprecated use {@link OpenSeadragon.Viewer#open}
+     */
+    OpenSeadragon.createFromDZI = function() {
+        throw "OpenSeadragon.createFromDZI is deprecated, use Viewer.open.";
+    };
+
+    /**
+     * Parses an XML string into a DOM Document.
+     * @function
+     * @param {String} string
+     * @returns {Document}
+     */
+    OpenSeadragon.parseXml = function( string ) {
+        if ( window.DOMParser ) {
+
+            $.parseXml = function( string ) {
+                const parser = new DOMParser();
+                return parser.parseFromString( string, "text/xml" );
+            };
+
+        } else {
+            throw new Error( "Browser doesn't support XML DOM." );
+        }
+
+        return $.parseXml( string );
+    };
+
+    /**
+     * Parses a JSON string into a Javascript object.
+     * @function
+     * @param {String} string
+     * @returns {Object}
+     */
+    OpenSeadragon.parseJSON = function(string) {
+        $.parseJSON = window.JSON.parse;
+        return $.parseJSON(string);
+    };
+
+    /**
+     * Reports whether the image format is supported for tiling in this
+     * version.
+     * @function
+     * @param {String} [extension]
+     * @returns {Boolean}
+     */
+    OpenSeadragon.imageFormatSupported = function( extension ) {
+        extension = extension ? extension : "";
+        // eslint-disable-next-line no-use-before-define
+        return !!FILEFORMATS[ extension.toLowerCase() ];
+    };
+
+    /**
+     * Updates supported image formats with user-specified values.
+     * Preexisting formats that are not being updated are left unchanged.
+     * By default, the defined formats are
+     * <pre><code>{
+     *      avif: true,
+     *      bmp:  false,
+     *      jpeg: true,
+     *      jpg:  true,
+     *      png:  true,
+     *      tif:  false,
+     *      wdp:  false,
+     *      webp: true
+     * }
+     * </code></pre>
+     * @function
+     * @example
+     * // sets bmp as supported and png as unsupported
+     * setImageFormatsSupported({bmp: true, png: false});
+     * @param {Object} formats An object containing format extensions as
+     * keys and booleans as values.
+     */
+    OpenSeadragon.setImageFormatsSupported = function(formats) {
+        //TODO: how to deal with this within the data pipeline?
+        // $.console.warn("setImageFormatsSupported method is deprecated. You should check that" +
+        //     " the system supports your TileSources by implementing corresponding data type converters.");
+
+        // eslint-disable-next-line no-use-before-define
+        $.extend(FILEFORMATS, formats);
+    };
 
 
     //TODO: $.console is often used inside a try/catch block which generally
@@ -2773,7 +2748,7 @@ const $ = OpenSeadragon;
         //document.location.hash = msg;
     }
 
-    $.console = window.console || {
+    OpenSeadragon.console = window.console || {
         log:    nullfunction,
         debug:  nullfunction,
         info:   nullfunction,
@@ -2793,7 +2768,7 @@ const $ = OpenSeadragon;
      * @property {Number} version
      * @property {Boolean} alpha - Does the browser support image alpha transparency.
      */
-    $.Browser = {
+    OpenSeadragon.Browser = {
         vendor:     $.BROWSERS.UNKNOWN,
         version:    0,
         alpha:      true
@@ -2918,7 +2893,7 @@ const $ = OpenSeadragon;
     // Adding support for HTML5's requestAnimationFrame as suggested by acdha.
     // Implementation taken from matt synder's post here:
     // http://mattsnider.com/cross-browser-and-legacy-supported-requestframeanimation/
-    (function( w ) {
+    const animationFrame = (function( w ) {
 
         // most browsers have an implementation
         const requestAnimationFrame = w.requestAnimationFrame ||
@@ -2935,11 +2910,13 @@ const $ = OpenSeadragon;
         if ( requestAnimationFrame && cancelAnimationFrame ) {
             // We can't assign these window methods directly to $ because they
             // expect their "this" to be "window", so we call them in wrappers.
-            $.requestAnimationFrame = function(){
-                return requestAnimationFrame.apply( w, arguments );
-            };
-            $.cancelAnimationFrame = function(){
-                return cancelAnimationFrame.apply( w, arguments );
+            return {
+                request: function( callback ) {
+                    return requestAnimationFrame.call( w, callback );
+                },
+                cancel: function( requestId ) {
+                    cancelAnimationFrame.call( w, requestId );
+                }
             };
         } else {
             let aAnimQueue = [];
@@ -2948,7 +2925,7 @@ const $ = OpenSeadragon;
             let iRequestId = 0;
 
             // create a mock requestAnimationFrame function
-            $.requestAnimationFrame = function( callback ) {
+            const request = function( callback ) {
                 aAnimQueue.push( [ ++iRequestId, callback ] );
 
                 if ( !iIntervalId ) {
@@ -2978,7 +2955,7 @@ const $ = OpenSeadragon;
             };
 
             // create a mock cancelAnimationFrame function
-            $.cancelAnimationFrame = function( requestId ) {
+            const cancel = function( requestId ) {
                 // find the request ID and remove it
                 let i, j;
                 for ( i = 0, j = aAnimQueue.length; i < j; i += 1 ) {
@@ -2998,8 +2975,22 @@ const $ = OpenSeadragon;
                     }
                 }
             };
+            return { request, cancel };
         }
     })( window );
+
+    /**
+     * @function
+     * @param {FrameRequestCallback} callback
+     * @returns {number}
+     */
+    OpenSeadragon.requestAnimationFrame = animationFrame.request;
+
+    /**
+     * @function
+     * @param {number} requestId
+     */
+    OpenSeadragon.cancelAnimationFrame = animationFrame.cancel;
 
     /**
      * @private
@@ -3045,7 +3036,7 @@ const $ = OpenSeadragon;
      * This proxy is also necessary because OperaMini does not implement Promises (checks fail).
      * @type {PromiseConstructor}
      */
-    $.Promise = window["Promise"] && $.supportsAsync ? window["Promise"] : class {
+    OpenSeadragon.Promise = window["Promise"] && $.supportsAsync ? window["Promise"] : class {
         constructor(handler) {
             this._error = false;
             this.__value = undefined;

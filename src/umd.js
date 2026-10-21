@@ -36,7 +36,7 @@ import $ from "./openseadragon.js";
 import * as classes from "./index.js";
 
 Object.assign($, classes);
-$.register(
+classes.register(
     classes.HTMLDrawer,
     classes.CanvasDrawer,
     classes.WebGLDrawer,
