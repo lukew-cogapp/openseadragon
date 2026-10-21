@@ -563,7 +563,7 @@ class DataTypeConverter {
         const guessType = $.type(x);
         if (guessType === "dom-node") {
             //distinguish nodes
-            return /** @type {any} */ (guessType).nodeName.toLowerCase();
+            return x.nodeName.toLowerCase();
         }
 
         if (guessType === "object") {

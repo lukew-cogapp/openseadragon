@@ -59,7 +59,7 @@ class PriorityQueue {
      * @param {*} value The value.
      */
     insert(key, value) {
-        this.insertNode(new (/** @type {typeof PriorityQueue.Node} */ (/** @type {unknown} */ (Node)))(key, value));
+        this.insertNode(new PriorityQueue.Node(key, value));
     }
 
     /**
@@ -89,7 +89,7 @@ class PriorityQueue {
             if (this.getCount() <= 0) {
                 const nodes = this.nodes_;
                 for (let i = 0; i < keys.length; i++) {
-                    const node = new (/** @type {typeof PriorityQueue.Node} */ (/** @type {unknown} */ (Node)))(keys[i], values[i]);
+                    const node = new PriorityQueue.Node(keys[i], values[i]);
                     node.index = nodes.length;
                     nodes.push(node);
                 }
