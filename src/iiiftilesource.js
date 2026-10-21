@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { Point } from "./point.js";
 import { TileSource } from "./tilesource.js";
@@ -67,147 +66,149 @@ import { getString } from "./strings.js";
  *      `tileQuality`.
  *      @see https://iiif.io/api/image/3.0/#53-extra-functionality
  */
-function IIIFTileSource( options ){
+class IIIFTileSource extends TileSource {
+    constructor(options) {
 
-    /* eslint-disable camelcase */
+        /* eslint-disable camelcase */
 
-    $.extend( true, this, options );
+        // Built up here rather than on `this`, which the TileSource constructor
+        // must initialise first; its own copy of options then wins, as before.
+        const info = $.extend( true, {}, options );
 
-    /* Normalizes v3-style 'id' keys to an "_id" internal property */
-    this._id = this["@id"] || this["id"] || this['identifier'] || null;
+        /* Normalizes v3-style 'id' keys to an "_id" internal property */
+        info._id = info["@id"] || info["id"] || info['identifier'] || null;
 
-    if ( !( this.height && this.width && this._id) ) {
-        throw new Error( 'IIIF required parameters (width, height, or id) not provided.' );
-    }
-
-    options.tileSizePerScaleFactor = {};
-
-    this.tileFormat = this.tileFormat || 'jpg';
-
-    this.version = options.version;
-
-    if ( this.tileQuality ) {
-        warnIfUnknownQuality( this.tileQuality, this.version, options );
-    }
-
-    this.isLevel0 = checkLevel0( options );
-
-    // N.B. 2.0 renamed scale_factors to scaleFactors
-    if ( this.tile_width && this.tile_height ) {
-        options.tileWidth = this.tile_width;
-        options.tileHeight = this.tile_height;
-    } else if ( this.tile_width ) {
-        options.tileSize = this.tile_width;
-    } else if ( this.tile_height ) {
-        options.tileSize = this.tile_height;
-    } else if ( this.tiles ) {
-        // Version 2.0 forwards
-        if ( this.tiles.length === 1 ) {
-            options.tileWidth  = this.tiles[0].width;
-            // Use height if provided, otherwise assume square tiles and use width.
-            options.tileHeight = this.tiles[0].height || this.tiles[0].width;
-            this.scale_factors = this.tiles[0].scaleFactors;
-        } else {
-            // Multiple tile sizes at different levels
-            this.scale_factors = [];
-            for (let t = 0; t < this.tiles.length; t++ ) {
-                for (let sf = 0; sf < this.tiles[t].scaleFactors.length; sf++) {
-                    const scaleFactor = this.tiles[t].scaleFactors[sf];
-                    this.scale_factors.push(scaleFactor);
-                    options.tileSizePerScaleFactor[scaleFactor] = {
-                        width: this.tiles[t].width,
-                        height: this.tiles[t].height || this.tiles[t].width
-                    };
-                }
-            }
-        }
-    } else if ( canBeTiled(options) ) {
-        // use the largest of tileOptions that is smaller than the short dimension
-        const shortDim = Math.min( this.height, this.width );
-        const tileOptions = [256, 512, 1024];
-        const smallerTiles = [];
-
-        for ( let c = 0; c < tileOptions.length; c++ ) {
-            if ( tileOptions[c] <= shortDim ) {
-                smallerTiles.push( tileOptions[c] );
-            }
+        if ( !( info.height && info.width && info._id) ) {
+            throw new Error( 'IIIF required parameters (width, height, or id) not provided.' );
         }
 
-        if ( smallerTiles.length > 0 ) {
-            options.tileSize = Math.max.apply( null, smallerTiles );
-        } else {
-            // If we're smaller than 256, just use the short side.
-            options.tileSize = shortDim;
-        }
-    } else if (this.sizes && this.sizes.length > 0) {
-        // This info.json can't be tiled, but we can still construct a legacy pyramid from the sizes array.
-        // In this mode, IIIFTileSource will call functions from the abstract baseTileSource or the
-        // LegacyTileSource instead of performing IIIF tiling.
-        this.emulateLegacyImagePyramid = true;
+        options.tileSizePerScaleFactor = {};
 
-        options.levels = constructLevels( this );
-        // use the largest available size to define tiles
-        $.extend( true, options, {
-            width: options.levels[ options.levels.length - 1 ].width,
-            height: options.levels[ options.levels.length - 1 ].height,
-            tileSize: Math.max( options.height, options.width ),
-            tileOverlap: 0,
-            minLevel: 0,
-            maxLevel: options.levels.length - 1
-        });
-        this.levels = options.levels;
-    } else {
-        $.console.error("Nothing in the info.json to construct image pyramids from");
-    }
+        info.tileFormat = info.tileFormat || 'jpg';
 
-    if (!options.maxLevel && !this.emulateLegacyImagePyramid) {
-        if (!this.scale_factors) {
-            options.maxLevel = Number(Math.round(Math.log(Math.max(this.width, this.height), 2)));
-        } else {
-            const maxScaleFactor = Math.max.apply(null, this.scale_factors);
-            options.maxLevel = Math.round(Math.log(maxScaleFactor) * Math.LOG2E);
-        }
-    }
+        info.version = options.version;
 
-    // Create an array with precise resolution sizes if these have been supplied through the 'sizes' object
-    if( this.sizes && this.sizes.length > 0 ) {
-        let sizeLength = this.sizes.length;
-
-        // Create a copy of the sizes list and sort in ascending order
-        const sortedSizes = this.sizes.slice().sort(( size1, size2 ) => size1.width - size2.width);
-
-        // List may or may not include the full resolution size (should be last after sorting): add it if necessary
-        if( sortedSizes[sizeLength - 1].width < this.width && sortedSizes[sizeLength - 1].height < this.height ) {
-            sortedSizes.push( {width: this.width, height: this.height} );
-            sizeLength++;
+        if ( info.tileQuality ) {
+            warnIfUnknownQuality( info.tileQuality, info.version, options );
         }
 
-        // Only try to use 'sizes' if the number of dimensions within exactly matches the number of resolution levels (maxLevel+1)
-        if ( sizeLength === options.maxLevel + 1 ) {
+        info.isLevel0 = checkLevel0( options );
 
-            // If we have a list of scaleFactors, make sure each of our sizes really corresponds to the listed scales
-            let isResolutionList = 1;
-            if ( this.scale_factors && this.scale_factors.length === sizeLength ) {
-                for ( let i = 0; i < sizeLength; i++ ) {
-                    const factor = this.scale_factors[sizeLength - i - 1]; // Scale factor order is inverted
-                    if ( Math.round( this.width / sortedSizes[i].width ) !== factor ||
-                         Math.round( this.height / sortedSizes[i].height ) !== factor ) {
-                        isResolutionList = 0;
-                        break;
+        // N.B. 2.0 renamed scale_factors to scaleFactors
+        if ( info.tile_width && info.tile_height ) {
+            options.tileWidth = info.tile_width;
+            options.tileHeight = info.tile_height;
+        } else if ( info.tile_width ) {
+            options.tileSize = info.tile_width;
+        } else if ( info.tile_height ) {
+            options.tileSize = info.tile_height;
+        } else if ( info.tiles ) {
+            // Version 2.0 forwards
+            if ( info.tiles.length === 1 ) {
+                options.tileWidth  = info.tiles[0].width;
+                // Use height if provided, otherwise assume square tiles and use width.
+                options.tileHeight = info.tiles[0].height || info.tiles[0].width;
+                info.scale_factors = info.tiles[0].scaleFactors;
+            } else {
+                // Multiple tile sizes at different levels
+                info.scale_factors = [];
+                for (let t = 0; t < info.tiles.length; t++ ) {
+                    for (let sf = 0; sf < info.tiles[t].scaleFactors.length; sf++) {
+                        const scaleFactor = info.tiles[t].scaleFactors[sf];
+                        info.scale_factors.push(scaleFactor);
+                        options.tileSizePerScaleFactor[scaleFactor] = {
+                            width: info.tiles[t].width,
+                            height: info.tiles[t].height || info.tiles[t].width
+                        };
                     }
                 }
             }
-            // The 'sizes' array does indeed contain a list of resolution levels, so assign our sorted array
-            if ( isResolutionList === 1 ) {
-                this.levelSizes = sortedSizes;
+        } else if ( canBeTiled(options) ) {
+            // use the largest of tileOptions that is smaller than the short dimension
+            const shortDim = Math.min( info.height, info.width );
+            const tileOptions = [256, 512, 1024];
+            const smallerTiles = [];
+
+            for ( let c = 0; c < tileOptions.length; c++ ) {
+                if ( tileOptions[c] <= shortDim ) {
+                    smallerTiles.push( tileOptions[c] );
+                }
+            }
+
+            if ( smallerTiles.length > 0 ) {
+                options.tileSize = Math.max.apply( null, smallerTiles );
+            } else {
+                // If we're smaller than 256, just use the short side.
+                options.tileSize = shortDim;
+            }
+        } else if (info.sizes && info.sizes.length > 0) {
+            // This info.json can't be tiled, but we can still construct a legacy pyramid from the sizes array.
+            // In this mode, IIIFTileSource will call functions from the abstract baseTileSource or the
+            // LegacyTileSource instead of performing IIIF tiling.
+            info.emulateLegacyImagePyramid = true;
+
+            options.levels = constructLevels( info );
+            // use the largest available size to define tiles
+            $.extend( true, options, {
+                width: options.levels[ options.levels.length - 1 ].width,
+                height: options.levels[ options.levels.length - 1 ].height,
+                tileSize: Math.max( options.height, options.width ),
+                tileOverlap: 0,
+                minLevel: 0,
+                maxLevel: options.levels.length - 1
+            });
+            info.levels = options.levels;
+        } else {
+            $.console.error("Nothing in the info.json to construct image pyramids from");
+        }
+
+        if (!options.maxLevel && !info.emulateLegacyImagePyramid) {
+            if (!info.scale_factors) {
+                options.maxLevel = Number(Math.round(Math.log(Math.max(info.width, info.height), 2)));
+            } else {
+                const maxScaleFactor = Math.max.apply(null, info.scale_factors);
+                options.maxLevel = Math.round(Math.log(maxScaleFactor) * Math.LOG2E);
             }
         }
+
+        // Create an array with precise resolution sizes if these have been supplied through the 'sizes' object
+        if( info.sizes && info.sizes.length > 0 ) {
+            let sizeLength = info.sizes.length;
+
+            // Create a copy of the sizes list and sort in ascending order
+            const sortedSizes = info.sizes.slice().sort(( size1, size2 ) => size1.width - size2.width);
+
+            // List may or may not include the full resolution size (should be last after sorting): add it if necessary
+            if( sortedSizes[sizeLength - 1].width < info.width && sortedSizes[sizeLength - 1].height < info.height ) {
+                sortedSizes.push( {width: info.width, height: info.height} );
+                sizeLength++;
+            }
+
+            // Only try to use 'sizes' if the number of dimensions within exactly matches the number of resolution levels (maxLevel+1)
+            if ( sizeLength === options.maxLevel + 1 ) {
+
+                // If we have a list of scaleFactors, make sure each of our sizes really corresponds to the listed scales
+                let isResolutionList = 1;
+                if ( info.scale_factors && info.scale_factors.length === sizeLength ) {
+                    for ( let i = 0; i < sizeLength; i++ ) {
+                        const factor = info.scale_factors[sizeLength - i - 1]; // Scale factor order is inverted
+                        if ( Math.round( info.width / sortedSizes[i].width ) !== factor ||
+                             Math.round( info.height / sortedSizes[i].height ) !== factor ) {
+                            isResolutionList = 0;
+                            break;
+                        }
+                    }
+                }
+                // The 'sizes' array does indeed contain a list of resolution levels, so assign our sorted array
+                if ( isResolutionList === 1 ) {
+                    info.levelSizes = sortedSizes;
+                }
+            }
+        }
+
+        super($.extend( true, info, options ));
     }
 
-    TileSource.apply( this, [ options ] );
-}
-
-$.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.IIIFTileSource.prototype */{
     /**
      * Determine if the data and/or url imply the image service is supported by
      * this tile source.
@@ -215,8 +216,7 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
      * @param {Object|Array} data
      * @param {String} [url] - url
      */
-
-    supports: function( data, url ) {
+    supports(data, url) {
         // Version 2.0 and forwards
         if (data.protocol && data.protocol === 'http://iiif.io/api/image') {
             return true;
@@ -243,7 +243,7 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
         } else {
             return false;
         }
-    },
+    }
 
     /**
      * A static function used to prepare an incoming IIIF Image API info.json
@@ -271,7 +271,7 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
      *   }]
      * }
      */
-    configure: function( data, url, postData ){
+    configure(data, url, postData) {
         // Try to deduce our version and fake it upwards if needed
         if ( !$.isPlainObject(data) ) {
             const options = configureFromXml10( data );
@@ -322,14 +322,14 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
             }
             return data;
         }
-    },
+    }
 
     /**
      * Return the tileWidth for the given level.
      * @function
      * @param {Number} level
      */
-    getTileWidth: function( level ) {
+    getTileWidth(level) {
 
         if(this.emulateLegacyImagePyramid) {
             return TileSource.prototype.getTileWidth.call(this, level);
@@ -341,14 +341,14 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
             return this.tileSizePerScaleFactor[scaleFactor].width;
         }
         return this._tileWidth;
-    },
+    }
 
     /**
      * Return the tileHeight for the given level.
      * @function
      * @param {Number} level
      */
-    getTileHeight: function( level ) {
+    getTileHeight(level) {
 
         if(this.emulateLegacyImagePyramid) {
             return TileSource.prototype.getTileHeight.call(this, level);
@@ -360,13 +360,13 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
             return this.tileSizePerScaleFactor[scaleFactor].height;
         }
         return this._tileHeight;
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getLevelScale: function ( level ) {
+    getLevelScale(level) {
 
         if(this.emulateLegacyImagePyramid) {
             let levelScale = NaN;
@@ -379,13 +379,13 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
         }
 
         return TileSource.prototype.getLevelScale.call(this, level);
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getNumTiles: function( level ) {
+    getNumTiles(level) {
 
         if(this.emulateLegacyImagePyramid) {
             const scale = this.getLevelScale(level);
@@ -407,15 +407,14 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
         else {
             return TileSource.prototype.getNumTiles.call(this, level);
         }
-    },
-
+    }
 
     /**
      * @function
      * @param {Number} level
      * @param {OpenSeadragon.Point} point
      */
-    getTileAtPoint: function( level, point ) {
+    getTileAtPoint(level, point) {
 
         if(this.emulateLegacyImagePyramid) {
             return new Point(0, 0);
@@ -450,8 +449,7 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
 
         // Otherwise call default TileSource->getTileAtPoint() function
         return TileSource.prototype.getTileAtPoint.call(this, level, point);
-    },
-
+    }
 
     /**
      * Responsible for retrieving the url which will return an image for the
@@ -462,7 +460,7 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
      * @param {Number} y
      * @throws {Error}
      */
-    getTileUrl: function( level, x, y ){
+    getTileUrl(level, x, y) {
 
         if(this.emulateLegacyImagePyramid) {
             let url = null;
@@ -555,21 +553,20 @@ $.extend( IIIFTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrag
         const uri = [ this._id, iiifRegion, iiifSize, IIIF_ROTATION, iiifQuality ].join( '/' );
 
         return uri;
-    },
+    }
 
     /**
      * Equality comparator
      */
-    equals: function(otherSource) {
+    equals(otherSource) {
         return otherSource && this._id === otherSource._id;
-    },
+    }
+}
 
-    __testonly__: {
+IIIFTileSource.prototype.__testonly__ = {
         canBeTiled: canBeTiled,
         constructLevels: constructLevels
-    }
-
-  });
+    };
 
     /**
      * Determine whether we have a level 0 compliance profile

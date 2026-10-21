@@ -33,10 +33,8 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { ControlAnchor } from "./control.js";
-import { EventSource } from "./eventsource.js";
 import { MouseTracker } from "./mousetracker.js";
 import { Point } from "./point.js";
 import { Viewer } from "./viewer.js";
@@ -56,252 +54,265 @@ import { Viewer } from "./viewer.js";
  * @param {Element} [options.element] - An element to use for the navigator.
  * @param {String} [options.id] - Id of the element to use for the navigator. However, this is ignored if {@link options.element} is provided.
  */
-function Navigator( options ){
+class Navigator extends Viewer {
+    constructor(options) {
 
-    const viewer = options.viewer;
-    const _this = this;
-    let viewerSize;
-    let navigatorSize;
+        const viewer = options.viewer;
+        let viewerSize;
+        let navigatorSize;
+        let element;
 
-    //We may need to create a new element and id if they did not
-    //provide the id for the existing element or the element itself
-    if( options.element || options.id ){
-        if ( options.element ) {
-            if ( options.id ){
-                $.console.warn("Given option.id for Navigator was ignored since option.element was provided and is being used instead.");
-            }
+        //We may need to create a new element and id if they did not
+        //provide the id for the existing element or the element itself
+        if( options.element || options.id ){
+            if ( options.element ) {
+                if ( options.id ){
+                    $.console.warn("Given option.id for Navigator was ignored since option.element was provided and is being used instead.");
+                }
 
-            // Don't overwrite the element's id if it has one already
-            if ( options.element.id ) {
-                options.id = options.element.id;
+                // Don't overwrite the element's id if it has one already
+                if ( options.element.id ) {
+                    options.id = options.element.id;
+                } else {
+                    options.id = 'navigator-' + $.now();
+                }
+
+                element = options.element;
             } else {
-                options.id = 'navigator-' + $.now();
+                element = document.getElementById( options.id );
             }
 
-            this.element = options.element;
+            options.controlOptions  = {
+                anchor:           ControlAnchor.NONE,
+                attachToViewer:   false,
+                autoFade:         false
+            };
         } else {
-            this.element = document.getElementById( options.id );
-        }
+            options.id              = 'navigator-' + $.now();
+            element                 = $.makeNeutralElement( "div" );
+            options.controlOptions  = {
+                anchor:           ControlAnchor.TOP_RIGHT,
+                attachToViewer:   true,
+                autoFade:         options.autoFade
+            };
 
-        options.controlOptions  = {
-            anchor:           ControlAnchor.NONE,
-            attachToViewer:   false,
-            autoFade:         false
-        };
-    } else {
-        options.id              = 'navigator-' + $.now();
-        this.element            = $.makeNeutralElement( "div" );
-        options.controlOptions  = {
-            anchor:           ControlAnchor.TOP_RIGHT,
-            attachToViewer:   true,
-            autoFade:         options.autoFade
-        };
-
-        if( options.position ){
-            if( 'BOTTOM_RIGHT' === options.position ){
-               options.controlOptions.anchor = ControlAnchor.BOTTOM_RIGHT;
-            } else if( 'BOTTOM_LEFT' === options.position ){
-               options.controlOptions.anchor = ControlAnchor.BOTTOM_LEFT;
-            } else if( 'TOP_RIGHT' === options.position ){
-               options.controlOptions.anchor = ControlAnchor.TOP_RIGHT;
-            } else if( 'TOP_LEFT' === options.position ){
-               options.controlOptions.anchor = ControlAnchor.TOP_LEFT;
-            } else if( 'ABSOLUTE' === options.position ){
-               options.controlOptions.anchor = ControlAnchor.ABSOLUTE;
-               options.controlOptions.top = options.top;
-               options.controlOptions.left = options.left;
-               options.controlOptions.height = options.height;
-               options.controlOptions.width = options.width;
+            if( options.position ){
+                if( 'BOTTOM_RIGHT' === options.position ){
+                   options.controlOptions.anchor = ControlAnchor.BOTTOM_RIGHT;
+                } else if( 'BOTTOM_LEFT' === options.position ){
+                   options.controlOptions.anchor = ControlAnchor.BOTTOM_LEFT;
+                } else if( 'TOP_RIGHT' === options.position ){
+                   options.controlOptions.anchor = ControlAnchor.TOP_RIGHT;
+                } else if( 'TOP_LEFT' === options.position ){
+                   options.controlOptions.anchor = ControlAnchor.TOP_LEFT;
+                } else if( 'ABSOLUTE' === options.position ){
+                   options.controlOptions.anchor = ControlAnchor.ABSOLUTE;
+                   options.controlOptions.top = options.top;
+                   options.controlOptions.left = options.left;
+                   options.controlOptions.height = options.height;
+                   options.controlOptions.width = options.width;
+                }
             }
         }
-    }
-    this.element.id         = options.id;
-    this.element.className  += ' navigator';
+        element.id         = options.id;
+        element.className  += ' navigator';
 
-    options = $.extend( true, {
-        sizeRatio:     $.DEFAULT_SETTINGS.navigatorSizeRatio
-    }, options, {
-        element:                this.element,
-        tabIndex:               -1, // No keyboard navigation, omit from tab order
-        //These need to be overridden to prevent recursion since
-        //the navigator is a viewer and a viewer has a navigator
-        showNavigator:          false,
-        mouseNavEnabled:        false,
-        showNavigationControl:  false,
-        showSequenceControl:    false,
-        immediateRender:        true,
-        blendTime:              0,
-        animationTime:          options.animationTime,
-        // disable autoResize since resize behavior is implemented differently by the navigator
-        autoResize:             false,
-        // prevent resizing the navigator from adding unwanted space around the image
-        minZoomImageRatio:      1.0,
-        background:             options.background,
-        opacity:                options.opacity,
-        borderColor:            options.borderColor,
-        displayRegionColor:     options.displayRegionColor
-    });
-
-    options.minPixelRatio = this.minPixelRatio = viewer.minPixelRatio;
-
-    $.setElementTouchActionNone( this.element );
-
-    this.borderWidth = 2;
-    //At some browser magnification levels the display regions lines up correctly, but at some there appears to
-    //be a one pixel gap.
-    this.fudge = new Point(1, 1);
-    this.totalBorderWidths = new Point(this.borderWidth * 2, this.borderWidth * 2).minus(this.fudge);
-
-
-    if ( options.controlOptions.anchor !== ControlAnchor.NONE ) {
-        (function( style, borderWidth ){
-            style.margin        = '0px';
-            style.border        = borderWidth + 'px solid ' + options.borderColor;
-            style.padding       = '0px';
-            style.background    = options.background;
-            style.opacity       = options.opacity;
-            style.overflow      = 'hidden';
-        }( this.element.style, this.borderWidth));
-    }
-
-    this.displayRegion           = $.makeNeutralElement( "div" );
-    this.displayRegion.id        = this.element.id + '-displayregion';
-    this.displayRegion.className = 'displayregion';
-
-    (function( style, borderWidth ){
-        style.position      = 'relative';
-        style.top           = '0px';
-        style.left          = '0px';
-        style.fontSize      = '0px';
-        style.overflow      = 'hidden';
-        style.border        = borderWidth + 'px solid ' + options.displayRegionColor;
-        style.margin        = '0px';
-        style.padding       = '0px';
-        style.background    = 'transparent';
-
-        // We use square bracket notation on the statement below, because float is a keyword.
-        // This is important for the Google Closure compiler, if nothing else.
-        /*jshint sub:true */
-        style['float']      = 'left'; //Webkit
-
-        style.cssFloat      = 'left'; //Firefox
-        style.zIndex        = 999999999;
-        style.cursor        = 'default';
-        style.boxSizing     = 'content-box';
-    }( this.displayRegion.style, this.borderWidth ));
-    $.setElementPointerEventsNone( this.displayRegion );
-    $.setElementTouchActionNone( this.displayRegion );
-
-    this.displayRegionContainer = $.makeNeutralElement("div");
-    this.displayRegionContainer.id = this.element.id + '-displayregioncontainer';
-    this.displayRegionContainer.className = "displayregioncontainer";
-    this.displayRegionContainer.style.width = "100%";
-    this.displayRegionContainer.style.height = "100%";
-    $.setElementPointerEventsNone( this.displayRegionContainer );
-    $.setElementTouchActionNone( this.displayRegionContainer );
-
-    viewer.addControl(
-        this.element,
-        options.controlOptions
-    );
-
-    this._resizeWithViewer = options.controlOptions.anchor !== ControlAnchor.ABSOLUTE &&
-        options.controlOptions.anchor !== ControlAnchor.NONE;
-
-    if (options.width && options.height) {
-        this.setWidth(options.width);
-        this.setHeight(options.height);
-    } else if ( this._resizeWithViewer ) {
-        viewerSize = $.getElementSize( viewer.element );
-        this.element.style.height = Math.round( viewerSize.y * options.sizeRatio ) + 'px';
-        this.element.style.width  = Math.round( viewerSize.x * options.sizeRatio ) + 'px';
-        this.oldViewerSize = viewerSize;
-        navigatorSize = $.getElementSize( this.element );
-        this.elementArea = navigatorSize.x * navigatorSize.y;
-    }
-
-    this.oldContainerSize = new Point( 0, 0 );
-
-    Viewer.apply( this, [ options ] );
-
-    this.displayRegionContainer.appendChild(this.displayRegion);
-    this.element.getElementsByTagName('div')[0].appendChild(this.displayRegionContainer);
-
-    function rotate(degrees, immediately) {
-        _setTransformRotate(_this.displayRegionContainer, degrees);
-        _setTransformRotate(_this.displayRegion, -degrees);
-        _this.viewport.setRotation(degrees, immediately);
-    }
-    if (options.navigatorRotate) {
-        const degrees = options.viewer.viewport ?
-            options.viewer.viewport.getRotation() :
-            options.viewer.degrees || 0;
-
-        rotate(degrees, true);
-        options.viewer.addHandler("rotate", function (args) {
-            rotate(args.degrees, args.immediately);
+        options = $.extend( true, {
+            sizeRatio:     $.DEFAULT_SETTINGS.navigatorSizeRatio
+        }, options, {
+            element:                element,
+            tabIndex:               -1, // No keyboard navigation, omit from tab order
+            //These need to be overridden to prevent recursion since
+            //the navigator is a viewer and a viewer has a navigator
+            showNavigator:          false,
+            mouseNavEnabled:        false,
+            showNavigationControl:  false,
+            showSequenceControl:    false,
+            immediateRender:        true,
+            blendTime:              0,
+            animationTime:          options.animationTime,
+            // disable autoResize since resize behavior is implemented differently by the navigator
+            autoResize:             false,
+            // prevent resizing the navigator from adding unwanted space around the image
+            minZoomImageRatio:      1.0,
+            background:             options.background,
+            opacity:                options.opacity,
+            borderColor:            options.borderColor,
+            displayRegionColor:     options.displayRegionColor
         });
-    }
+
+        options.minPixelRatio = viewer.minPixelRatio;
+
+        $.setElementTouchActionNone( element );
+
+        const borderWidth = 2;
+        //At some browser magnification levels the display regions lines up correctly, but at some there appears to
+        //be a one pixel gap.
+        const fudge = new Point(1, 1);
 
 
-    // Remove the base class' (Viewer's) innerTracker and replace it with our own
-    this.innerTracker.destroy();
-    this.innerTracker = new MouseTracker({
-        userData:        'Navigator.innerTracker',
-        element:         this.element, //this.canvas,
-        dragHandler:     $.delegate( this, onCanvasDrag ),
-        clickHandler:    $.delegate( this, onCanvasClick ),
-        releaseHandler:  $.delegate( this, onCanvasRelease ),
-        scrollHandler:   $.delegate( this, onCanvasScroll ),
-        preProcessEventHandler: function (eventInfo) {
-            if (eventInfo.eventType === 'wheel') {
-                //don't scroll the page up and down if the user is scrolling
-                //in the navigator
-                eventInfo.preventDefault = true;
+        if ( options.controlOptions.anchor !== ControlAnchor.NONE ) {
+            (function( style, borderWidth ){
+                style.margin        = '0px';
+                style.border        = borderWidth + 'px solid ' + options.borderColor;
+                style.padding       = '0px';
+                style.background    = options.background;
+                style.opacity       = options.opacity;
+                style.overflow      = 'hidden';
+            }( element.style, borderWidth));
+        }
+
+        const displayRegion     = $.makeNeutralElement( "div" );
+        displayRegion.id        = element.id + '-displayregion';
+        displayRegion.className = 'displayregion';
+
+        (function( style, borderWidth ){
+            style.position      = 'relative';
+            style.top           = '0px';
+            style.left          = '0px';
+            style.fontSize      = '0px';
+            style.overflow      = 'hidden';
+            style.border        = borderWidth + 'px solid ' + options.displayRegionColor;
+            style.margin        = '0px';
+            style.padding       = '0px';
+            style.background    = 'transparent';
+
+            // We use square bracket notation on the statement below, because float is a keyword.
+            // This is important for the Google Closure compiler, if nothing else.
+            /*jshint sub:true */
+            style['float']      = 'left'; //Webkit
+
+            style.cssFloat      = 'left'; //Firefox
+            style.zIndex        = 999999999;
+            style.cursor        = 'default';
+            style.boxSizing     = 'content-box';
+        }( displayRegion.style, borderWidth ));
+        $.setElementPointerEventsNone( displayRegion );
+        $.setElementTouchActionNone( displayRegion );
+
+        const displayRegionContainer = $.makeNeutralElement("div");
+        displayRegionContainer.id = element.id + '-displayregioncontainer';
+        displayRegionContainer.className = "displayregioncontainer";
+        displayRegionContainer.style.width = "100%";
+        displayRegionContainer.style.height = "100%";
+        $.setElementPointerEventsNone( displayRegionContainer );
+        $.setElementTouchActionNone( displayRegionContainer );
+
+        viewer.addControl(
+            element,
+            options.controlOptions
+        );
+
+        let resizeWithViewer = options.controlOptions.anchor !== ControlAnchor.ABSOLUTE &&
+            options.controlOptions.anchor !== ControlAnchor.NONE;
+        let oldViewerSize;
+        let elementArea;
+
+        if (options.width && options.height) {
+            element.style.width = typeof (options.width) === "number" ? (options.width + 'px') : options.width;
+            element.style.height = typeof (options.height) === "number" ? (options.height + 'px') : options.height;
+            resizeWithViewer = false;
+        } else if ( resizeWithViewer ) {
+            viewerSize = $.getElementSize( viewer.element );
+            element.style.height = Math.round( viewerSize.y * options.sizeRatio ) + 'px';
+            element.style.width  = Math.round( viewerSize.x * options.sizeRatio ) + 'px';
+            oldViewerSize = viewerSize;
+            navigatorSize = $.getElementSize( element );
+            elementArea = navigatorSize.x * navigatorSize.y;
+        }
+
+        // Viewer copies its options onto the instance before running, so the
+        // navigator's own state is in place for the methods it overrides.
+        super($.extend( options, {
+            borderWidth:            borderWidth,
+            fudge:                  fudge,
+            totalBorderWidths:      new Point(borderWidth * 2, borderWidth * 2).minus(fudge),
+            displayRegion:          displayRegion,
+            displayRegionContainer: displayRegionContainer,
+            _resizeWithViewer:      resizeWithViewer,
+            oldViewerSize:          oldViewerSize,
+            elementArea:            elementArea,
+            oldContainerSize:       new Point( 0, 0 )
+        } ));
+
+        const _this = this;
+
+        this.displayRegionContainer.appendChild(this.displayRegion);
+        this.element.getElementsByTagName('div')[0].appendChild(this.displayRegionContainer);
+
+        function rotate(degrees, immediately) {
+            _setTransformRotate(_this.displayRegionContainer, degrees);
+            _setTransformRotate(_this.displayRegion, -degrees);
+            _this.viewport.setRotation(degrees, immediately);
+        }
+        if (options.navigatorRotate) {
+            const degrees = options.viewer.viewport ?
+                options.viewer.viewport.getRotation() :
+                options.viewer.degrees || 0;
+
+            rotate(degrees, true);
+            options.viewer.addHandler("rotate", function (args) {
+                rotate(args.degrees, args.immediately);
+            });
+        }
+
+
+        // Remove the base class' (Viewer's) innerTracker and replace it with our own
+        this.innerTracker.destroy();
+        this.innerTracker = new MouseTracker({
+            userData:        'Navigator.innerTracker',
+            element:         this.element, //this.canvas,
+            dragHandler:     $.delegate( this, onCanvasDrag ),
+            clickHandler:    $.delegate( this, onCanvasClick ),
+            releaseHandler:  $.delegate( this, onCanvasRelease ),
+            scrollHandler:   $.delegate( this, onCanvasScroll ),
+            preProcessEventHandler: function (eventInfo) {
+                if (eventInfo.eventType === 'wheel') {
+                    //don't scroll the page up and down if the user is scrolling
+                    //in the navigator
+                    eventInfo.preventDefault = true;
+                }
             }
-        }
-    });
-    this.outerTracker.userData = 'Navigator.outerTracker';
+        });
+        this.outerTracker.userData = 'Navigator.outerTracker';
 
-    // this.innerTracker is attached to this.element...we need to allow pointer
-    //   events to pass through this Viewer's canvas/container elements so implicit
-    //   pointer capture works on touch devices
-    //TODO an alternative is to attach the new MouseTracker to this.canvas...not
-    //   sure why it isn't already (see MouseTracker constructor call above)
-    $.setElementPointerEventsNone( this.canvas );
-    $.setElementPointerEventsNone( this.container );
+        // this.innerTracker is attached to this.element...we need to allow pointer
+        //   events to pass through this Viewer's canvas/container elements so implicit
+        //   pointer capture works on touch devices
+        //TODO an alternative is to attach the new MouseTracker to this.canvas...not
+        //   sure why it isn't already (see MouseTracker constructor call above)
+        $.setElementPointerEventsNone( this.canvas );
+        $.setElementPointerEventsNone( this.container );
 
-    this.addHandler("reset-size", function() {
-        if (_this.viewport) {
-            _this.viewport.goHome(true);
-        }
-    });
+        this.addHandler("reset-size", function() {
+            if (_this.viewport) {
+                _this.viewport.goHome(true);
+            }
+        });
 
-    viewer.world.addHandler("item-index-change", function(event) {
-        window.setTimeout(function(){
-            const item = _this.world.getItemAt(event.previousIndex);
-            _this.world.setItemIndex(item, event.newIndex);
-        }, 1);
-    });
+        viewer.world.addHandler("item-index-change", function(event) {
+            window.setTimeout(function(){
+                const item = _this.world.getItemAt(event.previousIndex);
+                _this.world.setItemIndex(item, event.newIndex);
+            }, 1);
+        });
 
-    viewer.world.addHandler("remove-item", function(event) {
-        const theirItem = event.item;
-        const myItem = _this._getMatchingItem(theirItem);
-        if (myItem) {
-            _this.world.removeItem(myItem);
-        }
-    });
+        viewer.world.addHandler("remove-item", function(event) {
+            const theirItem = event.item;
+            const myItem = _this._getMatchingItem(theirItem);
+            if (myItem) {
+                _this.world.removeItem(myItem);
+            }
+        });
 
-    this.update(viewer.viewport);
-}
-
-$.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @lends OpenSeadragon.Navigator.prototype */{
+        this.update(viewer.viewport);
+    }
 
     /**
      * Used to notify the navigator when its size has changed. Especially useful when the navigator is resizable.
      * @function
      */
-    updateSize: function () {
+    updateSize() {
         if ( this.viewport ) {
             const containerSize = new Point(
                     (this.container.clientWidth === 0 ? 1 : this.container.clientWidth),
@@ -317,52 +328,52 @@ $.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @len
                 this.update(this.viewer.viewport);
             }
         }
-    },
+    }
 
     /**
      * Explicitly sets the width of the navigator, in web coordinates. Disables automatic resizing.
      * @param {Number|String} width - the new width, either a number of pixels or a CSS string, such as "100%"
      */
-    setWidth: function(width) {
+    setWidth(width) {
         this.width = width;
         this.element.style.width = typeof (width) === "number" ? (width + 'px') : width;
         this._resizeWithViewer = false;
         this.updateSize();
-    },
+    }
 
     /**
      * Explicitly sets the height of the navigator, in web coordinates. Disables automatic resizing.
      * @param {Number|String} height - the new height, either a number of pixels or a CSS string, such as "100%"
      */
-    setHeight: function(height) {
+    setHeight(height) {
         this.height = height;
         this.element.style.height = typeof (height) === "number" ? (height + 'px') : height;
         this._resizeWithViewer = false;
         this.updateSize();
-    },
+    }
 
     /**
       * Flip navigator element
       * @param {Boolean} state - Flip state to set.
       */
-    setFlip: function(state) {
+    setFlip(state) {
       this.viewport.setFlip(state);
 
       this.setDisplayTransform(this.viewer.viewport.getFlip() ? "scale(-1,1)" : "scale(1,1)");
       return this;
-    },
+    }
 
-    setDisplayTransform: function(rule) {
+    setDisplayTransform(rule) {
       setElementTransform(this.canvas, rule);
       setElementTransform(this.element, rule);
-    },
+    }
 
     /**
      * Used to update the navigator minimap's viewport rectangle when a change in the viewer's viewport occurs.
      * @function
      * @param {OpenSeadragon.Viewport} [viewport] The viewport to display. Default: the viewport this navigator is tracking.
      */
-    update: function( viewport ) {
+    update(viewport) {
         let viewerSize;
         let newWidth;
         let newHeight;
@@ -421,10 +432,10 @@ $.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @len
             style.height = Math.round( Math.max( height, 0 ) ) + 'px';
         }
 
-    },
+    }
 
     // overrides Viewer.addTiledImage
-    addTiledImage: function(options) {
+    addTiledImage(options) {
         const _this = this;
 
         const original = options.originalTiledImage;
@@ -458,11 +469,11 @@ $.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @len
         });
 
         return Viewer.prototype.addTiledImage.apply(this, [optionsClone]);
-    },
+    }
 
-    destroy: function() {
+    destroy() {
         return Viewer.prototype.destroy.apply(this);
-    },
+    }
 
     /**
      * Controls the visibility of the navigator element.
@@ -470,7 +481,7 @@ $.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @len
      * @param {Boolean} visible - True to show the navigator, false to hide it.
      * @return {OpenSeadragon.Navigator} Chainable.
      */
-    setVisible: function (visible) {
+    setVisible(visible) {
     if (this.element) {
         if (visible) {
             this.element.style.display = this._previousDisplayStyle || '';
@@ -489,10 +500,10 @@ $.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @len
     }
 
     return Viewer.prototype.setVisible.apply(this, [visible]);
-},
+}
 
     // private
-    _getMatchingItem: function(theirItem) {
+    _getMatchingItem(theirItem) {
         const count = this.world.getItemCount();
         for (let i = 0; i < count; i++) {
             let item = this.world.getItemAt(i);
@@ -502,28 +513,28 @@ $.extend( Navigator.prototype, EventSource.prototype, Viewer.prototype, /** @len
         }
 
         return null;
-    },
+    }
 
     // private
-    _matchBounds: function(myItem, theirItem, immediately) {
+    _matchBounds(myItem, theirItem, immediately) {
         const bounds = theirItem.getBoundsNoRotate();
         myItem.setPosition(bounds.getTopLeft(), immediately);
         myItem.setWidth(bounds.width, immediately);
         myItem.setRotation(theirItem.getRotation(), immediately);
         myItem.setClip(theirItem.getClip());
         myItem.setFlip(theirItem.getFlip());
-    },
+    }
 
     // private
-    _matchOpacity: function(myItem, theirItem) {
+    _matchOpacity(myItem, theirItem) {
         myItem.setOpacity(theirItem.opacity);
-    },
+    }
 
     // private
-    _matchCompositeOperation: function(myItem, theirItem) {
+    _matchCompositeOperation(myItem, theirItem) {
         myItem.setCompositeOperation(theirItem.compositeOperation);
     }
-});
+}
 
 
 /**

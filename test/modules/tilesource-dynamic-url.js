@@ -35,11 +35,9 @@
             $("#qunit-fixture").html("<div id='example'></div>");
 
             // Add test tile source to OSD
-            OpenSeadragon.DynamicUrlTestTileSource = function(options) {
-                OpenSeadragon.TileSource.apply(this, [options]);
-            };
+            OpenSeadragon.DynamicUrlTestTileSource = class extends OpenSeadragon.TileSource {};
 
-            OpenSeadragon.extend( OpenSeadragon.DynamicUrlTestTileSource.prototype, OpenSeadragon.TileSource.prototype, {
+            OpenSeadragon.extend( OpenSeadragon.DynamicUrlTestTileSource.prototype, {
                 supports: function(_data, url){
                     return url.indexOf('dynamic') !== -1;
                 },

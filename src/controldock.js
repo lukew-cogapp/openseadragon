@@ -34,6 +34,7 @@
 
 
 import $ from "./openseadragon.js";
+import { EventSource } from "./eventsource.js";
 import { Control, ControlAnchor } from "./control.js";
 
     /**
@@ -42,62 +43,61 @@ import { Control, ControlAnchor } from "./control.js";
      *
      * @memberof OpenSeadragon
      */
-function ControlDock( options ){
-    const layouts = [ 'topleft', 'topright', 'bottomright', 'bottomleft'];
+class ControlDock extends EventSource {
+    constructor(options) {
+        super();
+        const layouts = [ 'topleft', 'topright', 'bottomright', 'bottomleft'];
 
-    $.extend( true, this, {
-        id: 'controldock-' + $.now() + '-' + Math.floor(Math.random() * 1000000),
-        container: $.makeNeutralElement( 'div' ),
-        controls: []
-    }, options );
+        $.extend( true, this, {
+            id: 'controldock-' + $.now() + '-' + Math.floor(Math.random() * 1000000),
+            container: $.makeNeutralElement( 'div' ),
+            controls: []
+        }, options );
 
-    // Disable the form's submit; otherwise button clicks and return keys
-    // can trigger it.
-    this.container.onsubmit = function() {
-        return false;
-    };
+        // Disable the form's submit; otherwise button clicks and return keys
+        // can trigger it.
+        this.container.onsubmit = function() {
+            return false;
+        };
 
-    if( this.element ){
-        this.element = $.getElement( this.element );
-        this.element.appendChild( this.container );
-        if( $.getElementStyle(this.element).position === 'static' ){
-            this.element.style.position = 'relative';
+        if( this.element ){
+            this.element = $.getElement( this.element );
+            this.element.appendChild( this.container );
+            if( $.getElementStyle(this.element).position === 'static' ){
+                this.element.style.position = 'relative';
+            }
+            this.container.style.width = '100%';
+            this.container.style.height = '100%';
         }
-        this.container.style.width = '100%';
-        this.container.style.height = '100%';
+
+        for( let i = 0; i < layouts.length; i++ ){
+            let layout = layouts[ i ];
+            this.controls[ layout ] = $.makeNeutralElement( "div" );
+            this.controls[ layout ].style.position = 'absolute';
+            if ( layout.match( 'left' ) ){
+                this.controls[ layout ].style.left = '0px';
+            }
+            if ( layout.match( 'right' ) ){
+                this.controls[ layout ].style.right = '0px';
+            }
+            if ( layout.match( 'top' ) ){
+                this.controls[ layout ].style.top = '0px';
+            }
+            if ( layout.match( 'bottom' ) ){
+                this.controls[ layout ].style.bottom = '0px';
+            }
+        }
+
+        this.container.appendChild( this.controls.topleft );
+        this.container.appendChild( this.controls.topright );
+        this.container.appendChild( this.controls.bottomright );
+        this.container.appendChild( this.controls.bottomleft );
     }
-
-    for( let i = 0; i < layouts.length; i++ ){
-        let layout = layouts[ i ];
-        this.controls[ layout ] = $.makeNeutralElement( "div" );
-        this.controls[ layout ].style.position = 'absolute';
-        if ( layout.match( 'left' ) ){
-            this.controls[ layout ].style.left = '0px';
-        }
-        if ( layout.match( 'right' ) ){
-            this.controls[ layout ].style.right = '0px';
-        }
-        if ( layout.match( 'top' ) ){
-            this.controls[ layout ].style.top = '0px';
-        }
-        if ( layout.match( 'bottom' ) ){
-            this.controls[ layout ].style.bottom = '0px';
-        }
-    }
-
-    this.container.appendChild( this.controls.topleft );
-    this.container.appendChild( this.controls.topright );
-    this.container.appendChild( this.controls.bottomright );
-    this.container.appendChild( this.controls.bottomleft );
-}
-
-/** @lends OpenSeadragon.ControlDock.prototype */
-ControlDock.prototype = {
 
     /**
      * @function
      */
-    addControl: function ( element, controlOptions ) {
+    addControl(element, controlOptions) {
         element = $.getElement( element );
         let div;
 
@@ -147,14 +147,13 @@ ControlDock.prototype = {
             new Control( element, controlOptions, div )
         );
         element.style.display = "inline-block";
-    },
-
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.ControlDock} Chainable.
      */
-    removeControl: function ( element ) {
+    removeControl(element) {
         element = $.getElement( element );
         const i = getControlIndex( this, element );
 
@@ -164,26 +163,25 @@ ControlDock.prototype = {
         }
 
         return this;
-    },
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.ControlDock} Chainable.
      */
-    clearControls: function () {
+    clearControls() {
         while ( this.controls.length > 0 ) {
             this.controls.pop().destroy();
         }
 
         return this;
-    },
-
+    }
 
     /**
      * @function
      * @returns {Boolean}
      */
-    areControlsEnabled: function () {
+    areControlsEnabled() {
         for ( let i = this.controls.length - 1; i >= 0; i-- ) {
             if ( this.controls[ i ].isVisible() ) {
                 return true;
@@ -191,22 +189,20 @@ ControlDock.prototype = {
         }
 
         return false;
-    },
-
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.ControlDock} Chainable.
      */
-    setControlsEnabled: function( enabled ) {
+    setControlsEnabled(enabled) {
         for (let i = this.controls.length - 1; i >= 0; i-- ) {
             this.controls[ i ].setVisible( enabled );
         }
 
         return this;
     }
-
-};
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////

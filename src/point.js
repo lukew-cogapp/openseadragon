@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 
 /**
@@ -46,30 +45,29 @@ import $ from "./openseadragon.js";
  * @param {Number} [x] The vector component 'x'. Defaults to the origin at 0.
  * @param {Number} [y] The vector component 'y'. Defaults to the origin at 0.
  */
-function Point( x, y ) {
-    /**
-     * The vector component 'x'.
-     * @member {Number} x
-     * @memberof OpenSeadragon.Point#
-     */
-    this.x = typeof ( x ) === "number" ? x : 0;
-    /**
-     * The vector component 'y'.
-     * @member {Number} y
-     * @memberof OpenSeadragon.Point#
-     */
-    this.y = typeof ( y ) === "number" ? y : 0;
-}
+class Point {
+    constructor(x, y) {
+        /**
+         * The vector component 'x'.
+         * @member {Number} x
+         * @memberof OpenSeadragon.Point#
+         */
+        this.x = typeof ( x ) === "number" ? x : 0;
+        /**
+         * The vector component 'y'.
+         * @member {Number} y
+         * @memberof OpenSeadragon.Point#
+         */
+        this.y = typeof ( y ) === "number" ? y : 0;
+    }
 
-/** @lends OpenSeadragon.Point.prototype */
-Point.prototype = {
     /**
      * @function
      * @returns {OpenSeadragon.Point} a duplicate of this Point
      */
-    clone: function() {
+    clone() {
         return new Point(this.x, this.y);
-    },
+    }
 
     /**
      * Add another Point to this point and return a new Point.
@@ -78,12 +76,12 @@ Point.prototype = {
      * @returns {OpenSeadragon.Point} A new point representing the sum of the
      *  vector components
      */
-    plus: function( point ) {
+    plus(point) {
         return new Point(
             this.x + point.x,
             this.y + point.y
         );
-    },
+    }
 
     /**
      * Subtract another Point to this point and return a new Point.
@@ -92,12 +90,12 @@ Point.prototype = {
      * @returns {OpenSeadragon.Point} A new point representing the subtraction of the
      *  vector components
      */
-    minus: function( point ) {
+    minus(point) {
         return new Point(
             this.x - point.x,
             this.y - point.y
         );
-    },
+    }
 
     /**
      * Multiply this point by a factor and return a new Point.
@@ -106,12 +104,12 @@ Point.prototype = {
      * @returns {OpenSeadragon.Point} A new point representing the multiplication
      *  of the vector components by the factor
      */
-    times: function( factor ) {
+    times(factor) {
         return new Point(
             this.x * factor,
             this.y * factor
         );
-    },
+    }
 
     /**
      * Divide this point by a factor and return a new Point.
@@ -120,12 +118,12 @@ Point.prototype = {
      * @returns {OpenSeadragon.Point} A new point representing the division of the
      *  vector components by the factor
      */
-    divide: function( factor ) {
+    divide(factor) {
         return new Point(
             this.x / factor,
             this.y / factor
         );
-    },
+    }
 
     /**
      * Compute the opposite of this point and return a new Point.
@@ -133,9 +131,9 @@ Point.prototype = {
      * @returns {OpenSeadragon.Point} A new point representing the opposite of the
      *  vector components
      */
-    negate: function() {
+    negate() {
         return new Point( -this.x, -this.y );
-    },
+    }
 
     /**
      * Compute the distance between this point and another point.
@@ -143,12 +141,12 @@ Point.prototype = {
      * @param {OpenSeadragon.Point} point The point to compute the distance with.
      * @returns {Number} The distance between the 2 points
      */
-    distanceTo: function( point ) {
+    distanceTo(point) {
         return Math.sqrt(
             Math.pow( this.x - point.x, 2 ) +
             Math.pow( this.y - point.y, 2 )
         );
-    },
+    }
 
     /**
      * Compute the squared distance between this point and another point.
@@ -157,10 +155,10 @@ Point.prototype = {
      * @param {OpenSeadragon.Point} point The point to compute the squared distance with.
      * @returns {Number} The squared distance between the 2 points
      */
-    squaredDistanceTo: function( point ) {
+    squaredDistanceTo(point) {
         return Math.pow( this.x - point.x, 2 ) +
             Math.pow( this.y - point.y, 2 );
-    },
+    }
 
     /**
      * Apply a function to each coordinate of this point and return a new point.
@@ -169,9 +167,9 @@ Point.prototype = {
      * @returns {OpenSeadragon.Point} A new point with the coordinates computed
      * by the specified function
      */
-    apply: function( func ) {
+    apply(func) {
         return new Point( func( this.x ), func( this.y ) );
-    },
+    }
 
     /**
      * Check if this point is equal to another one.
@@ -179,7 +177,7 @@ Point.prototype = {
      * @param {OpenSeadragon.Point} point The point to compare this point with.
      * @returns {Boolean} true if they are equal, false otherwise.
      */
-    equals: function( point ) {
+    equals(point) {
         return (
             point instanceof Point
         ) && (
@@ -187,7 +185,7 @@ Point.prototype = {
         ) && (
             this.y === point.y
         );
-    },
+    }
 
     /**
      * Rotates the point around the specified pivot
@@ -198,7 +196,7 @@ Point.prototype = {
      * Defaults to the origin.
      * @returns {OpenSeadragon.Point}. A new point representing the point rotated around the specified pivot
      */
-    rotate: function (degrees, pivot) {
+    rotate(degrees, pivot) {
         pivot = pivot || new Point(0, 0);
         let cos;
         let sin;
@@ -231,7 +229,7 @@ Point.prototype = {
         const x = cos * (this.x - pivot.x) - sin * (this.y - pivot.y) + pivot.x;
         const y = sin * (this.x - pivot.x) + cos * (this.y - pivot.y) + pivot.y;
         return new Point(x, y);
-    },
+    }
 
     /**
      * Convert this point to a string in the format (x,y) where x and y are
@@ -239,9 +237,10 @@ Point.prototype = {
      * @function
      * @returns {String} A string representation of this point.
      */
-    toString: function() {
+    toString() {
         return "(" + (Math.round(this.x * 100) / 100) + "," + (Math.round(this.y * 100) / 100) + ")";
     }
-};
+}
+
 
 export { Point };

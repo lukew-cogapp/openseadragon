@@ -34,10 +34,7 @@
  */
 
 
-
-
 import $ from "./openseadragon.js";
-import { EventSource } from "./eventsource.js";
 import { Point } from "./point.js";
 import { TileSource } from "./tilesource.js";
 
@@ -67,39 +64,36 @@ import { TileSource } from "./tilesource.js";
    *          }
    */
 
-  function IIPTileSource(options) {
+  class IIPTileSource extends TileSource {
+    constructor(options) {
 
-    EventSource.call( this );
+        super();
 
-    if( options && options.iipsrv && options.image ){
-      $.extend( this, options );
-      this.aspectRatio = 1;
-      this.dimensions  = new Point( 10, 10 );
-      this._tileWidth  = 0;
-      this._tileHeight = 0;
-      this.tileOverlap = 0;
-      this.minLevel    = 0;
-      this.maxLevel    = 0;
-      this.ready       = false;
+        if( options && options.iipsrv && options.image ){
+          $.extend( this, options );
+          this.aspectRatio = 1;
+          this.dimensions  = new Point( 10, 10 );
+          this._tileWidth  = 0;
+          this._tileHeight = 0;
+          this.tileOverlap = 0;
+          this.minLevel    = 0;
+          this.maxLevel    = 0;
+          this.ready       = false;
 
-      // Query server for image metadata
-      const url = this.getMetadataUrl();
-      this.getImageInfo( url );
+          // Query server for image metadata
+          const url = this.getMetadataUrl();
+          this.getImageInfo( url );
+        }
     }
-  }
-
-
-  $.extend(IIPTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.IIPTileSource.prototype */ {
 
     /**
      * Return URL string for image metadata
      * @function
      * @returns {String} url - The IIP URL needed for image metadata
      */
-    getMetadataUrl: function() {
+    getMetadataUrl() {
       return this.iipsrv + '?FIF=' + this.image + '&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number&obj=Resolutions';
-    },
-
+    }
 
     /**
      * Determine if the data and/or url imply the image service is supported by
@@ -108,18 +102,17 @@ import { TileSource } from "./tilesource.js";
      * @param {Object|Array} data
      * @param {String} [url]
      */
-    supports: function(data, url) {
+    supports(data, url) {
       // Configuration must supply the IIP server endpoint and the image name
       return ( data && ("iipsrv" in data) && ("image" in data) );
-    },
-
+    }
 
     /**
      * Parse IIP protocol response
      * @function
      * @param {Object|Array} data - raw metadata from an IIP server
      */
-    parseIIP: function( data ) {
+    parseIIP(data) {
 
       // Full image size
       let tmp = data.split( "Max-size:" );
@@ -161,8 +154,7 @@ import { TileSource } from "./tilesource.js";
         const h = parseInt(res[1], 10);
         this.levelSizes[n] = {width: w, height: h};
       }
-    },
-
+    }
 
     /**
      * Retrieve image metadata from an IIP-compatible server
@@ -171,7 +163,7 @@ import { TileSource } from "./tilesource.js";
      * @param {String} url
      * @throws {Error}
      */
-    getImageInfo: function( url ) {
+    getImageInfo(url) {
 
       const _this = this;
 
@@ -202,8 +194,7 @@ import { TileSource } from "./tilesource.js";
           });
         }
       });
-    },
-
+    }
 
     /**
      * Parse and configure the image metadata
@@ -218,22 +209,20 @@ import { TileSource } from "./tilesource.js";
      *      instantiate the TileSource subclass with - what _options_ object should contain).
      * @throws {Error}
      */
-    configure: function( options, url, postData ) {
+    configure(options, url, postData) {
       return options;
-    },
-
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getNumTiles: function( level ) {
+    getNumTiles(level) {
         const levelSize = this.levelSizes[level];
         let x = Math.ceil( levelSize.width / this._tileWidth );
         let y = Math.ceil( levelSize.height / this._tileHeight );
         return new Point( x, y );
-    },
-
+    }
 
     /**
      * Determine the url which will return an image for the region specified by the given x, y, and level components.
@@ -243,7 +232,7 @@ import { TileSource } from "./tilesource.js";
      * @param {Number} x
      * @param {Number} y
      */
-    getTileUrl: function(level, x, y) {
+    getTileUrl(level, x, y) {
 
       // Get the exact size of this level and calculate the number of tiles across
       const levelSize = this.levelSizes[level];
@@ -305,9 +294,10 @@ import { TileSource } from "./tilesource.js";
 
       return url + format + '=' + level + ',' + tile;
     }
+}
 
-  });
 
-  $.extend( true, IIPTileSource.prototype, EventSource.prototype );
+
+
 
 export { IIPTileSource };

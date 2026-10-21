@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { Placement } from "./placement.js";
 import { Point } from "./point.js";
@@ -110,40 +109,38 @@ const OverlayRotationMode = $.freezeObject({
  * @param {Boolean} [options.rotationMode=OpenSeadragon.OverlayRotationMode.EXACT]
  * How to handle the rotation of the viewport.
  */
-function Overlay(element, location, placement) {
+class Overlay {
+    constructor(element, location, placement) {
 
 
-    let options;
-    if ($.isPlainObject(element)) {
-        options = element;
-    } else {
-        options = {
-            element: element,
-            location: location,
-            placement: placement
-        };
+        let options;
+        if ($.isPlainObject(element)) {
+            options = element;
+        } else {
+            options = {
+                element: element,
+                location: location,
+                placement: placement
+            };
+        }
+
+        this.elementWrapper = document.createElement('div');
+        this.element = options.element;
+        this.elementWrapper.appendChild(this.element);
+
+        if (this.element.id) {
+            this.elementWrapper.id = "overlay-wrapper-" + this.element.id; // Unique ID if element has one
+        }
+
+        // Always add a class for styling & selection
+        this.elementWrapper.classList.add("openseadragon-overlay-wrapper");
+
+        this.style = this.elementWrapper.style;
+        this._init(options);
     }
-
-    this.elementWrapper = document.createElement('div');
-    this.element = options.element;
-    this.elementWrapper.appendChild(this.element);
-
-    if (this.element.id) {
-        this.elementWrapper.id = "overlay-wrapper-" + this.element.id; // Unique ID if element has one
-    }
-
-    // Always add a class for styling & selection
-    this.elementWrapper.classList.add("openseadragon-overlay-wrapper");
-
-    this.style = this.elementWrapper.style;
-    this._init(options);
-}
-
-/** @lends OpenSeadragon.Overlay.prototype */
-Overlay.prototype = {
 
     // private
-    _init: function(options) {
+    _init(options) {
         this.location = options.location;
         this.placement = options.placement === undefined ?
             Placement.TOP_LEFT : options.placement;
@@ -172,7 +169,7 @@ Overlay.prototype = {
         this.bounds = new Rect(
             this.location.x, this.location.y, this.width, this.height);
         this.position = this.location;
-    },
+    }
 
     /**
      * Internal function to adjust the position of an overlay
@@ -181,7 +178,7 @@ Overlay.prototype = {
      * @param {OpenSeadragon.Point} position
      * @param {OpenSeadragon.Point} size
      */
-    adjust: function(position, size) {
+    adjust(position, size) {
         const properties = Placement.properties[this.placement];
         if (!properties) {
             return;
@@ -196,12 +193,12 @@ Overlay.prototype = {
         } else if (properties.isBottom) {
             position.y -= size.y;
         }
-    },
+    }
 
     /**
      * @function
      */
-    destroy: function() {
+    destroy() {
         const element = this.elementWrapper;
         const style = this.style;
 
@@ -240,13 +237,13 @@ Overlay.prototype = {
             style[transformOriginProp] = "";
             style[transformProp] = "";
         }
-    },
+    }
 
     /**
      * @function
      * @param {Element} container
      */
-    drawHTML: function(container, viewport) {
+    drawHTML(container, viewport) {
         const element = this.elementWrapper;
         if (element.parentNode !== container) {
             //save the source parent for later if we need it
@@ -310,10 +307,10 @@ Overlay.prototype = {
             }
             style.display = 'flex';
         }
-    },
+    }
 
     // private
-    _getOverlayPositionAndSize: function(viewport) {
+    _getOverlayPositionAndSize(viewport) {
         let position = viewport.pixelFromPoint(this.location, true);
         let size = this._getSizeInPixels(viewport);
         this.adjust(position, size);
@@ -342,10 +339,10 @@ Overlay.prototype = {
             size: size,
             rotate: rotate
         };
-    },
+    }
 
     // private
-    _getSizeInPixels: function(viewport) {
+    _getSizeInPixels(viewport) {
         let width = this.size.x;
         let height = this.size.y;
         if (this.width !== null || this.height !== null) {
@@ -369,16 +366,16 @@ Overlay.prototype = {
             }
         }
         return new Point(width, height);
-    },
+    }
 
     // private
-    _getBoundingBox: function(rect, degrees) {
+    _getBoundingBox(rect, degrees) {
         const refPoint = this._getPlacementPoint(rect);
         return rect.rotate(degrees, refPoint).getBoundingBox();
-    },
+    }
 
     // private
-    _getPlacementPoint: function(rect) {
+    _getPlacementPoint(rect) {
         const result = new Point(rect.x, rect.y);
         const properties = Placement.properties[this.placement];
         if (properties) {
@@ -394,10 +391,10 @@ Overlay.prototype = {
             }
         }
         return result;
-    },
+    }
 
     // private
-    _getTransformOrigin: function() {
+    _getTransformOrigin() {
         let result = "";
         const properties = Placement.properties[this.placement];
         if (!properties) {
@@ -414,7 +411,7 @@ Overlay.prototype = {
             result += " bottom";
         }
         return result;
-    },
+    }
 
     /**
      * Changes the overlay settings.
@@ -424,7 +421,7 @@ Overlay.prototype = {
      * except for the element which can not be changed.
      * @param {OpenSeadragon.Placement} placement
      */
-    update: function(location, placement) {
+    update(location, placement) {
         const options = $.isPlainObject(location) ? location : {
             location: location,
             placement: placement
@@ -439,7 +436,7 @@ Overlay.prototype = {
             height: options.height !== undefined ? options.height : this.height,
             rotationMode: options.rotationMode || this.rotationMode
         });
-    },
+    }
 
     /**
      * Returns the current bounds of the overlay in viewport coordinates
@@ -447,7 +444,7 @@ Overlay.prototype = {
      * @param {OpenSeadragon.Viewport} viewport the viewport
      * @returns {OpenSeadragon.Rect} overlay bounds
      */
-    getBounds: function(viewport) {
+    getBounds(viewport) {
         $.console.assert(viewport,
             'A viewport must now be passed to Overlay.getBounds.');
         let width = this.width;
@@ -465,10 +462,10 @@ Overlay.prototype = {
         this.adjust(location, new Point(width, height));
         return this._adjustBoundsForRotation(
             viewport, new Rect(location.x, location.y, width, height));
-    },
+    }
 
     // private
-    _adjustBoundsForRotation: function(viewport, bounds) {
+    _adjustBoundsForRotation(viewport, bounds) {
         if (!viewport ||
             viewport.getRotation(true) === 0 ||
             this.rotationMode === OverlayRotationMode.EXACT) {
@@ -493,7 +490,7 @@ Overlay.prototype = {
         return bounds.rotate(-viewport.getRotation(true),
             this._getPlacementPoint(bounds));
     }
-};
+}
 
 
 /**

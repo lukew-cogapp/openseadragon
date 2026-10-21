@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { Point } from "./point.js";
 import { TileSource } from "./tilesource.js";
@@ -63,47 +62,47 @@ import { getString } from "./strings.js";
  * @property {Number} maxLevel
  * @property {Array}  levels
  */
-function LegacyTileSource( levels ) {
+class LegacyTileSource extends TileSource {
+    constructor(levels) {
 
-    let options;
-    let width;
-    let height;
+        let options;
+        let width;
+        let height;
 
-    if( $.isArray( levels ) ){
-        options = {
-            type: 'legacy-image-pyramid',
-            levels: levels
-        };
+        if( $.isArray( levels ) ){
+            options = {
+                type: 'legacy-image-pyramid',
+                levels: levels
+            };
+        }
+
+        //clean up the levels to make sure we support all formats
+        options.levels = filterFiles( options.levels );
+
+        if ( options.levels.length > 0 ) {
+            width = options.levels[ options.levels.length - 1 ].width;
+            height = options.levels[ options.levels.length - 1 ].height;
+        }
+        else {
+            width = 0;
+            height = 0;
+            $.console.error( "No supported image formats found" );
+        }
+
+        $.extend( true, options, {
+            width: width,
+            height: height,
+            tileSize: Math.max( height, width ),
+            tileOverlap: 0,
+            minLevel: 0,
+            maxLevel: options.levels.length > 0 ? options.levels.length - 1 : 0
+        } );
+
+        super(options);
+
+        this.levels = options.levels;
     }
 
-    //clean up the levels to make sure we support all formats
-    options.levels = filterFiles( options.levels );
-
-    if ( options.levels.length > 0 ) {
-        width = options.levels[ options.levels.length - 1 ].width;
-        height = options.levels[ options.levels.length - 1 ].height;
-    }
-    else {
-        width = 0;
-        height = 0;
-        $.console.error( "No supported image formats found" );
-    }
-
-    $.extend( true, options, {
-        width: width,
-        height: height,
-        tileSize: Math.max( height, width ),
-        tileOverlap: 0,
-        minLevel: 0,
-        maxLevel: options.levels.length > 0 ? options.levels.length - 1 : 0
-    } );
-
-    TileSource.apply( this, [ options ] );
-
-    this.levels = options.levels;
-}
-
-$.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.LegacyTileSource.prototype */{
     /**
      * Determine if the data and/or url imply the image service is supported by
      * this tile source.
@@ -111,7 +110,7 @@ $.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadr
      * @param {Object|Array} data
      * @param {String} [url]
      */
-    supports: function( data, url ){
+    supports(data, url) {
         return (
             data.type &&
             "legacy-image-pyramid" === data.type
@@ -119,8 +118,7 @@ $.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadr
             data.documentElement &&
             "legacy-image-pyramid" === data.documentElement.getAttribute('type')
         );
-    },
-
+    }
 
     /**
      *
@@ -131,7 +129,7 @@ $.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadr
      * @returns {Object} options - A dictionary of keyword arguments sufficient
      *      to configure this tile sources constructor.
      */
-    configure: function( configuration, dataUrl, postData ){
+    configure(configuration, dataUrl, postData) {
 
         let options;
 
@@ -146,13 +144,13 @@ $.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadr
 
         return options;
 
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getLevelScale: function ( level ) {
+    getLevelScale(level) {
         let levelScale = NaN;
         if ( this.levels.length > 0 && level >= this.minLevel && level <= this.maxLevel ) {
             levelScale =
@@ -160,20 +158,20 @@ $.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadr
                 this.levels[ this.maxLevel ].width;
         }
         return levelScale;
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getNumTiles: function( level ) {
+    getNumTiles(level) {
         const scale = this.getLevelScale( level );
         if ( scale ){
             return new Point( 1, 1 );
         } else {
             return new Point( 0, 0 );
         }
-    },
+    }
 
     /**
      * This method is not implemented by this class other than to throw an Error
@@ -186,18 +184,18 @@ $.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadr
      * @param {Number} y
      * @throws {Error}
      */
-    getTileUrl: function ( level, x, y ) {
+    getTileUrl(level, x, y) {
         let url = null;
         if ( this.levels.length > 0 && level >= this.minLevel && level <= this.maxLevel ) {
             url = this.levels[ level ].url;
         }
         return url;
-    },
+    }
 
     /**
      * Equality comparator
      */
-    equals: function (otherSource) {
+    equals(otherSource) {
         if (!otherSource || !otherSource.levels || otherSource.levels.length !== this.levels.length) {
             return false;
         }
@@ -208,7 +206,8 @@ $.extend( LegacyTileSource.prototype, TileSource.prototype, /** @lends OpenSeadr
         }
         return true;
     }
-} );
+}
+
 
 /**
  * This method removes any files from the Array which don't conform to our

@@ -33,8 +33,6 @@
  */
 
 
-
-import $ from "./openseadragon.js";
 import { Rect } from "./rectangle.js";
 
 /**
@@ -52,23 +50,24 @@ import { Rect } from "./rectangle.js";
  * @param {Number} minLevel The lowest zoom level supported.
  * @param {Number} maxLevel The highest zoom level supported.
  */
-function DisplayRect( x, y, width, height, minLevel, maxLevel ) {
-    Rect.apply( this, [ x, y, width, height ] );
+class DisplayRect extends Rect {
+    constructor(x, y, width, height, minLevel, maxLevel) {
+        super(x, y, width, height);
 
-    /**
-     * The lowest zoom level supported.
-     * @member {Number} minLevel
-     * @memberof OpenSeadragon.DisplayRect#
-     */
-    this.minLevel = minLevel;
-    /**
-     * The highest zoom level supported.
-     * @member {Number} maxLevel
-     * @memberof OpenSeadragon.DisplayRect#
-     */
-    this.maxLevel = maxLevel;
+        /**
+         * The lowest zoom level supported.
+         * @member {Number} minLevel
+         * @memberof OpenSeadragon.DisplayRect#
+         */
+        this.minLevel = minLevel;
+        /**
+         * The highest zoom level supported.
+         * @member {Number} maxLevel
+         * @memberof OpenSeadragon.DisplayRect#
+         */
+        this.maxLevel = maxLevel;
+    }
 }
 
-$.extend( DisplayRect.prototype, Rect.prototype );
 
 export { DisplayRect };

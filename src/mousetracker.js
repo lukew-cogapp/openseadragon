@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { Point } from "./point.js";
 
@@ -124,192 +123,190 @@ const THIS           = {};
  * @param {Object} [options.userData=null]
  *      Arbitrary object to be passed unchanged to any attached handler methods.
  */
-function MouseTracker ( options ) {
+class MouseTracker {
+    constructor(options) {
 
-    MOUSETRACKERS.push( this );
+        MOUSETRACKERS.push( this );
 
-    const args = arguments;
+        const args = arguments;
 
-    if ( !$.isPlainObject( options ) ) {
-        options = {
-            element:            args[ 0 ],
-            clickTimeThreshold: args[ 1 ],
-            clickDistThreshold: args[ 2 ]
+        if ( !$.isPlainObject( options ) ) {
+            options = {
+                element:            args[ 0 ],
+                clickTimeThreshold: args[ 1 ],
+                clickDistThreshold: args[ 2 ]
+            };
+        }
+
+        this.hash               = uniqueHash(); // An unique hash for this tracker.
+        /**
+         * The element for which pointer events are being monitored.
+         * @member {Element} element
+         * @memberof OpenSeadragon.MouseTracker#
+         */
+        this.element            = $.getElement( options.element );
+        /**
+         * The number of milliseconds within which a pointer down-up event combination
+         * will be treated as a click gesture.
+         * @member {Number} clickTimeThreshold
+         * @memberof OpenSeadragon.MouseTracker#
+         */
+        this.clickTimeThreshold = options.clickTimeThreshold || $.DEFAULT_SETTINGS.clickTimeThreshold;
+        /**
+         * The maximum distance allowed between a pointer down event and a pointer up event
+         * to be treated as a click gesture.
+         * @member {Number} clickDistThreshold
+         * @memberof OpenSeadragon.MouseTracker#
+         */
+        this.clickDistThreshold = options.clickDistThreshold || $.DEFAULT_SETTINGS.clickDistThreshold;
+        /**
+         * The number of milliseconds within which two pointer down-up event combinations
+         * will be treated as a double-click gesture.
+         * @member {Number} dblClickTimeThreshold
+         * @memberof OpenSeadragon.MouseTracker#
+         */
+        this.dblClickTimeThreshold = options.dblClickTimeThreshold || $.DEFAULT_SETTINGS.dblClickTimeThreshold;
+        /**
+         * The maximum distance allowed between two pointer click events
+         * to be treated as a double-click gesture.
+         * @member {Number} dblClickDistThreshold
+         * @memberof OpenSeadragon.MouseTracker#
+         */
+        this.dblClickDistThreshold = options.dblClickDistThreshold || $.DEFAULT_SETTINGS.dblClickDistThreshold;
+        /*eslint-disable @stylistic/no-multi-spaces*/
+        this.userData              = options.userData          || null;
+        this.stopDelay             = options.stopDelay         || 50;
+
+        this.preProcessEventHandler   = options.preProcessEventHandler   || null;
+        this.contextMenuHandler       = options.contextMenuHandler       || null;
+        this.enterHandler             = options.enterHandler             || null;
+        this.leaveHandler             = options.leaveHandler             || null;
+        this.exitHandler              = options.exitHandler              || null; // Deprecated v2.5.0
+        this.overHandler              = options.overHandler              || null;
+        this.outHandler               = options.outHandler               || null;
+        this.pressHandler             = options.pressHandler             || null;
+        this.nonPrimaryPressHandler   = options.nonPrimaryPressHandler   || null;
+        this.releaseHandler           = options.releaseHandler           || null;
+        this.nonPrimaryReleaseHandler = options.nonPrimaryReleaseHandler || null;
+        this.moveHandler              = options.moveHandler              || null;
+        this.scrollHandler            = options.scrollHandler            || null;
+        this.clickHandler             = options.clickHandler             || null;
+        this.dblClickHandler          = options.dblClickHandler          || null;
+        this.dragHandler              = options.dragHandler              || null;
+        this.dragEndHandler           = options.dragEndHandler           || null;
+        this.pinchHandler             = options.pinchHandler             || null;
+        this.stopHandler              = options.stopHandler              || null;
+        this.keyDownHandler           = options.keyDownHandler           || null;
+        this.keyUpHandler             = options.keyUpHandler             || null;
+        this.keyHandler               = options.keyHandler               || null;
+        this.focusHandler             = options.focusHandler             || null;
+        this.blurHandler              = options.blurHandler              || null;
+        /*eslint-enable @stylistic/no-multi-spaces*/
+
+        /**
+         * If true, a single touch contact is left to the browser (not captured / preventDefault'd)
+         * so the page can scroll past the element; gestures engage only once a second finger lands.
+         * @member {Boolean} cooperativeGestureHandling
+         * @memberof OpenSeadragon.MouseTracker#
+         */
+        this.cooperativeGestureHandling = options.cooperativeGestureHandling || false;
+
+        //Store private properties in a scope sealed hash map
+        const _this = this;
+
+        /**
+         * @private
+         * @property {Boolean} tracking
+         *      Are we currently tracking pointer events for this element.
+         */
+        THIS[ this.hash ] = {
+            click:                 function ( event ) { onClick( _this, event ); },
+            dblclick:              function ( event ) { onDblClick( _this, event ); },
+            keydown:               function ( event ) { onKeyDown( _this, event ); },
+            keyup:                 function ( event ) { onKeyUp( _this, event ); },
+            keypress:              function ( event ) { onKeyPress( _this, event ); },
+            focus:                 function ( event ) { onFocus( _this, event ); },
+            blur:                  function ( event ) { onBlur( _this, event ); },
+            contextmenu:           function ( event ) { onContextMenu( _this, event ); },
+
+            wheel:                 function ( event ) { onWheel( _this, event ); },
+            mousewheel:            function ( event ) { onMouseWheel( _this, event ); },
+            DOMMouseScroll:        function ( event ) { onMouseWheel( _this, event ); },
+            MozMousePixelScroll:   function ( event ) { onMouseWheel( _this, event ); },
+
+            losecapture:           function ( event ) { onLoseCapture( _this, event ); },
+
+            mouseenter:            function ( event ) { onPointerEnter( _this, event ); },
+            mouseleave:            function ( event ) { onPointerLeave( _this, event ); },
+            mouseover:             function ( event ) { onPointerOver( _this, event ); },
+            mouseout:              function ( event ) { onPointerOut( _this, event ); },
+            mousedown:             function ( event ) { onPointerDown( _this, event ); },
+            mouseup:               function ( event ) { onPointerUp( _this, event ); },
+            mousemove:             function ( event ) { onPointerMove( _this, event ); },
+
+            touchstart:            function ( event ) { onTouchStart( _this, event ); },
+            touchend:              function ( event ) { onTouchEnd( _this, event ); },
+            touchmove:             function ( event ) { onTouchMove( _this, event ); },
+            touchcancel:           function ( event ) { onTouchCancel( _this, event ); },
+            cooperativeTouchMove:  function ( event ) { onCooperativeTouchMove( _this, event ); },
+
+            gesturestart:          function ( event ) { onGestureStart( _this, event ); }, // Safari/Safari iOS
+            gesturechange:         function ( event ) { onGestureChange( _this, event ); }, // Safari/Safari iOS
+
+            gotpointercapture:     function ( event ) { onGotPointerCapture( _this, event ); },
+            lostpointercapture:    function ( event ) { onLostPointerCapture( _this, event ); },
+            pointerenter:          function ( event ) { onPointerEnter( _this, event ); },
+            pointerleave:          function ( event ) { onPointerLeave( _this, event ); },
+            pointerover:           function ( event ) { onPointerOver( _this, event ); },
+            pointerout:            function ( event ) { onPointerOut( _this, event ); },
+            pointerdown:           function ( event ) { onPointerDown( _this, event ); },
+            pointerup:             function ( event ) { onPointerUp( _this, event ); },
+            pointermove:           function ( event ) { onPointerMove( _this, event ); },
+            pointercancel:         function ( event ) { onPointerCancel( _this, event ); },
+            pointerupcaptured:     function ( event ) { onPointerUpCaptured( _this, event ); },
+            pointermovecaptured:   function ( event ) { onPointerMoveCaptured( _this, event ); },
+
+            tracking:              false,
+
+            // Active pointers lists. Array of GesturePointList objects, one for each pointer device type.
+            // GesturePointList objects are added each time a pointer is tracked by a new pointer device type (see getActivePointersListByType()).
+            // Active pointers are any pointer being tracked for this element which are in the hit-test area
+            //     of the element (for hover-capable devices) and/or have contact or a button press initiated in the element.
+            activePointersLists:   [],
+
+            // Tracking for double-click gesture
+            lastClickPos:          null,
+            dblClickTimeOut:       null,
+
+            // Tracking for pinch gesture
+            pinchGPoints:          [],
+            lastPinchDist:         0,
+            currentPinchDist:      0,
+            lastPinchCenter:       null,
+            currentPinchCenter:    null,
+
+            // Tracking for drag
+            sentDragEvent:         false
         };
+
+        if ( MouseTracker.havePointerEvents ) {
+            $.setElementPointerEvents( this.element, 'auto' );
+        }
+
+        if (this.exitHandler) {
+            $.console.error("MouseTracker.exitHandler is deprecated. Use MouseTracker.leaveHandler instead.");
+        }
+
+        if ( !options.startDisabled ) {
+            this.setTracking( true );
+        }
     }
-
-    this.hash               = uniqueHash(); // An unique hash for this tracker.
-    /**
-     * The element for which pointer events are being monitored.
-     * @member {Element} element
-     * @memberof OpenSeadragon.MouseTracker#
-     */
-    this.element            = $.getElement( options.element );
-    /**
-     * The number of milliseconds within which a pointer down-up event combination
-     * will be treated as a click gesture.
-     * @member {Number} clickTimeThreshold
-     * @memberof OpenSeadragon.MouseTracker#
-     */
-    this.clickTimeThreshold = options.clickTimeThreshold || $.DEFAULT_SETTINGS.clickTimeThreshold;
-    /**
-     * The maximum distance allowed between a pointer down event and a pointer up event
-     * to be treated as a click gesture.
-     * @member {Number} clickDistThreshold
-     * @memberof OpenSeadragon.MouseTracker#
-     */
-    this.clickDistThreshold = options.clickDistThreshold || $.DEFAULT_SETTINGS.clickDistThreshold;
-    /**
-     * The number of milliseconds within which two pointer down-up event combinations
-     * will be treated as a double-click gesture.
-     * @member {Number} dblClickTimeThreshold
-     * @memberof OpenSeadragon.MouseTracker#
-     */
-    this.dblClickTimeThreshold = options.dblClickTimeThreshold || $.DEFAULT_SETTINGS.dblClickTimeThreshold;
-    /**
-     * The maximum distance allowed between two pointer click events
-     * to be treated as a double-click gesture.
-     * @member {Number} dblClickDistThreshold
-     * @memberof OpenSeadragon.MouseTracker#
-     */
-    this.dblClickDistThreshold = options.dblClickDistThreshold || $.DEFAULT_SETTINGS.dblClickDistThreshold;
-    /*eslint-disable @stylistic/no-multi-spaces*/
-    this.userData              = options.userData          || null;
-    this.stopDelay             = options.stopDelay         || 50;
-
-    this.preProcessEventHandler   = options.preProcessEventHandler   || null;
-    this.contextMenuHandler       = options.contextMenuHandler       || null;
-    this.enterHandler             = options.enterHandler             || null;
-    this.leaveHandler             = options.leaveHandler             || null;
-    this.exitHandler              = options.exitHandler              || null; // Deprecated v2.5.0
-    this.overHandler              = options.overHandler              || null;
-    this.outHandler               = options.outHandler               || null;
-    this.pressHandler             = options.pressHandler             || null;
-    this.nonPrimaryPressHandler   = options.nonPrimaryPressHandler   || null;
-    this.releaseHandler           = options.releaseHandler           || null;
-    this.nonPrimaryReleaseHandler = options.nonPrimaryReleaseHandler || null;
-    this.moveHandler              = options.moveHandler              || null;
-    this.scrollHandler            = options.scrollHandler            || null;
-    this.clickHandler             = options.clickHandler             || null;
-    this.dblClickHandler          = options.dblClickHandler          || null;
-    this.dragHandler              = options.dragHandler              || null;
-    this.dragEndHandler           = options.dragEndHandler           || null;
-    this.pinchHandler             = options.pinchHandler             || null;
-    this.stopHandler              = options.stopHandler              || null;
-    this.keyDownHandler           = options.keyDownHandler           || null;
-    this.keyUpHandler             = options.keyUpHandler             || null;
-    this.keyHandler               = options.keyHandler               || null;
-    this.focusHandler             = options.focusHandler             || null;
-    this.blurHandler              = options.blurHandler              || null;
-    /*eslint-enable @stylistic/no-multi-spaces*/
-
-    /**
-     * If true, a single touch contact is left to the browser (not captured / preventDefault'd)
-     * so the page can scroll past the element; gestures engage only once a second finger lands.
-     * @member {Boolean} cooperativeGestureHandling
-     * @memberof OpenSeadragon.MouseTracker#
-     */
-    this.cooperativeGestureHandling = options.cooperativeGestureHandling || false;
-
-    //Store private properties in a scope sealed hash map
-    const _this = this;
-
-    /**
-     * @private
-     * @property {Boolean} tracking
-     *      Are we currently tracking pointer events for this element.
-     */
-    THIS[ this.hash ] = {
-        click:                 function ( event ) { onClick( _this, event ); },
-        dblclick:              function ( event ) { onDblClick( _this, event ); },
-        keydown:               function ( event ) { onKeyDown( _this, event ); },
-        keyup:                 function ( event ) { onKeyUp( _this, event ); },
-        keypress:              function ( event ) { onKeyPress( _this, event ); },
-        focus:                 function ( event ) { onFocus( _this, event ); },
-        blur:                  function ( event ) { onBlur( _this, event ); },
-        contextmenu:           function ( event ) { onContextMenu( _this, event ); },
-
-        wheel:                 function ( event ) { onWheel( _this, event ); },
-        mousewheel:            function ( event ) { onMouseWheel( _this, event ); },
-        DOMMouseScroll:        function ( event ) { onMouseWheel( _this, event ); },
-        MozMousePixelScroll:   function ( event ) { onMouseWheel( _this, event ); },
-
-        losecapture:           function ( event ) { onLoseCapture( _this, event ); },
-
-        mouseenter:            function ( event ) { onPointerEnter( _this, event ); },
-        mouseleave:            function ( event ) { onPointerLeave( _this, event ); },
-        mouseover:             function ( event ) { onPointerOver( _this, event ); },
-        mouseout:              function ( event ) { onPointerOut( _this, event ); },
-        mousedown:             function ( event ) { onPointerDown( _this, event ); },
-        mouseup:               function ( event ) { onPointerUp( _this, event ); },
-        mousemove:             function ( event ) { onPointerMove( _this, event ); },
-
-        touchstart:            function ( event ) { onTouchStart( _this, event ); },
-        touchend:              function ( event ) { onTouchEnd( _this, event ); },
-        touchmove:             function ( event ) { onTouchMove( _this, event ); },
-        touchcancel:           function ( event ) { onTouchCancel( _this, event ); },
-        cooperativeTouchMove:  function ( event ) { onCooperativeTouchMove( _this, event ); },
-
-        gesturestart:          function ( event ) { onGestureStart( _this, event ); }, // Safari/Safari iOS
-        gesturechange:         function ( event ) { onGestureChange( _this, event ); }, // Safari/Safari iOS
-
-        gotpointercapture:     function ( event ) { onGotPointerCapture( _this, event ); },
-        lostpointercapture:    function ( event ) { onLostPointerCapture( _this, event ); },
-        pointerenter:          function ( event ) { onPointerEnter( _this, event ); },
-        pointerleave:          function ( event ) { onPointerLeave( _this, event ); },
-        pointerover:           function ( event ) { onPointerOver( _this, event ); },
-        pointerout:            function ( event ) { onPointerOut( _this, event ); },
-        pointerdown:           function ( event ) { onPointerDown( _this, event ); },
-        pointerup:             function ( event ) { onPointerUp( _this, event ); },
-        pointermove:           function ( event ) { onPointerMove( _this, event ); },
-        pointercancel:         function ( event ) { onPointerCancel( _this, event ); },
-        pointerupcaptured:     function ( event ) { onPointerUpCaptured( _this, event ); },
-        pointermovecaptured:   function ( event ) { onPointerMoveCaptured( _this, event ); },
-
-        tracking:              false,
-
-        // Active pointers lists. Array of GesturePointList objects, one for each pointer device type.
-        // GesturePointList objects are added each time a pointer is tracked by a new pointer device type (see getActivePointersListByType()).
-        // Active pointers are any pointer being tracked for this element which are in the hit-test area
-        //     of the element (for hover-capable devices) and/or have contact or a button press initiated in the element.
-        activePointersLists:   [],
-
-        // Tracking for double-click gesture
-        lastClickPos:          null,
-        dblClickTimeOut:       null,
-
-        // Tracking for pinch gesture
-        pinchGPoints:          [],
-        lastPinchDist:         0,
-        currentPinchDist:      0,
-        lastPinchCenter:       null,
-        currentPinchCenter:    null,
-
-        // Tracking for drag
-        sentDragEvent:         false
-    };
-
-    if ( MouseTracker.havePointerEvents ) {
-        $.setElementPointerEvents( this.element, 'auto' );
-    }
-
-    if (this.exitHandler) {
-        $.console.error("MouseTracker.exitHandler is deprecated. Use MouseTracker.leaveHandler instead.");
-    }
-
-    if ( !options.startDisabled ) {
-        this.setTracking( true );
-    }
-}
-
-/** @lends OpenSeadragon.MouseTracker.prototype */
-MouseTracker.prototype = {
 
     /**
      * Clean up any events or objects created by the tracker.
      * @function
      */
-    destroy: function () {
+    destroy() {
         stopTracking( this );
         this.element = null;
 
@@ -322,16 +319,16 @@ MouseTracker.prototype = {
 
         THIS[ this.hash ] = null;
         delete THIS[ this.hash ];
-    },
+    }
 
     /**
      * Are we currently tracking events on this element.
      * @function
      * @returns {Boolean} Are we currently tracking events on this element.
      */
-    isTracking: function () {
+    isTracking() {
         return THIS[ this.hash ].tracking;
-    },
+    }
 
     /**
      * Enable or disable whether or not we are tracking events on this element.
@@ -339,7 +336,7 @@ MouseTracker.prototype = {
      * @param {Boolean} track True to start tracking, false to stop tracking.
      * @returns {OpenSeadragon.MouseTracker} Chainable.
      */
-    setTracking: function ( track ) {
+    setTracking(track) {
         if ( track ) {
             startTracking( this );
         } else {
@@ -347,7 +344,7 @@ MouseTracker.prototype = {
         }
         //chain
         return this;
-    },
+    }
 
     /**
      * Enable or disable cooperative gesture handling at runtime, managing the non-passive
@@ -356,7 +353,7 @@ MouseTracker.prototype = {
      * @param {Boolean} enabled
      * @returns {OpenSeadragon.MouseTracker} Chainable.
      */
-    setCooperativeGestureHandling: function ( enabled ) {
+    setCooperativeGestureHandling(enabled) {
         enabled = !!enabled;
         if ( enabled === this.cooperativeGestureHandling ) {
             return this;
@@ -375,7 +372,7 @@ MouseTracker.prototype = {
         }
         //chain
         return this;
-    },
+    }
 
     /**
      * Returns the {@link OpenSeadragon.MouseTracker.GesturePointList|GesturePointList} for the given pointer device type,
@@ -384,7 +381,7 @@ MouseTracker.prototype = {
      * @param {String} type - The pointer device type: "mouse", "touch", "pen", etc.
      * @returns {OpenSeadragon.MouseTracker.GesturePointList}
      */
-    getActivePointersListByType: function ( type ) {
+    getActivePointersListByType(type) {
         const delegate = THIS[ this.hash ];
         const len = delegate ? delegate.activePointersLists.length : 0;
         let list;
@@ -400,14 +397,14 @@ MouseTracker.prototype = {
             delegate.activePointersLists.push( list );
         }
         return list;
-    },
+    }
 
     /**
      * Returns the total number of pointers currently active on the tracked element.
      * @function
      * @returns {Number}
      */
-    getActivePointerCount: function () {
+    getActivePointerCount() {
         const delegate = THIS[ this.hash ];
         const len = delegate.activePointersLists.length;
         let count = 0;
@@ -417,7 +414,7 @@ MouseTracker.prototype = {
         }
 
         return count;
-    },
+    }
 
     /**
      * Do we currently have any assigned gesture handlers.
@@ -433,7 +430,7 @@ MouseTracker.prototype = {
                   this.dragHandler ||
                   this.dragEndHandler ||
                   this.pinchHandler);
-    },
+    }
 
     /**
      * Do we currently have a scroll handler.
@@ -441,7 +438,7 @@ MouseTracker.prototype = {
      */
     get hasScrollHandler() {
         return !!this.scrollHandler;
-    },
+    }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -449,7 +446,7 @@ MouseTracker.prototype = {
      * @function
      * @param {OpenSeadragon.MouseTracker.EventProcessInfo} eventInfo
      */
-    preProcessEventHandler: function () { },
+    preProcessEventHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -467,7 +464,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    contextMenuHandler: function () { },
+    contextMenuHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -497,7 +494,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    enterHandler: function () { },
+    enterHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -528,7 +525,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    leaveHandler: function () { },
+    leaveHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -559,7 +556,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    exitHandler: function () { },
+    exitHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -590,7 +587,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    overHandler: function () { },
+    overHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -621,7 +618,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    outHandler: function () { },
+    outHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -644,7 +641,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    pressHandler: function () { },
+    pressHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -670,7 +667,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    nonPrimaryPressHandler: function () { },
+    nonPrimaryPressHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -698,7 +695,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    releaseHandler: function () { },
+    releaseHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -724,7 +721,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    nonPrimaryReleaseHandler: function () { },
+    nonPrimaryReleaseHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -747,7 +744,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    moveHandler: function () { },
+    moveHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -773,7 +770,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    scrollHandler: function () { },
+    scrollHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -799,7 +796,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    clickHandler: function () { },
+    clickHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -821,7 +818,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    dblClickHandler: function () { },
+    dblClickHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -852,7 +849,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    dragHandler: function () { },
+    dragHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -878,7 +875,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    dragEndHandler: function () { },
+    dragEndHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -906,7 +903,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    pinchHandler: function () { },
+    pinchHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -929,7 +926,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    stopHandler: function () { },
+    stopHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -955,7 +952,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    keyDownHandler: function () { },
+    keyDownHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -981,7 +978,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    keyUpHandler: function () { },
+    keyUpHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -1007,7 +1004,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    keyHandler: function () { },
+    keyHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -1021,7 +1018,7 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    focusHandler: function () { },
+    focusHandler() { }
 
     /**
      * Implement or assign implementation to these handlers during or after
@@ -1035,8 +1032,9 @@ MouseTracker.prototype = {
      * @param {Object} event.userData
      *      Arbitrary user-defined object.
      */
-    blurHandler: function () { }
-};
+    blurHandler() { }
+}
+
 
 // https://github.com/openseadragon/openseadragon/pull/790
 /**

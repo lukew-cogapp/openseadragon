@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { CacheRecord } from "./tilecache.js";
 import { Point } from "./point.js";
@@ -63,218 +62,216 @@ import { converter } from "./datatypeconverter.js";
  *      see TileSource::getTilePostData) or null
  * @param {String} cacheKey key to act as a tile cache, must be unique for tiles with unique image data
  */
-function Tile(level, x, y, bounds, exists, url, context2D, loadWithAjax, ajaxHeaders, sourceBounds, postData, cacheKey) {
-    /**
-     * The zoom level this tile belongs to.
-     * @member {Number} level
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.level   = level;
-    /**
-     * The vector component 'x'.
-     * @member {Number} x
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.x       = x;
-    /**
-     * The vector component 'y'.
-     * @member {Number} y
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.y       = y;
-    /**
-     * Where this tile fits, in normalized coordinates
-     * @member {OpenSeadragon.Rect} bounds
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.bounds  = bounds;
-    /**
-     * Where this tile fits, in normalized coordinates, after positioning
-     * @member {OpenSeadragon.Rect} positionedBounds
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.positionedBounds  = new Rect(bounds.x, bounds.y, bounds.width, bounds.height);
-    /**
-     * The portion of the tile to use as the source of the drawing operation, in pixels. Note that
-     * this property is ignored with HTML drawer where the whole tile is always drawn.
-     * @member {OpenSeadragon.Rect} sourceBounds
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.sourceBounds = sourceBounds;
-    /**
-     * Is this tile a part of a sparse image? Also has this tile failed to load?
-     * @member {Boolean} exists
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.exists  = exists;
-    /**
-     * Private property to hold string url or url retriever function.
-     * Consumers should access via Tile.getUrl()
-     * @member {String|Function} url
-     * @memberof OpenSeadragon.Tile#
-     * @private
-     */
-    this._url     = url;
-    /**
-     * Post parameters for this tile. For example, it can be an URL-encoded string
-     * in k1=v1&k2=v2... format, or a JSON, or a FormData instance... or null if no POST request used
-     * @member {String} postData HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
-     *      see TileSource::getTilePostData) or null
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.postData  = postData;
-    /**
-     * The context2D of this tile if it is provided directly by the tile source.
-     * @member {CanvasRenderingContext2D} context2D
-     * @memberOf OpenSeadragon.Tile#
-     */
-    if (context2D) {
-        this.context2D = context2D;
+class Tile {
+    constructor(level, x, y, bounds, exists, url, context2D, loadWithAjax, ajaxHeaders, sourceBounds, postData, cacheKey) {
+        /**
+         * The zoom level this tile belongs to.
+         * @member {Number} level
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.level   = level;
+        /**
+         * The vector component 'x'.
+         * @member {Number} x
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.x       = x;
+        /**
+         * The vector component 'y'.
+         * @member {Number} y
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.y       = y;
+        /**
+         * Where this tile fits, in normalized coordinates
+         * @member {OpenSeadragon.Rect} bounds
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.bounds  = bounds;
+        /**
+         * Where this tile fits, in normalized coordinates, after positioning
+         * @member {OpenSeadragon.Rect} positionedBounds
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.positionedBounds  = new Rect(bounds.x, bounds.y, bounds.width, bounds.height);
+        /**
+         * The portion of the tile to use as the source of the drawing operation, in pixels. Note that
+         * this property is ignored with HTML drawer where the whole tile is always drawn.
+         * @member {OpenSeadragon.Rect} sourceBounds
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.sourceBounds = sourceBounds;
+        /**
+         * Is this tile a part of a sparse image? Also has this tile failed to load?
+         * @member {Boolean} exists
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.exists  = exists;
+        /**
+         * Private property to hold string url or url retriever function.
+         * Consumers should access via Tile.getUrl()
+         * @member {String|Function} url
+         * @memberof OpenSeadragon.Tile#
+         * @private
+         */
+        this._url     = url;
+        /**
+         * Post parameters for this tile. For example, it can be an URL-encoded string
+         * in k1=v1&k2=v2... format, or a JSON, or a FormData instance... or null if no POST request used
+         * @member {String} postData HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+         *      see TileSource::getTilePostData) or null
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.postData  = postData;
+        /**
+         * The context2D of this tile if it is provided directly by the tile source.
+         * @member {CanvasRenderingContext2D} context2D
+         * @memberOf OpenSeadragon.Tile#
+         */
+        if (context2D) {
+            this.context2D = context2D;
+        }
+        /**
+         * Whether to load this tile's image with an AJAX request.
+         * @member {Boolean} loadWithAjax
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.loadWithAjax = loadWithAjax;
+        /**
+         * The headers to be used in requesting this tile's image.
+         * Only used if loadWithAjax is set to true.
+         * @member {Object} ajaxHeaders
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.ajaxHeaders = ajaxHeaders;
+
+        if (cacheKey === undefined) {
+            $.console.warn("Tile constructor needs 'cacheKey' variable: creation tile cache" +
+                " in Tile class is deprecated. TileSource.prototype.getTileHashKey will be used.");
+            cacheKey = TileSource.prototype.getTileHashKey(level, x, y, url, ajaxHeaders, postData);
+        }
+
+        this._cKey = cacheKey || "";
+        this._ocKey = cacheKey || "";
+
+        /**
+         * Is this tile loaded?
+         * @member {Boolean} loaded
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.loaded  = false;
+        /**
+         * Is this tile loading?
+         * @member {Boolean} loading
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.loading = false;
+        /**
+         * This tile's position on screen, in pixels.
+         * @member {OpenSeadragon.Point} position
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.position   = null;
+        /**
+         * This tile's size on screen, in pixels.
+         * @member {OpenSeadragon.Point} size
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.size       = null;
+        /**
+         * Whether to flip the tile when rendering.
+         * @member {Boolean} flipped
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.flipped    = false;
+        /**
+         * The start time of this tile's blending.
+         * @member {Number} blendStart
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.blendStart = null;
+        /**
+         * The current opacity this tile should be.
+         * @member {Number} opacity
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.opacity    = null;
+        /**
+         * The squared distance of this tile to the viewport center.
+         * Use for comparing tiles.
+         * @member {Number} squaredDistance
+         * @memberof OpenSeadragon.Tile#
+         * @private
+         */
+        this.squaredDistance   = null;
+        /**
+         * The visibility score of this tile.
+         * @member {Number} visibility
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.visibility = null;
+
+        /**
+         * The transparency indicator of this tile.
+         * @member {Boolean} hasTransparency true if tile contains transparency for correct rendering
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.hasTransparency = false;
+
+        /**
+         * Whether this tile is currently being drawn.
+         * @member {Boolean} beingDrawn
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.beingDrawn     = false;
+
+        /**
+         * Timestamp the tile was last touched.
+         * @member {Number} lastTouchTime
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.lastTouchTime  = 0;
+
+        /**
+         * Whether this tile is in the right-most column for its level.
+         * @member {Boolean} isRightMost
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.isRightMost = false;
+
+        /**
+         * Whether this tile is in the bottom-most row for its level.
+         * @member {Boolean} isBottomMost
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.isBottomMost = false;
+
+        /**
+         * Owner of this tile. Do not change this property manually.
+         * @member {OpenSeadragon.TiledImage}
+         * @memberof OpenSeadragon.Tile#
+         */
+        this.tiledImage = null;
+        /**
+         * Array of cached tile data associated with the tile.
+         * @member {Object}
+         * @private
+         */
+        this._caches = {};
+        /**
+         * Processing flag, exempt the tile from removal when there are ongoing updates
+         * @member {Boolean|Number}
+         * @private
+         */
+        this.processing = false;
+        /**
+         * Processing promise, resolves when the tile exits processing, or
+         * resolves immediatelly if not in the processing state.
+         * @member {OpenSeadragon.Promise<OpenSeadragon.Tile>}
+         * @private
+         */
+        this.processingPromise = $.Promise.resolve(this);
     }
-    /**
-     * Whether to load this tile's image with an AJAX request.
-     * @member {Boolean} loadWithAjax
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.loadWithAjax = loadWithAjax;
-    /**
-     * The headers to be used in requesting this tile's image.
-     * Only used if loadWithAjax is set to true.
-     * @member {Object} ajaxHeaders
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.ajaxHeaders = ajaxHeaders;
-
-    if (cacheKey === undefined) {
-        $.console.warn("Tile constructor needs 'cacheKey' variable: creation tile cache" +
-            " in Tile class is deprecated. TileSource.prototype.getTileHashKey will be used.");
-        cacheKey = TileSource.prototype.getTileHashKey(level, x, y, url, ajaxHeaders, postData);
-    }
-
-    this._cKey = cacheKey || "";
-    this._ocKey = cacheKey || "";
-
-    /**
-     * Is this tile loaded?
-     * @member {Boolean} loaded
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.loaded  = false;
-    /**
-     * Is this tile loading?
-     * @member {Boolean} loading
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.loading = false;
-    /**
-     * This tile's position on screen, in pixels.
-     * @member {OpenSeadragon.Point} position
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.position   = null;
-    /**
-     * This tile's size on screen, in pixels.
-     * @member {OpenSeadragon.Point} size
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.size       = null;
-    /**
-     * Whether to flip the tile when rendering.
-     * @member {Boolean} flipped
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.flipped    = false;
-    /**
-     * The start time of this tile's blending.
-     * @member {Number} blendStart
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.blendStart = null;
-    /**
-     * The current opacity this tile should be.
-     * @member {Number} opacity
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.opacity    = null;
-    /**
-     * The squared distance of this tile to the viewport center.
-     * Use for comparing tiles.
-     * @member {Number} squaredDistance
-     * @memberof OpenSeadragon.Tile#
-     * @private
-     */
-    this.squaredDistance   = null;
-    /**
-     * The visibility score of this tile.
-     * @member {Number} visibility
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.visibility = null;
-
-    /**
-     * The transparency indicator of this tile.
-     * @member {Boolean} hasTransparency true if tile contains transparency for correct rendering
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.hasTransparency = false;
-
-    /**
-     * Whether this tile is currently being drawn.
-     * @member {Boolean} beingDrawn
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.beingDrawn     = false;
-
-    /**
-     * Timestamp the tile was last touched.
-     * @member {Number} lastTouchTime
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.lastTouchTime  = 0;
-
-    /**
-     * Whether this tile is in the right-most column for its level.
-     * @member {Boolean} isRightMost
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.isRightMost = false;
-
-    /**
-     * Whether this tile is in the bottom-most row for its level.
-     * @member {Boolean} isBottomMost
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.isBottomMost = false;
-
-    /**
-     * Owner of this tile. Do not change this property manually.
-     * @member {OpenSeadragon.TiledImage}
-     * @memberof OpenSeadragon.Tile#
-     */
-    this.tiledImage = null;
-    /**
-     * Array of cached tile data associated with the tile.
-     * @member {Object}
-     * @private
-     */
-    this._caches = {};
-    /**
-     * Processing flag, exempt the tile from removal when there are ongoing updates
-     * @member {Boolean|Number}
-     * @private
-     */
-    this.processing = false;
-    /**
-     * Processing promise, resolves when the tile exits processing, or
-     * resolves immediatelly if not in the processing state.
-     * @member {OpenSeadragon.Promise<OpenSeadragon.Tile>}
-     * @private
-     */
-    this.processingPromise = $.Promise.resolve(this);
-}
-
-/** @lends OpenSeadragon.Tile.prototype */
-Tile.prototype = {
 
     /**
      * Provides a string representation of this tiles level and (x,y)
@@ -282,9 +279,9 @@ Tile.prototype = {
      * @function
      * @returns {String}
      */
-    toString: function() {
+    toString() {
         return this.level + "/" + this.x + "_" + this.y;
-    },
+    }
 
     /**
      * The unique main cache key for this tile. Created automatically
@@ -295,7 +292,8 @@ Tile.prototype = {
      */
     get cacheKey() {
         return this._cKey;
-    },
+    }
+
     set cacheKey(value) {
         if (value === this.cacheKey) {
             return;
@@ -306,7 +304,7 @@ Tile.prototype = {
             $.console.warn("[Tile.cacheKey] should not be set manually. Use addCache() with setAsMain=true.");
         }
         this._updateMainCacheKey(value);
-    },
+    }
 
     /**
      * By default equal to tile.cacheKey, marks a cache associated with this tile
@@ -321,10 +319,11 @@ Tile.prototype = {
      */
     set originalCacheKey(value) {
         throw "Original Cache Key cannot be managed manually!";
-    },
+    }
+
     get originalCacheKey() {
         return this._ocKey;
-    },
+    }
 
     /**
      * The Image object for this tile.
@@ -336,7 +335,7 @@ Tile.prototype = {
     get image() {
         $.console.error("[Tile.image] property has been deprecated. Use [Tile.getData] instead.");
         return this.getImage();
-    },
+    }
 
     /**
      * The URL of this tile's image.
@@ -348,7 +347,7 @@ Tile.prototype = {
     get url() {
         $.console.error("[Tile.url] property has been deprecated. Use [Tile.getUrl] instead.");
         return this.getUrl();
-    },
+    }
 
     /**
      * The HTML div element for this tile
@@ -367,7 +366,7 @@ Tile.prototype = {
             return null;
         }
         return cache.data.element;
-    },
+    }
 
     /**
      * The HTML img element for this tile.
@@ -386,7 +385,7 @@ Tile.prototype = {
             return null;
         }
         return cache.data.imgElement;
-    },
+    }
 
     /**
      * The alias of this.element.style.
@@ -405,14 +404,14 @@ Tile.prototype = {
             return null;
         }
         return cache.data.style;
-    },
+    }
 
     /**
      * Get the Image object for this tile.
      * @returns {?Image}
      * @deprecated
      */
-    getImage: function() {
+    getImage() {
         $.console.error("[Tile.getImage] property has been deprecated. Use 'tile-invalidated' routine event instead.");
         //this method used to ensure the underlying data model conformed to given type - convert instead of getData()
         const cache = this.getCache(this.cacheKey);
@@ -421,19 +420,19 @@ Tile.prototype = {
         }
         cache.transformTo("image");
         return cache.data;
-    },
+    }
 
     /**
      * Get the url string for this tile.
      * @returns {String}
      */
-    getUrl: function() {
+    getUrl() {
         if (typeof this._url === 'function') {
             return this._url();
         }
 
         return this._url;
-    },
+    }
 
     /**
      * Get the CanvasRenderingContext2D instance for tile image data drawn
@@ -441,7 +440,7 @@ Tile.prototype = {
      * @deprecated
      * @returns {CanvasRenderingContext2D|undefined}
      */
-    getCanvasContext: function() {
+    getCanvasContext() {
         $.console.error("[Tile.getCanvasContext] property has been deprecated. Use 'tile-invalidated' routine event instead.");
         //this method used to ensure the underlying data model conformed to given type - convert instead of getData()
         const cache = this.getCache(this.cacheKey);
@@ -450,7 +449,7 @@ Tile.prototype = {
         }
         cache.transformTo("context2d");
         return cache.data;
-    },
+    }
 
     /**
      * The context2D of this tile if it is provided directly by the tile source.
@@ -460,7 +459,7 @@ Tile.prototype = {
     get context2D() {
         $.console.error("[Tile.context2D] property has been deprecated. Use 'tile-invalidated' routine event instead.");
         return this.getCanvasContext();
-    },
+    }
 
     /**
      * The context2D of this tile if it is provided directly by the tile source.
@@ -473,7 +472,7 @@ Tile.prototype = {
             this.removeCache(this.cacheKey);
         }
         this.addCache(this.cacheKey, value, 'context2d', true, false);
-    },
+    }
 
     /**
      * The default cache for this tile.
@@ -483,7 +482,7 @@ Tile.prototype = {
     get cacheImageRecord() {
         $.console.error("[Tile.cacheImageRecord] property has been deprecated. Use Tile::getCache.");
         return this.getCache(this.cacheKey);
-    },
+    }
 
     /**
      * The default cache for this tile.
@@ -504,16 +503,16 @@ Tile.prototype = {
                 value.await().then(x => this.addCache(this.cacheKey, x, value.type, true, false));
             }
         }
-    },
+    }
 
     /**
      * Cache key for main cache that is 'cache-equal', but different from original cache key
      * @return {string}
      * @private
      */
-    buildDistinctMainCacheKey: function () {
+    buildDistinctMainCacheKey() {
         return this.cacheKey === this.originalCacheKey ? "mod://" + this.originalCacheKey : this.cacheKey;
-    },
+    }
 
     /**
      * Read tile cache data object (CacheRecord)
@@ -521,13 +520,13 @@ Tile.prototype = {
      * @return {OpenSeadragon.CacheRecord}
      * @private
      */
-    getCache: function(key = this._cKey) {
+    getCache(key = this._cKey) {
         const cache = this._caches[key];
         if (cache) {
             cache.withTileReference(this);
         }
         return cache;
-    },
+    }
 
     /**
      * Create tile cache for given data object.
@@ -553,7 +552,7 @@ Tile.prototype = {
      * @returns {OpenSeadragon.CacheRecord|null} - The cache record the tile was attached to.
      * @private
      */
-    addCache: function(key, data, type = undefined, setAsMain = false, _safely = true) {
+    addCache(key, data, type = undefined, setAsMain = false, _safely = true) {
         const tiledImage = this.tiledImage;
         if (!tiledImage) {
             return null; //async can access outside its lifetime
@@ -601,8 +600,7 @@ Tile.prototype = {
             this._updateMainCacheKey(key);
         }
         return cachedItem;
-    },
-
+    }
 
     /**
      * Add cache object to the tile
@@ -648,7 +646,7 @@ Tile.prototype = {
             this._updateMainCacheKey(key);
         }
         return cache;
-    },
+    }
 
     /**
      * Sets the main cache key for this tile and
@@ -656,22 +654,22 @@ Tile.prototype = {
      * @param value
      * @private
      */
-    _updateMainCacheKey: function(value) {
+    _updateMainCacheKey(value) {
         let ref = this._caches[this._cKey];
         if (ref) {
             // make sure we free drawer internal cache if people change cache key externally
             ref.destroyInternalCache();
         }
         this._cKey = value;
-    },
+    }
 
     /**
      * Get the number of caches available to this tile
      * @returns {number} number of caches
      */
-    getCacheSize: function() {
+    getCacheSize() {
         return Object.keys(this._caches).length;
-    },
+    }
 
     /**
      * Free tile cache. Removes by default the cache record if no other tile uses it.
@@ -681,7 +679,7 @@ Tile.prototype = {
      *   undefined if removal was refused to perform (e.g. does not exist, it is an original data target etc.)
      * @private
      */
-    removeCache: function(key, freeIfUnused = true) {
+    removeCache(key, freeIfUnused = true) {
         const deleteTarget = this._caches[key];
         if (!deleteTarget) {
             // try to erase anyway in case the cache got stuck in memory
@@ -714,7 +712,7 @@ Tile.prototype = {
             delete this._caches[key];
         }
         return deleteTarget;
-    },
+    }
 
     /**
      * Get the ratio between current and original size.
@@ -722,7 +720,7 @@ Tile.prototype = {
      * @deprecated
      * @returns {number}
      */
-    getScaleForEdgeSmoothing: function() {
+    getScaleForEdgeSmoothing() {
         // getCanvasContext is deprecated and so should be this method.
         $.console.warn("[Tile.getScaleForEdgeSmoothing] is deprecated, the following error is the consequence:");
         const context = this.getCanvasContext();
@@ -733,7 +731,7 @@ Tile.prototype = {
             return 1;
         }
         return context.canvas.width / (this.size.x * $.pixelDensityRatio);
-    },
+    }
 
     /**
      * Get a translation vector that when applied to the tile position produces integer coordinates.
@@ -742,7 +740,7 @@ Tile.prototype = {
      * @param {Number} [scale=1] - Scale to be applied to position.
      * @returns {OpenSeadragon.Point}
      */
-    getTranslationForEdgeSmoothing: function(scale, canvasSize, sketchCanvasSize) {
+    getTranslationForEdgeSmoothing(scale, canvasSize, sketchCanvasSize) {
         // The translation vector must have positive values, otherwise the image goes a bit off
         // the sketch canvas to the top and left and we must use negative coordinates to repaint it
         // to the main canvas. In that case, some browsers throw:
@@ -757,7 +755,7 @@ Tile.prototype = {
                     return x % 1;
                 })
         );
-    },
+    }
 
     /**
      * Reflect that a cache object was renamed. Called internally from TileCache.
@@ -765,7 +763,7 @@ Tile.prototype = {
      * @function
      * @private
      */
-    reflectCacheRenamed: function (oldKey, newKey) {
+    reflectCacheRenamed(oldKey, newKey) {
         let cache = this._caches[oldKey];
         if (!cache) {
             return;  // nothing to fix
@@ -780,7 +778,7 @@ Tile.prototype = {
         // Working key is never updated, it will be invalidated (but do not dereference cache, just fix the pointers)
         this._caches[newKey] = cache;
         delete this._caches[oldKey];
-    },
+    }
 
     /**
      * Check if two tiles are data-equal
@@ -788,31 +786,32 @@ Tile.prototype = {
      */
     equals(tile) {
          return this._ocKey === tile._ocKey;
-    },
+    }
 
     /**
      * Removes tile from the system: it will still be present in the
      * OSD memory, but marked as loaded=false, and its data will be erased if erase set to true.
      * @param {boolean} [erase=false]
      */
-    unload: function(erase = false) {
+    unload(erase = false) {
         if (!this.loaded) {
             return;
         }
         this.tiledImage._tileCache.unloadTile(this, erase);
-    },
+    }
 
     /**
      * this method shall be called only by cache system when the tile is already empty of data
      * @private
      */
-    _unload: function () {
+    _unload() {
         this.tiledImage = null;
         this._caches    = {};
         this.loaded     = false;
         this.loading    = false;
         this._cKey      = this._ocKey;
     }
-};
+}
+
 
 export { Tile };

@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 
 /**
@@ -75,129 +74,127 @@ const ControlAnchor = {
  * @param {Boolean} [options.autoFade=true] - Whether the control should have the autofade behavior
  * @param {Element} container - the element to control will be anchored too.
  */
-function Control ( element, options, container ) {
+class Control {
+    constructor(element, options, container) {
 
-    const parent = element.parentNode;
-    if (typeof options === 'number')
-    {
-        $.console.error("Passing an anchor directly into the OpenSeadragon.Control constructor is deprecated; " +
-                        "please use an options object instead.  " +
-                        "Support for this deprecated variant is scheduled for removal in December 2013");
-         options = {anchor: options};
-    }
-    options.attachToViewer = (typeof options.attachToViewer === 'undefined') ? true : options.attachToViewer;
-    /**
-     * True if the control should have autofade behavior.
-     * @member {Boolean} autoFade
-     * @memberof OpenSeadragon.Control#
-     */
-    this.autoFade = (typeof options.autoFade === 'undefined') ? true : options.autoFade;
-    /**
-     * The element providing the user interface with some type of control (e.g. a zoom-in button).
-     * @member {Element} element
-     * @memberof OpenSeadragon.Control#
-     */
-    this.element    = element;
-    /**
-     * The position of the Control relative to its container.
-     * @member {OpenSeadragon.ControlAnchor} anchor
-     * @memberof OpenSeadragon.Control#
-     */
-    this.anchor     = options.anchor;
-    /**
-     * The Control's containing element.
-     * @member {Element} container
-     * @memberof OpenSeadragon.Control#
-     */
-    this.container  = container;
-    /**
-     * A neutral element surrounding the control element.
-     * @member {Element} wrapper
-     * @memberof OpenSeadragon.Control#
-     */
-    if ( this.anchor === ControlAnchor.ABSOLUTE ) {
-        this.wrapper    = $.makeNeutralElement( "div" );
-        this.wrapper.style.position = "absolute";
-        this.wrapper.style.top = typeof (options.top) === "number" ? (options.top + 'px') : options.top;
-        this.wrapper.style.left  = typeof (options.left) === "number" ? (options.left + 'px') : options.left;
-        this.wrapper.style.height = typeof (options.height) === "number" ? (options.height + 'px') : options.height;
-        this.wrapper.style.width  = typeof (options.width) === "number" ? (options.width + 'px') : options.width;
-        this.wrapper.style.margin = "0px";
-        this.wrapper.style.padding = "0px";
-
-        this.element.style.position = "relative";
-        this.element.style.top = "0px";
-        this.element.style.left = "0px";
-        this.element.style.height = "100%";
-        this.element.style.width = "100%";
-    } else {
-        this.wrapper    = $.makeNeutralElement( "div" );
-        this.wrapper.style.display = "inline-block";
-        if ( this.anchor === ControlAnchor.NONE ) {
-            // IE6 fix
-            this.wrapper.style.width = this.wrapper.style.height = "100%";
+        const parent = element.parentNode;
+        if (typeof options === 'number')
+        {
+            $.console.error("Passing an anchor directly into the OpenSeadragon.Control constructor is deprecated; " +
+                            "please use an options object instead.  " +
+                            "Support for this deprecated variant is scheduled for removal in December 2013");
+             options = {anchor: options};
         }
-    }
-    this.wrapper.appendChild( this.element );
+        options.attachToViewer = (typeof options.attachToViewer === 'undefined') ? true : options.attachToViewer;
+        /**
+         * True if the control should have autofade behavior.
+         * @member {Boolean} autoFade
+         * @memberof OpenSeadragon.Control#
+         */
+        this.autoFade = (typeof options.autoFade === 'undefined') ? true : options.autoFade;
+        /**
+         * The element providing the user interface with some type of control (e.g. a zoom-in button).
+         * @member {Element} element
+         * @memberof OpenSeadragon.Control#
+         */
+        this.element    = element;
+        /**
+         * The position of the Control relative to its container.
+         * @member {OpenSeadragon.ControlAnchor} anchor
+         * @memberof OpenSeadragon.Control#
+         */
+        this.anchor     = options.anchor;
+        /**
+         * The Control's containing element.
+         * @member {Element} container
+         * @memberof OpenSeadragon.Control#
+         */
+        this.container  = container;
+        /**
+         * A neutral element surrounding the control element.
+         * @member {Element} wrapper
+         * @memberof OpenSeadragon.Control#
+         */
+        if ( this.anchor === ControlAnchor.ABSOLUTE ) {
+            this.wrapper    = $.makeNeutralElement( "div" );
+            this.wrapper.style.position = "absolute";
+            this.wrapper.style.top = typeof (options.top) === "number" ? (options.top + 'px') : options.top;
+            this.wrapper.style.left  = typeof (options.left) === "number" ? (options.left + 'px') : options.left;
+            this.wrapper.style.height = typeof (options.height) === "number" ? (options.height + 'px') : options.height;
+            this.wrapper.style.width  = typeof (options.width) === "number" ? (options.width + 'px') : options.width;
+            this.wrapper.style.margin = "0px";
+            this.wrapper.style.padding = "0px";
 
-    if (options.attachToViewer ) {
-        if ( this.anchor === ControlAnchor.TOP_RIGHT ||
-             this.anchor === ControlAnchor.BOTTOM_RIGHT ) {
-            this.container.insertBefore(
-                this.wrapper,
-                this.container.firstChild
-            );
+            this.element.style.position = "relative";
+            this.element.style.top = "0px";
+            this.element.style.left = "0px";
+            this.element.style.height = "100%";
+            this.element.style.width = "100%";
         } else {
-            this.container.appendChild( this.wrapper );
+            this.wrapper    = $.makeNeutralElement( "div" );
+            this.wrapper.style.display = "inline-block";
+            if ( this.anchor === ControlAnchor.NONE ) {
+                // IE6 fix
+                this.wrapper.style.width = this.wrapper.style.height = "100%";
+            }
         }
-    } else {
-        parent.appendChild( this.wrapper );
+        this.wrapper.appendChild( this.element );
+
+        if (options.attachToViewer ) {
+            if ( this.anchor === ControlAnchor.TOP_RIGHT ||
+                 this.anchor === ControlAnchor.BOTTOM_RIGHT ) {
+                this.container.insertBefore(
+                    this.wrapper,
+                    this.container.firstChild
+                );
+            } else {
+                this.container.appendChild( this.wrapper );
+            }
+        } else {
+            parent.appendChild( this.wrapper );
+        }
     }
-
-}
-
-/** @lends OpenSeadragon.Control.prototype */
-Control.prototype = {
 
     /**
      * Removes the control from the container.
      * @function
      */
-    destroy: function() {
+    destroy() {
         this.wrapper.removeChild( this.element );
         if (this.wrapper.parentNode) {
             this.wrapper.parentNode.removeChild(this.wrapper);
         }
-    },
+    }
 
     /**
      * Determines if the control is currently visible.
      * @function
      * @returns {Boolean} true if currently visible, false otherwise.
      */
-    isVisible: function() {
+    isVisible() {
         return this.wrapper.style.display !== "none";
-    },
+    }
 
     /**
      * Toggles the visibility of the control.
      * @function
      * @param {Boolean} visible - true to make visible, false to hide.
      */
-    setVisible: function( visible ) {
+    setVisible(visible) {
         this.wrapper.style.display = visible ?
             ( this.anchor === ControlAnchor.ABSOLUTE ? 'block' : 'inline-block' ) :
             "none";
-    },
+    }
 
     /**
      * Sets the opacity level for the control.
      * @function
      * @param {Number} opactiy - a value between 1 and 0 inclusively.
      */
-    setOpacity: function( opacity ) {
+    setOpacity(opacity) {
         $.setElementOpacity( this.wrapper, opacity, true );
     }
-};
+}
+
 
 export { ControlAnchor, Control };

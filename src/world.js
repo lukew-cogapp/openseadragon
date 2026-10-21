@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { CacheRecord } from "./tilecache.js";
 import { EventSource } from "./eventsource.js";
@@ -49,31 +48,32 @@ import { TiledImage } from "./tiledimage.js";
  * @param {Object} options - World options.
  * @param {OpenSeadragon.Viewer} options.viewer - The Viewer that owns this World.
  **/
-function World( options ) {
-    const _this = this;
+class World extends EventSource {
+    constructor(options) {
+        super();
+        const _this = this;
 
-    $.console.assert( options.viewer, "[World] options.viewer is required" );
+        $.console.assert( options.viewer, "[World] options.viewer is required" );
 
-    EventSource.call( this );
 
-    this.viewer = options.viewer;
-    this._items = [];
-    this._needsDraw = false;
-    this.__invalidatedAt = 1;
-    this._autoRefigureSizes = true;
-    this._needsSizesFigured = false;
-    this._delegatedFigureSizes = function(event) {
-        if (_this._autoRefigureSizes) {
-            _this._figureSizes();
-        } else {
-            _this._needsSizesFigured = true;
-        }
-    };
 
-    this._figureSizes();
-}
+        this.viewer = options.viewer;
+        this._items = [];
+        this._needsDraw = false;
+        this.__invalidatedAt = 1;
+        this._autoRefigureSizes = true;
+        this._needsSizesFigured = false;
+        this._delegatedFigureSizes = function(event) {
+            if (_this._autoRefigureSizes) {
+                _this._figureSizes();
+            } else {
+                _this._needsSizesFigured = true;
+            }
+        };
 
-$.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World.prototype */{
+        this._figureSizes();
+    }
+
     /**
      * Add the specified item.
      * @param {OpenSeadragon.TiledImage} item - The item to add.
@@ -82,7 +82,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * @fires OpenSeadragon.World.event:add-item
      * @fires OpenSeadragon.World.event:metrics-change
      */
-    addItem: function( item, options ) {
+    addItem(item, options) {
         $.console.assert(item, "[World.addItem] item is required");
         $.console.assert(item instanceof TiledImage, "[World.addItem] only TiledImages supported at this time");
 
@@ -117,34 +117,34 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
         this.raiseEvent( 'add-item', {
             item: item
         } );
-    },
+    }
 
     /**
      * Get the item at the specified index.
      * @param {Number} index - The item's index.
      * @returns {OpenSeadragon.TiledImage} The item at the specified index.
      */
-    getItemAt: function( index ) {
+    getItemAt(index) {
         $.console.assert(index !== undefined, "[World.getItemAt] index is required");
         return this._items[ index ];
-    },
+    }
 
     /**
      * Get the index of the given item or -1 if not present.
      * @param {OpenSeadragon.TiledImage} item - The item.
      * @returns {Number} The index of the item or -1 if not present.
      */
-    getIndexOfItem: function( item ) {
+    getIndexOfItem(item) {
         $.console.assert(item, "[World.getIndexOfItem] item is required");
         return $.indexOf( this._items, item );
-    },
+    }
 
     /**
      * @returns {Number} The number of items used.
      */
-    getItemCount: function() {
+    getItemCount() {
         return this._items.length;
-    },
+    }
 
     /**
      * Change the index of a item so that it appears over or under others.
@@ -152,7 +152,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * @param {Number} index - The new index.
      * @fires OpenSeadragon.World.event:item-index-change
      */
-    setItemIndex: function( item, index ) {
+    setItemIndex(item, index) {
         $.console.assert(item, "[World.setItemIndex] item is required");
         $.console.assert(index !== undefined, "[World.setItemIndex] index is required");
 
@@ -183,7 +183,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
             previousIndex: oldIndex,
             newIndex: index
         } );
-    },
+    }
 
     /**
      * Remove an item.
@@ -191,7 +191,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * @fires OpenSeadragon.World.event:remove-item
      * @fires OpenSeadragon.World.event:metrics-change
      */
-    removeItem: function( item ) {
+    removeItem(item) {
         $.console.assert(item, "[World.removeItem] item is required");
 
         const index = $.indexOf(this._items, item );
@@ -206,14 +206,14 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
         this._figureSizes();
         this._needsDraw = true;
         this._raiseRemoveItem(item);
-    },
+    }
 
     /**
      * Remove all items.
      * @fires OpenSeadragon.World.event:remove-item
      * @fires OpenSeadragon.World.event:metrics-change
      */
-    removeAll: function() {
+    removeAll() {
         // We need to make sure any pending images are canceled so the world items don't get messed up
         this.viewer._cancelPendingImages();
         let item;
@@ -233,7 +233,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
             item = removedItems[i];
             this._raiseRemoveItem(item);
         }
-    },
+    }
 
     /**
      * Forces the system consider all tiles across all tiled images
@@ -246,7 +246,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * @fires OpenSeadragon.Viewer.event:tile-invalidated
      * @return {OpenSeadragon.Promise<?>}
      */
-    requestInvalidate: function (restoreTiles = true, tStamp = $.now()) {
+    requestInvalidate(restoreTiles = true, tStamp = $.now()) {
 
         // Note: Getting the async cache + invalidation flow right is VERY tricky.
         //
@@ -302,7 +302,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
         }
         tilesToRestore.length = restoreIndex;
         return this.requestTileInvalidateEvent(tilesToRestore, tStamp, restoreTiles);
-    },
+    }
 
     /**
      * Requests tile data update.
@@ -317,7 +317,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * @fires OpenSeadragon.Viewer.event:tile-invalidated
      * @return {OpenSeadragon.Promise<?>}
      */
-    requestTileInvalidateEvent: function(tilesToProcess, tStamp, restoreTiles = true,
+    requestTileInvalidateEvent(tilesToProcess, tStamp, restoreTiles = true,
                                          _allowTileUnloaded = false, _isFromTileLoad = false) {
         // Calling the event is not considered invalidation, as tile load events finishes with this too.
         if (!this.viewer.isOpen()) {
@@ -664,13 +664,13 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
                 this.draw();
             }
         });
-    },
+    }
 
     /**
      * Check if a tile needs update, update such tiles in the given list
      * @param {OpenSeadragon.Tile[]} tileList
      */
-    ensureTilesUpToDate: function(tileList) {
+    ensureTilesUpToDate(tileList) {
         let updateList;
         // we cannot track this on per-tile level, but at least we try to find last used value
         let wasRestored;
@@ -694,16 +694,16 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
             // OpenSeadragon.trace(`Ensure tiles up to date ${this.__invalidatedAt} - ${updateList.length} tiles`);
             this.requestTileInvalidateEvent(updateList, $.now(), wasRestored, false);
         }
-    },
+    }
 
     /**
      * Clears all tiles and triggers updates for all items.
      */
-    resetItems: function() {
+    resetItems() {
         for ( let i = 0; i < this._items.length; i++ ) {
             this._items[i].reset();
         }
-    },
+    }
 
     /**
      * Updates (i.e. animates bounds of) all items.
@@ -711,44 +711,44 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * @param viewportChanged Whether the viewport changed, which indicates that
      * all TiledImages need to be updated.
      */
-    update: function(viewportChanged) {
+    update(viewportChanged) {
         let animated = false;
         for ( let i = 0; i < this._items.length; i++ ) {
             animated = this._items[i].update(viewportChanged) || animated;
         }
 
         return animated;
-    },
+    }
 
     /**
      * Draws all items.
      */
-    draw: function() {
+    draw() {
         this.viewer.drawer.draw(this._items);
         this._needsDraw = false;
         for (const item of this._items) {
             this._needsDraw = item.setDrawn() || this._needsDraw;
         }
-    },
+    }
 
     /**
      * @returns {Boolean} true if any items need updating.
      */
-    needsDraw: function() {
+    needsDraw() {
         for ( let i = 0; i < this._items.length; i++ ) {
             if ( this._items[i].needsDraw() ) {
                 return true;
             }
         }
         return this._needsDraw;
-    },
+    }
 
     /**
      * @returns {OpenSeadragon.Rect} The smallest rectangle that encloses all items, in viewport coordinates.
      */
-    getHomeBounds: function() {
+    getHomeBounds() {
         return this._homeBounds.clone();
-    },
+    }
 
     /**
      * To facilitate zoom constraints, we keep track of the pixel density of the
@@ -756,9 +756,9 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * ratio is the highest) and save it as this "content factor".
      * @returns {Number} the number of content units per viewport unit.
      */
-    getContentFactor: function() {
+    getContentFactor() {
         return this._contentFactor;
-    },
+    }
 
     /**
      * As a performance optimization, setting this flag to false allows the bounds-change event handler
@@ -767,13 +767,13 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * or the system may behave oddly.
      * @param {Boolean} [value] The value to which to set the flag.
      */
-    setAutoRefigureSizes: function(value) {
+    setAutoRefigureSizes(value) {
         this._autoRefigureSizes = value;
         if (value & this._needsSizesFigured) {
             this._figureSizes();
             this._needsSizesFigured = false;
         }
-    },
+    }
 
     /**
      * Arranges all of the TiledImages with the specified settings.
@@ -786,7 +786,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
      * @param {Number} [options.tileMargin] - See collectionTileMargin in {@link OpenSeadragon.Options}.
      * @fires OpenSeadragon.World.event:metrics-change
      */
-    arrange: function(options) {
+    arrange(options) {
         options = options || {};
         const immediately = options.immediately || false;
         const layout = options.layout || $.DEFAULT_SETTINGS.collectionLayout;
@@ -839,10 +839,10 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
             }
         }
         this.setAutoRefigureSizes(true);
-    },
+    }
 
     // private
-    _figureSizes: function() {
+    _figureSizes() {
         const oldHomeBounds = this._homeBounds ? this._homeBounds.clone() : null;
         const oldContentSize = this._contentSize ? this._contentSize.clone() : null;
         const oldContentFactor = this._contentFactor || 0;
@@ -891,10 +891,10 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
              */
             this.raiseEvent('metrics-change', {});
         }
-    },
+    }
 
     // private
-    _raiseRemoveItem: function(item) {
+    _raiseRemoveItem(item) {
         /**
          * Raised when an item is removed.
          * @event remove-item
@@ -906,6 +906,7 @@ $.extend( World.prototype, EventSource.prototype, /** @lends OpenSeadragon.World
          */
         this.raiseEvent( 'remove-item', { item: item } );
     }
-});
+}
+
 
 export { World };

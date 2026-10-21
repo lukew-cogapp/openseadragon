@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 
 /**
@@ -68,13 +67,11 @@ import $ from "./openseadragon.js";
  *
  * @memberof OpenSeadragon
  */
-function EventSource() {
-    this.events = {};
-    this._rejectedEventList = {};
-}
-
-/** @lends OpenSeadragon.EventSource.prototype */
-EventSource.prototype = {
+class EventSource {
+    constructor() {
+        this.events = {};
+        this._rejectedEventList = {};
+    }
 
     /**
      * Add an event handler to be triggered only once (or a given number of times)
@@ -90,7 +87,7 @@ EventSource.prototype = {
      * @param {Number} [priority=0] - Handler priority. By default, all priorities are 0. Higher number = priority.
      * @returns {Boolean} - True if the handler was added, false if it was rejected
      */
-    addOnceHandler: function(eventName, handler, userData, times, priority) {
+    addOnceHandler(eventName, handler, userData, times, priority) {
         const self = this;
         times = times || 1;
         let count = 0;
@@ -102,7 +99,7 @@ EventSource.prototype = {
             return handler(event);
         };
         return this.addHandler(eventName, onceHandler, userData, priority);
-    },
+    }
 
     /**
      * Add an event handler for a given event.
@@ -113,7 +110,7 @@ EventSource.prototype = {
      * @param {Number} [priority=0] - Handler priority. By default, all priorities are 0. Higher number = priority.
      * @returns {Boolean} - True if the handler was added, false if it was rejected
      */
-    addHandler: function ( eventName, handler, userData, priority ) {
+    addHandler(eventName, handler, userData, priority) {
 
         if(Object.prototype.hasOwnProperty.call(this._rejectedEventList, eventName)){
             $.console.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
@@ -135,7 +132,7 @@ EventSource.prototype = {
             }
         }
         return true;
-    },
+    }
 
     /**
      * Remove a specific event handler for a given event.
@@ -143,7 +140,7 @@ EventSource.prototype = {
      * @param {String} eventName - Name of event for which the handler is to be removed.
      * @param {OpenSeadragon.EventHandler|OpenSeadragon.AsyncEventHandler} handler - Function to be removed.
      */
-    removeHandler: function ( eventName, handler ) {
+    removeHandler(eventName, handler) {
         const events = this.events[ eventName ];
         const handlers = [];
         if ( !events ) {
@@ -157,20 +154,20 @@ EventSource.prototype = {
             }
             this.events[ eventName ] = handlers;
         }
-    },
+    }
 
     /**
      * Get the amount of handlers registered for a given event.
      * @param {String} eventName - Name of event to inspect.
      * @returns {number} amount of events
      */
-    numberOfHandlers: function (eventName) {
+    numberOfHandlers(eventName) {
         const events = this.events[ eventName ];
         if ( !events ) {
             return 0;
         }
         return events.length;
-    },
+    }
 
     /**
      * Remove all event handlers for a given event type. If no type is given all
@@ -178,7 +175,7 @@ EventSource.prototype = {
      * @function
      * @param {String} [eventName] - Name of event for which all handlers are to be removed.
      */
-    removeAllHandlers: function( eventName ) {
+    removeAllHandlers(eventName) {
         if ( eventName ){
             this.events[ eventName ] = [];
         } else{
@@ -186,14 +183,14 @@ EventSource.prototype = {
                 this.events[ eventType ] = [];
             }
         }
-    },
+    }
 
     /**
      * Get a function which iterates the list of all handlers registered for a given event, calling the handler for each.
      * @function
      * @param {String} eventName - Name of event to get handlers for.
      */
-    getHandler: function ( eventName) {
+    getHandler(eventName) {
         let events = this.events[ eventName ];
         if ( !events || !events.length ) {
             return null;
@@ -215,7 +212,7 @@ EventSource.prototype = {
                 }
             }
         };
-    },
+    }
 
     /**
      * Get a function which iterates the list of all handlers registered for a given event,
@@ -224,7 +221,7 @@ EventSource.prototype = {
      * @param {String} eventName - Name of event to get handlers for.
      * @param {any} bindTarget - Bound target to return with the promise on finish
      */
-    getAwaitingHandler: function ( eventName, bindTarget ) {
+    getAwaitingHandler(eventName, bindTarget) {
         let events = this.events[ eventName ];
         if ( !events || !events.length ) {
             return null;
@@ -263,7 +260,7 @@ EventSource.prototype = {
                 loop(0).catch(reject);
             });
         };
-    },
+    }
 
     /**
      * Trigger an event, optionally passing additional information. Does not await async handlers, i.e.
@@ -273,7 +270,7 @@ EventSource.prototype = {
      * @param {Object|undefined} eventArgs - Event-specific data.
      * @returns {Boolean} True if the event was fired, false if it was rejected because of rejectEventHandler(eventName)
      */
-    raiseEvent: function( eventName, eventArgs ) {
+    raiseEvent(eventName, eventArgs) {
         //uncomment if you want to get a log of all events
         //$.console.log( "Event fired:", eventName );
 
@@ -287,7 +284,7 @@ EventSource.prototype = {
             handler( this, eventArgs || {} );
         }
         return true;
-    },
+    }
 
     /**
      * Trigger an event, optionally passing additional information.
@@ -298,7 +295,7 @@ EventSource.prototype = {
      * @param {?} [bindTarget = null] - Promise-resolved value on the event finish
      * @return {OpenSeadragon.Promise|undefined} - Promise resolved upon the event completion.
      */
-    raiseEventAwaiting: function ( eventName, eventArgs, bindTarget = null ) {
+    raiseEventAwaiting(eventName, eventArgs, bindTarget = null) {
         //uncomment if you want to get a log of all events
         //$.console.log( "Awaiting event fired:", eventName );
 
@@ -307,7 +304,7 @@ EventSource.prototype = {
             return awaitingHandler(this, eventArgs || {});
         }
         return $.Promise.resolve(bindTarget);
-    },
+    }
 
     /**
      * Set an event name as being disabled, and provide an optional error message
@@ -316,9 +313,9 @@ EventSource.prototype = {
      * @param {String} [errorMessage] - Optional string to print to the console
      * @private
      */
-    rejectEventHandler(eventName, errorMessage = ''){
+    rejectEventHandler(eventName, errorMessage = '') {
         this._rejectedEventList[eventName] = errorMessage;
-    },
+    }
 
     /**
      * Explicitly allow an event handler to be added for this event type, undoing
@@ -326,9 +323,10 @@ EventSource.prototype = {
      * @param {String} eventName - Name of the event
      * @private
      */
-    allowEventHandler(eventName){
+    allowEventHandler(eventName) {
         delete this._rejectedEventList[eventName];
     }
-};
+}
+
 
 export { EventSource };

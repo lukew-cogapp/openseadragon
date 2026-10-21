@@ -34,9 +34,7 @@
  */
 
 
-
 import $ from "./openseadragon.js";
-import { EventSource } from "./eventsource.js";
 import { Point } from "./point.js";
 import { TileSource } from "./tilesource.js";
 
@@ -59,35 +57,35 @@ import { TileSource } from "./tilesource.js";
    *          }
    */
 
-  function IrisTileSource(options) {
+  class IrisTileSource extends TileSource {
+    constructor(options) {
 
-    TileSource.apply(this, [options]);
-    if (!options.serverUrl || !options.slideId) {
-      throw new Error("IrisTileSource requires serverUrl and slideId");
+        super(options);
+        if (!options.serverUrl || !options.slideId) {
+          throw new Error("IrisTileSource requires serverUrl and slideId");
+        }
+        this.serverUrl = options.serverUrl;
+        this.slideId = options.slideId;
+        this.ready = false;
+
+        if (options.metadata) {
+          this.parseMetadata(options.metadata);
+          this.ready = true;
+          this.raiseEvent('ready', { tileSource: this });
+        } else {
+          const url = this.getMetadataUrl();
+          this.getImageInfo(url);
+        }
     }
-    this.serverUrl = options.serverUrl;
-    this.slideId = options.slideId;
-    this.ready = false;
 
-    if (options.metadata) {
-      this.parseMetadata(options.metadata);
-      this.ready = true;
-      this.raiseEvent('ready', { tileSource: this });
-    } else {
-      const url = this.getMetadataUrl();
-      this.getImageInfo(url);
-    }
-  }
-
-  $.extend(IrisTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.IrisTileSource.prototype */{
     /**
      * Return URL string for image metadata
      * @function
      * @returns {String} url - The Iris metadata URL
      */
-    getMetadataUrl: function() {
+    getMetadataUrl() {
       return this.serverUrl + '/slides/' + this.slideId + '/metadata';
-    },
+    }
 
     /**
      * Determine if the data implies the image service is supported by this tile source.
@@ -95,16 +93,16 @@ import { TileSource } from "./tilesource.js";
      * @param {Object} data - The raw metadata object to check
      * @returns {Boolean} - True if supported, false otherwise
      */
-    supports: function (data) {
+    supports(data) {
       return !!(data && data.type === "iris" && data.serverUrl && data.slideId);
-    },
+    }
 
     /**
      * Parse Iris protocol metadata response
      * @function
      * @param {Object} data - Raw metadata from Iris server
      */
-    parseMetadata: function(data) {
+    parseMetadata(data) {
       this._tileWidth = 256;
       this._tileHeight = 256;
 
@@ -132,14 +130,14 @@ import { TileSource } from "./tilesource.js";
 
       this.minLevel = 0;
       this.maxLevel = Math.ceil(this.levelSizes.length - 1);
-    },
+    }
 
     /**
      * Retrieve image metadata from an Iris-compatible server
      * @function
      * @param {String} url - The metadata URL
      */
-    getImageInfo: function(url) {
+    getImageInfo(url) {
       const _this = this;
 
       $.makeAjaxRequest({
@@ -169,7 +167,7 @@ import { TileSource } from "./tilesource.js";
           });
         }
       });
-    },
+    }
 
     /**
      * Get the number of tiles at a given level
@@ -177,7 +175,7 @@ import { TileSource } from "./tilesource.js";
      * @param {Number} level - The image depth level
      * @returns {OpenSeadragon.Point} - Number of tiles in x and y directions
      */
-    getNumTiles: function(level) {
+    getNumTiles(level) {
       if (level < this.minLevel || level > this.maxLevel || !this.levelSizes[level]) {
         return new Point(0, 0);
       }
@@ -185,7 +183,7 @@ import { TileSource } from "./tilesource.js";
         Math.ceil(this.levelSizes[level].xTiles),
         Math.ceil(this.levelSizes[level].yTiles)
       );
-    },
+    }
 
     /**
      * Determine the URL which will return an image for the region specified by the given x, y, and level components.
@@ -195,10 +193,10 @@ import { TileSource } from "./tilesource.js";
      * @param {Number} y - The y tile index
      * @returns {String} - The tile URL
      */
-    getTileUrl: function(level, x, y) {
+    getTileUrl(level, x, y) {
       const pos = y * this.levelSizes[level].xTiles + x;
       return `${this.serverUrl}/slides/${this.slideId}/layers/${level}/tiles/${pos}`;
-    },
+    }
 
     /**
      * Get the scale for a given level
@@ -206,9 +204,9 @@ import { TileSource } from "./tilesource.js";
      * @param {Number} level - The image depth level
      * @returns {Number} - The scale for the level
      */
-    getLevelScale: function(level) {
+    getLevelScale(level) {
       return this.levelScales[level];
-    },
+    }
 
     /**
      * Retrieve and immediately return the options object
@@ -216,11 +214,12 @@ import { TileSource } from "./tilesource.js";
      * @param {Object} options - Options object
      * @returns {Object} - The options object
      */
-    configure: function (options) {
+    configure(options) {
       return options;
     }
-  });
+}
 
-  $.extend(true, IrisTileSource.prototype, EventSource.prototype);
+
+
 
 export { IrisTileSource };

@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 
 /**
@@ -53,30 +52,28 @@ import $ from "./openseadragon.js";
  * @property {Number} avgIdleTime
  * @property {Number} maxIdleTime
  */
-function Profiler() {
+class Profiler {
+    constructor() {
 
-    this.midUpdate = false;
-    this.numUpdates = 0;
+        this.midUpdate = false;
+        this.numUpdates = 0;
 
-    this.lastBeginTime = null;
-    this.lastEndTime = null;
+        this.lastBeginTime = null;
+        this.lastEndTime = null;
 
-    this.minUpdateTime = Infinity;
-    this.avgUpdateTime = 0;
-    this.maxUpdateTime = 0;
+        this.minUpdateTime = Infinity;
+        this.avgUpdateTime = 0;
+        this.maxUpdateTime = 0;
 
-    this.minIdleTime = Infinity;
-    this.avgIdleTime = 0;
-    this.maxIdleTime = 0;
-}
-
-/** @lends OpenSeadragon.Profiler.prototype */
-Profiler.prototype = {
+        this.minIdleTime = Infinity;
+        this.avgIdleTime = 0;
+        this.maxIdleTime = 0;
+    }
 
     /**
      * @function
      */
-    beginUpdate: function() {
+    beginUpdate() {
         if (this.midUpdate) {
             this.endUpdate();
         }
@@ -98,12 +95,12 @@ Profiler.prototype = {
         if (time > this.maxIdleTime) {
             this.maxIdleTime = time;
         }
-    },
+    }
 
     /**
      * @function
      */
-    endUpdate: function() {
+    endUpdate() {
         if (!this.midUpdate) {
             return;
         }
@@ -122,12 +119,12 @@ Profiler.prototype = {
         if (time > this.maxUpdateTime) {
             this.maxUpdateTime = time;
         }
-    },
+    }
 
     /**
      * @function
      */
-    clearProfile: function() {
+    clearProfile() {
         this.midUpdate = false;
         this.numUpdates = 0;
 
@@ -142,6 +139,7 @@ Profiler.prototype = {
         this.avgIdleTime = 0;
         this.maxIdleTime = 0;
     }
-};
+}
+
 
 export { Profiler };

@@ -33,14 +33,12 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { Button } from "./button.js";
 import { ButtonGroup } from "./buttongroup.js";
 import { ControlAnchor } from "./control.js";
 import { ControlDock } from "./controldock.js";
 import { DrawerBase } from "./drawerbase.js";
-import { EventSource } from "./eventsource.js";
 import { ImageLoader } from "./imageloader.js";
 import { MouseTracker } from "./mousetracker.js";
 import { Overlay } from "./overlay.js";
@@ -84,632 +82,626 @@ let nextHash = 1;
  * @param {OpenSeadragon.Options} options - Viewer options.
  *
  **/
-function Viewer( options ) {
+class Viewer extends ControlDock {
+    constructor(options) {
 
-    const args  = arguments;
-    const _this = this;
-    let i;
+        const args  = arguments;
+        let i;
 
 
-    //backward compatibility for positional args while preferring more
-    //idiomatic javascript options object as the only argument
-    if( !$.isPlainObject( options ) ){
-        options = {
-            id:                 args[ 0 ],
-            xmlPath:            args.length > 1 ? args[ 1 ] : undefined,
-            prefixUrl:          args.length > 2 ? args[ 2 ] : undefined,
-            controls:           args.length > 3 ? args[ 3 ] : undefined,
-            overlays:           args.length > 4 ? args[ 4 ] : undefined
+        //backward compatibility for positional args while preferring more
+        //idiomatic javascript options object as the only argument
+        if( !$.isPlainObject( options ) ){
+            options = {
+                id:                 args[ 0 ],
+                xmlPath:            args.length > 1 ? args[ 1 ] : undefined,
+                prefixUrl:          args.length > 2 ? args[ 2 ] : undefined,
+                controls:           args.length > 3 ? args[ 3 ] : undefined,
+                overlays:           args.length > 4 ? args[ 4 ] : undefined
+            };
+        }
+
+        //options.config and the general config argument are deprecated
+        //in favor of the more direct specification of optional settings
+        //being pass directly on the options object
+        if ( options.config ){
+            $.extend( true, options, options.config );
+            delete options.config;
+        }
+
+        // Move deprecated drawer options from the base options object into a sub-object
+        // This is an array to make it easy to add additional properties to convert to
+        // drawer options later if it makes sense to set at the drawer level rather than
+        // per tiled image (for example, subPixelRoundingForTransparency).
+        const drawerOptionList = [
+                'useCanvas', // deprecated
+            ];
+        options.drawerOptions = Object.assign({},
+            drawerOptionList.reduce((drawerOptions, option) => {
+                drawerOptions[option] = options[option];
+                delete options[option];
+                return drawerOptions;
+            }, {}),
+            options.drawerOptions);
+
+        //Public properties
+        //Allow the options object to override global defaults. ControlDock copies
+        //these onto the viewer and creates its container.
+        const settings = $.extend( true, {
+
+            //internal state and dom identifiers
+            id:             options.id,
+            hash:           options.hash || nextHash++,
+            /**
+             * Parent viewer reference. Base Viewer has null reference, child viewers (such as navigator
+             * or reference strip) must reference the parent viewer they were spawned from.
+             * @member {OpenSeadragon.Viewer} viewer
+             * @memberof OpenSeadragon.Viewer#
+             */
+            viewer:         null,
+            /**
+             * Index for page to be shown first next time open() is called (only used in sequenceMode).
+             * @member {Number} initialPage
+             * @memberof OpenSeadragon.Viewer#
+             */
+            initialPage:    0,
+
+            //dom nodes
+            /**
+             * The parent element of this Viewer instance, passed in when the Viewer was created.
+             * @member {Element} element
+             * @memberof OpenSeadragon.Viewer#
+             */
+            element:        null,
+            /**
+             * A &lt;div&gt; element (provided by {@link OpenSeadragon.ControlDock}), the base element of this Viewer instance.<br><br>
+             * Child element of {@link OpenSeadragon.Viewer#element}.
+             * @member {Element} container
+             * @memberof OpenSeadragon.Viewer#
+             */
+            /**
+             * A &lt;div&gt; element, the element where user-input events are handled for panning and zooming.<br><br>
+             * Child element of {@link OpenSeadragon.Viewer#container},
+             * positioned on top of {@link OpenSeadragon.Viewer#keyboardCommandArea}.<br><br>
+             * The parent of {@link OpenSeadragon.Drawer#canvas} instances.
+             * @member {Element} canvas
+             * @memberof OpenSeadragon.Viewer#
+             */
+            canvas:         null,
+
+            // Overlays list. An overlay allows to add html on top of the viewer.
+            overlays:           [],
+            // Container inside the canvas where overlays are drawn.
+            overlaysContainer:  null,
+
+            //private state properties
+
+            // When we go full-screen we insert ourselves into the body and make
+            // everything else hidden. This is basically the same as
+            // `requestFullScreen` but works in all browsers: iPhone is known to not
+            // allow full-screen with the requestFullScreen API.  This holds the
+            // children of the body and their display values, so we can undo our
+            // changes when we go out of full-screen
+            previousDisplayValuesOfBodyChildren:   [],
+
+            //This was originally initialized in the constructor and so could never
+            //have anything in it.  now it can because we allow it to be specified
+            //in the options and is only empty by default if not specified. Also
+            //this array was returned from get_controls which I find confusing
+            //since this object has a controls property which is treated in other
+            //functions like clearControls.  I'm removing the accessors.
+            customControls: [],
+
+            //These are originally not part options but declared as members
+            //in initialize.  It's still considered idiomatic to put them here
+            //source is here for backwards compatibility. It is not an official
+            //part of the API and should not be relied upon.
+            source:         null,
+            /**
+             * Handles rendering of tiles in the viewer. Created for each TileSource opened.
+             * @member {OpenSeadragon.Drawer} drawer
+             * @memberof OpenSeadragon.Viewer#
+             */
+            drawer:             null,
+            /**
+             * Resolved list of drawer type strings (after expanding 'auto', de-duplicating, and
+             * normalizing: constructors are replaced by their getType() result). Used to decide
+             * allowed fallbacks: WebGL drawer only falls back to canvas when the string 'canvas' is
+             * in this list (see per-tile and context-loss fallback). Normalized so includes('canvas')
+             * is reliable even when custom drawer constructors were passed in options.
+             * @member {string[]} drawerCandidates
+             * @memberof OpenSeadragon.Viewer#
+             */
+            drawerCandidates:   null,
+            /**
+             * Keeps track of all of the tiled images in the scene.
+             * @member {OpenSeadragon.World} world
+             * @memberof OpenSeadragon.Viewer#
+             */
+            world:              null,
+            /**
+             * Handles coordinate-related functionality - zoom, pan, rotation, etc. Created for each TileSource opened.
+             * @member {OpenSeadragon.Viewport} viewport
+             * @memberof OpenSeadragon.Viewer#
+             */
+            viewport:       null,
+            /**
+             * @member {OpenSeadragon.Navigator} navigator
+             * @memberof OpenSeadragon.Viewer#
+             */
+            navigator:      null,
+
+            //A collection viewport is a separate viewport used to provide
+            //simultaneous rendering of sets of tiles
+            collectionViewport:     null,
+            collectionDrawer:       null,
+
+            //UI image resources
+            //TODO: rename navImages to uiImages
+            navImages:      null,
+
+            //interface button controls
+            buttonGroup:        null,
+
+            //TODO: this is defunct so safely remove it
+            profiler:       null
+
+        }, $.DEFAULT_SETTINGS, options );
+        super(settings);
+        const _this = this;
+
+        if ( typeof ( this.hash) === "undefined" ) {
+            throw new Error("A hash must be defined, either by specifying options.id or options.hash.");
+        }
+        if ( typeof ( THIS[ this.hash ] ) !== "undefined" ) {
+            // We don't want to throw an error here, as the user might have discarded
+            // the previous viewer with the same hash and now want to recreate it.
+            $.console.warn("Hash " + this.hash + " has already been used.");
+        }
+
+        //Private state properties
+        THIS[ this.hash ] = {
+            fsBoundsDelta:     new Point( 1, 1 ),
+            prevContainerSize: null,
+            animating:         false,
+            forceRedraw:       false,
+            needsResize:       false,
+            forceResize:       false,
+            mouseInside:       false,
+            group:             null,
+            // whether we should be continuously zooming
+            zooming:           false,
+            // how much we should be continuously zooming by
+            zoomFactor:        null,
+            lastZoomTime:      null,
+            fullPage:          false,
+            onfullscreenchange: null,
+            lastClickTime: null,
+            draggingToZoom: false,
         };
-    }
 
-    //options.config and the general config argument are deprecated
-    //in favor of the more direct specification of optional settings
-    //being pass directly on the options object
-    if ( options.config ){
-        $.extend( true, options, options.config );
-        delete options.config;
-    }
+        this._sequenceIndex = 0;
+        this._firstOpen = true;
+        this._updateRequestId = null;
+        this._loadQueue = [];
+        this.currentOverlays = [];
+        this._updatePixelDensityRatioBind = null;
 
-    // Move deprecated drawer options from the base options object into a sub-object
-    // This is an array to make it easy to add additional properties to convert to
-    // drawer options later if it makes sense to set at the drawer level rather than
-    // per tiled image (for example, subPixelRoundingForTransparency).
-    const drawerOptionList = [
-            'useCanvas', // deprecated
-        ];
-    options.drawerOptions = Object.assign({},
-        drawerOptionList.reduce((drawerOptions, option) => {
-            drawerOptions[option] = options[option];
-            delete options[option];
-            return drawerOptions;
-        }, {}),
-        options.drawerOptions);
+        this._lastScrollTime = $.now(); // variable used to help normalize the scroll event speed of different devices
 
-    //Public properties
-    //Allow the options object to override global defaults
-    $.extend( true, this, {
+        this._fullyLoaded = false; // variable used to track the viewer's aggregate loading state.
 
-        //internal state and dom identifiers
-        id:             options.id,
-        hash:           options.hash || nextHash++,
-        /**
-         * Parent viewer reference. Base Viewer has null reference, child viewers (such as navigator
-         * or reference strip) must reference the parent viewer they were spawned from.
-         * @member {OpenSeadragon.Viewer} viewer
-         * @memberof OpenSeadragon.Viewer#
-         */
-        viewer:         null,
-        /**
-         * Index for page to be shown first next time open() is called (only used in sequenceMode).
-         * @member {Number} initialPage
-         * @memberof OpenSeadragon.Viewer#
-         */
-        initialPage:    0,
+        this._navActionFrames = {};     // tracks cumulative pan distance per key press
+        this._navActionVirtuallyHeld = {};   // marks keys virtually held after early release
+        this._minNavActionFrames = 10;      // minimum pan distance per tap or key press
 
-        //dom nodes
-        /**
-         * The parent element of this Viewer instance, passed in when the Viewer was created.
-         * @member {Element} element
-         * @memberof OpenSeadragon.Viewer#
-         */
-        element:        null,
-        /**
-         * A &lt;div&gt; element (provided by {@link OpenSeadragon.ControlDock}), the base element of this Viewer instance.<br><br>
-         * Child element of {@link OpenSeadragon.Viewer#element}.
-         * @member {Element} container
-         * @memberof OpenSeadragon.Viewer#
-         */
-        container:      null,
-        /**
-         * A &lt;div&gt; element, the element where user-input events are handled for panning and zooming.<br><br>
-         * Child element of {@link OpenSeadragon.Viewer#container},
-         * positioned on top of {@link OpenSeadragon.Viewer#keyboardCommandArea}.<br><br>
-         * The parent of {@link OpenSeadragon.Drawer#canvas} instances.
-         * @member {Element} canvas
-         * @memberof OpenSeadragon.Viewer#
-         */
-        canvas:         null,
+        this._activeActions = { // variable to keep track of currently pressed action
+            // Basic arrow key panning (no modifiers)
+            panUp: false,
+            panDown: false,
+            panLeft: false,
+            panRight: false,
 
-        // Overlays list. An overlay allows to add html on top of the viewer.
-        overlays:           [],
-        // Container inside the canvas where overlays are drawn.
-        overlaysContainer:  null,
-
-        //private state properties
-
-        // When we go full-screen we insert ourselves into the body and make
-        // everything else hidden. This is basically the same as
-        // `requestFullScreen` but works in all browsers: iPhone is known to not
-        // allow full-screen with the requestFullScreen API.  This holds the
-        // children of the body and their display values, so we can undo our
-        // changes when we go out of full-screen
-        previousDisplayValuesOfBodyChildren:   [],
-
-        //This was originally initialized in the constructor and so could never
-        //have anything in it.  now it can because we allow it to be specified
-        //in the options and is only empty by default if not specified. Also
-        //this array was returned from get_controls which I find confusing
-        //since this object has a controls property which is treated in other
-        //functions like clearControls.  I'm removing the accessors.
-        customControls: [],
-
-        //These are originally not part options but declared as members
-        //in initialize.  It's still considered idiomatic to put them here
-        //source is here for backwards compatibility. It is not an official
-        //part of the API and should not be relied upon.
-        source:         null,
-        /**
-         * Handles rendering of tiles in the viewer. Created for each TileSource opened.
-         * @member {OpenSeadragon.Drawer} drawer
-         * @memberof OpenSeadragon.Viewer#
-         */
-        drawer:             null,
-        /**
-         * Resolved list of drawer type strings (after expanding 'auto', de-duplicating, and
-         * normalizing: constructors are replaced by their getType() result). Used to decide
-         * allowed fallbacks: WebGL drawer only falls back to canvas when the string 'canvas' is
-         * in this list (see per-tile and context-loss fallback). Normalized so includes('canvas')
-         * is reliable even when custom drawer constructors were passed in options.
-         * @member {string[]} drawerCandidates
-         * @memberof OpenSeadragon.Viewer#
-         */
-        drawerCandidates:   null,
-        /**
-         * Keeps track of all of the tiled images in the scene.
-         * @member {OpenSeadragon.World} world
-         * @memberof OpenSeadragon.Viewer#
-         */
-        world:              null,
-        /**
-         * Handles coordinate-related functionality - zoom, pan, rotation, etc. Created for each TileSource opened.
-         * @member {OpenSeadragon.Viewport} viewport
-         * @memberof OpenSeadragon.Viewer#
-         */
-        viewport:       null,
-        /**
-         * @member {OpenSeadragon.Navigator} navigator
-         * @memberof OpenSeadragon.Viewer#
-         */
-        navigator:      null,
-
-        //A collection viewport is a separate viewport used to provide
-        //simultaneous rendering of sets of tiles
-        collectionViewport:     null,
-        collectionDrawer:       null,
-
-        //UI image resources
-        //TODO: rename navImages to uiImages
-        navImages:      null,
-
-        //interface button controls
-        buttonGroup:        null,
-
-        //TODO: this is defunct so safely remove it
-        profiler:       null
-
-    }, $.DEFAULT_SETTINGS, options );
-
-    if ( typeof ( this.hash) === "undefined" ) {
-        throw new Error("A hash must be defined, either by specifying options.id or options.hash.");
-    }
-    if ( typeof ( THIS[ this.hash ] ) !== "undefined" ) {
-        // We don't want to throw an error here, as the user might have discarded
-        // the previous viewer with the same hash and now want to recreate it.
-        $.console.warn("Hash " + this.hash + " has already been used.");
-    }
-
-    //Private state properties
-    THIS[ this.hash ] = {
-        fsBoundsDelta:     new Point( 1, 1 ),
-        prevContainerSize: null,
-        animating:         false,
-        forceRedraw:       false,
-        needsResize:       false,
-        forceResize:       false,
-        mouseInside:       false,
-        group:             null,
-        // whether we should be continuously zooming
-        zooming:           false,
-        // how much we should be continuously zooming by
-        zoomFactor:        null,
-        lastZoomTime:      null,
-        fullPage:          false,
-        onfullscreenchange: null,
-        lastClickTime: null,
-        draggingToZoom: false,
-    };
-
-    this._sequenceIndex = 0;
-    this._firstOpen = true;
-    this._updateRequestId = null;
-    this._loadQueue = [];
-    this.currentOverlays = [];
-    this._updatePixelDensityRatioBind = null;
-
-    this._lastScrollTime = $.now(); // variable used to help normalize the scroll event speed of different devices
-
-    this._fullyLoaded = false; // variable used to track the viewer's aggregate loading state.
-
-    this._navActionFrames = {};     // tracks cumulative pan distance per key press
-    this._navActionVirtuallyHeld = {};   // marks keys virtually held after early release
-    this._minNavActionFrames = 10;      // minimum pan distance per tap or key press
-
-    this._activeActions = { // variable to keep track of currently pressed action
-        // Basic arrow key panning (no modifiers)
-        panUp: false,
-        panDown: false,
-        panLeft: false,
-        panRight: false,
-
-        // Modifier-based actions
-        zoomIn: false,    // Shift + Up
-        zoomOut: false    // Shift + Down
-    };
+            // Modifier-based actions
+            zoomIn: false,    // Shift + Up
+            zoomOut: false    // Shift + Down
+        };
 
 
-    //Inherit some behaviors and properties
-    EventSource.call( this );
-
-    this.addHandler( 'open-failed', function ( event ) {
-        const msg = getString( "Errors.OpenFailed", event.eventSource, event.message);
-        _this._showMessage( msg );
-    });
-
-    // Cooperative gesture handling is suspended in full-page/fullscreen, so re-apply the touch-action
-    // and tracker config whenever full-page mode changes.
-    this.addHandler( 'full-page', function () {
-        _this._updateCooperativeGestureHandling();
-    });
-
-    ControlDock.call( this, options );
-
-    //Deal with tile sources
-    if (this.xmlPath) {
-        //Deprecated option.  Now it is preferred to use the tileSources option
-        this.tileSources = [ this.xmlPath ];
-    }
-
-    this.element              = this.element || document.getElementById( this.id );
-    this.canvas               = $.makeNeutralElement( "div" );
-    this.canvas.className = "openseadragon-canvas";
-
-    // Injecting mobile-only CSS to remove focus outline
-    if (!document.querySelector('style[data-openseadragon-mobile-css]')) {
-        const style = document.createElement('style');
-        style.setAttribute('data-openseadragon-mobile-css', 'true');
-        style.textContent =
-            '@media (hover: none) {' +
-            '    .openseadragon-canvas:focus {' +
-            '        outline: none !important;' +
-            '    }' +
-            '}';
-        document.head.appendChild(style);
-    }
-
-    (function( style ){
-        style.width    = "100%";
-        style.height   = "100%";
-        style.overflow = "hidden";
-        style.position = "absolute";
-        style.top      = "0px";
-        style.left     = "0px";
-    }(this.canvas.style));
-    // touch-action on the canvas (and container below) is applied by
-    // _updateCooperativeGestureHandling() once the inner tracker exists.
-    if (options.tabIndex !== "") {
-        this.canvas.tabIndex = (options.tabIndex === undefined ? 0 : options.tabIndex);
-    }
-
-    //the container is created through applying the ControlDock constructor above
-    this.container.className = "openseadragon-container";
-    (function( style ){
-        style.width     = "100%";
-        style.height    = "100%";
-        style.position  = "relative";
-        style.overflow  = "hidden";
-        style.left      = "0px";
-        style.top       = "0px";
-        style.textAlign = "left";  // needed to protect against
-    }( this.container.style ));
-
-    this.container.insertBefore( this.canvas, this.container.firstChild );
-    this.element.appendChild( this.container );
-    //Used for toggling between fullscreen and default container size
-    //TODO: these can be closure private and shared across Viewer
-    //      instances.
-    this.bodyWidth      = document.body.style.width;
-    this.bodyHeight     = document.body.style.height;
-    this.bodyOverflow   = document.body.style.overflow;
-    this.docOverflow    = document.documentElement.style.overflow;
-
-    this.innerTracker = new MouseTracker({
-        userData:                 'Viewer.innerTracker',
-        element:                  this.canvas,
-        cooperativeGestureHandling: this._isCooperative,
-        startDisabled:            !this.mouseNavEnabled,
-        clickTimeThreshold:       this.clickTimeThreshold,
-        clickDistThreshold:       this.clickDistThreshold,
-        dblClickTimeThreshold:    this.dblClickTimeThreshold,
-        dblClickDistThreshold:    this.dblClickDistThreshold,
-        contextMenuHandler:       $.delegate( this, onCanvasContextMenu ),
-        keyDownHandler:           $.delegate( this, onCanvasKeyDown ),
-        keyUpHandler:             $.delegate(this, onCanvasKeyUp),
-        keyHandler:               $.delegate( this, onCanvasKeyPress ),
-        clickHandler:             $.delegate( this, onCanvasClick ),
-        dblClickHandler:          $.delegate( this, onCanvasDblClick ),
-        dragHandler:              $.delegate( this, onCanvasDrag ),
-        dragEndHandler:           $.delegate( this, onCanvasDragEnd ),
-        enterHandler:             $.delegate( this, onCanvasEnter ),
-        leaveHandler:             $.delegate( this, onCanvasLeave ),
-        pressHandler:             $.delegate( this, onCanvasPress ),
-        releaseHandler:           $.delegate( this, onCanvasRelease ),
-        nonPrimaryPressHandler:   $.delegate( this, onCanvasNonPrimaryPress ),
-        nonPrimaryReleaseHandler: $.delegate( this, onCanvasNonPrimaryRelease ),
-        scrollHandler:            $.delegate( this, onCanvasScroll ),
-        pinchHandler:             $.delegate( this, onCanvasPinch ),
-        focusHandler:             $.delegate( this, onCanvasFocus ),
-        blurHandler:              $.delegate( this, onCanvasBlur ),
-    });
-
-    // Apply the initial cooperative gesture config (canvas/container touch-action + inner tracker)
-    // now that the tracker exists. Single source of truth, also used on full-page change and toggle.
-    this._updateCooperativeGestureHandling();
-
-    this.outerTracker = new MouseTracker({
-        userData:              'Viewer.outerTracker',
-        element:               this.container,
-        startDisabled:         !this.mouseNavEnabled,
-        clickTimeThreshold:    this.clickTimeThreshold,
-        clickDistThreshold:    this.clickDistThreshold,
-        dblClickTimeThreshold: this.dblClickTimeThreshold,
-        dblClickDistThreshold: this.dblClickDistThreshold,
-        enterHandler:          $.delegate( this, onContainerEnter ),
-        leaveHandler:          $.delegate( this, onContainerLeave )
-    });
-
-    if ( this.toolbar ){
-        this.toolbar = new ControlDock({ element: this.toolbar });
-    }
-
-    this.bindStandardControls();
-
-    THIS[ this.hash ].prevContainerSize = _getSafeElemSize( this.container );
-
-    if (window.ResizeObserver) {
-        this._autoResizePolling = false;
-        this._resizeObserver = new ResizeObserver(function() {
-            THIS[_this.hash].needsResize = true;
+        this.addHandler( 'open-failed', function ( event ) {
+            const msg = getString( "Errors.OpenFailed", event.eventSource, event.message);
+            _this._showMessage( msg );
         });
 
-        this._resizeObserver.observe(this.container, {});
-    } else {
-        this._autoResizePolling = true;
-    }
+        // Cooperative gesture handling is suspended in full-page/fullscreen, so re-apply the touch-action
+        // and tracker config whenever full-page mode changes.
+        this.addHandler( 'full-page', function () {
+            _this._updateCooperativeGestureHandling();
+        });
 
-    // Create the world
-    this.world = new World({
-        viewer: this
-    });
-
-    this.world.addHandler('add-item', function(event) {
-        // For backwards compatibility, we maintain the source property
-        _this.source = _this.world.getItemAt(0).source;
-
-        THIS[ _this.hash ].forceRedraw = true;
-
-        if (!_this._updateRequestId) {
-            _this._updateRequestId = scheduleUpdate( _this, updateMulti );
+        //Deal with tile sources
+        if (this.xmlPath) {
+            //Deprecated option.  Now it is preferred to use the tileSources option
+            this.tileSources = [ this.xmlPath ];
         }
 
-        const tiledImage = event.item;
-        const fullyLoadedHandler =  function() {
-            const newFullyLoaded = _this._areAllFullyLoaded();
-            if (newFullyLoaded !== _this._fullyLoaded) {
-                _this._fullyLoaded = newFullyLoaded;
+        this.element              = this.element || document.getElementById( this.id );
+        this.canvas               = $.makeNeutralElement( "div" );
+        this.canvas.className = "openseadragon-canvas";
 
-                /**
-                 * Fired when the viewer's aggregate "fully loaded" state changes (when all
-                 * TiledImages in the world have loaded tiles for the current view resolution).
-                 *
-                 * @event fully-loaded-change
-                 * @memberof OpenSeadragon.Viewer
-                 * @type {object}
-                 * @property {Boolean} fullyLoaded - The new aggregate "fully loaded" value
-                 * @property {OpenSeadragon.Viewer} eventSource - Reference to the Viewer instance
-                 * @property {?Object} userData - Arbitrary subscriber-defined object
-                 */
-                _this.raiseEvent('fully-loaded-change', {
-                    fullyLoaded: newFullyLoaded
-                });
-            }
-        };
-        tiledImage._fullyLoadedHandlerForViewer = fullyLoadedHandler;
-        tiledImage.addHandler('fully-loaded-change', fullyLoadedHandler);
-    });
-
-    this.world.addHandler('remove-item', function(event) {
-        const tiledImage = event.item;
-
-        // SAFE cleanup with existence check
-        if (tiledImage._fullyLoadedHandlerForViewer) {
-            tiledImage.removeHandler('fully-loaded-change', tiledImage._fullyLoadedHandlerForViewer);
-            delete tiledImage._fullyLoadedHandlerForViewer; // Remove the reference
+        // Injecting mobile-only CSS to remove focus outline
+        if (!document.querySelector('style[data-openseadragon-mobile-css]')) {
+            const style = document.createElement('style');
+            style.setAttribute('data-openseadragon-mobile-css', 'true');
+            style.textContent =
+                '@media (hover: none) {' +
+                '    .openseadragon-canvas:focus {' +
+                '        outline: none !important;' +
+                '    }' +
+                '}';
+            document.head.appendChild(style);
         }
 
-        // For backwards compatibility, we maintain the source property
-        if (_this.world.getItemCount()) {
-            _this.source = _this.world.getItemAt(0).source;
+        (function( style ){
+            style.width    = "100%";
+            style.height   = "100%";
+            style.overflow = "hidden";
+            style.position = "absolute";
+            style.top      = "0px";
+            style.left     = "0px";
+        }(this.canvas.style));
+        // touch-action on the canvas (and container below) is applied by
+        // _updateCooperativeGestureHandling() once the inner tracker exists.
+        if (options.tabIndex !== "") {
+            this.canvas.tabIndex = (options.tabIndex === undefined ? 0 : options.tabIndex);
+        }
+
+        //the container is created through applying the ControlDock constructor above
+        this.container.className = "openseadragon-container";
+        (function( style ){
+            style.width     = "100%";
+            style.height    = "100%";
+            style.position  = "relative";
+            style.overflow  = "hidden";
+            style.left      = "0px";
+            style.top       = "0px";
+            style.textAlign = "left";  // needed to protect against
+        }( this.container.style ));
+
+        this.container.insertBefore( this.canvas, this.container.firstChild );
+        this.element.appendChild( this.container );
+        //Used for toggling between fullscreen and default container size
+        //TODO: these can be closure private and shared across Viewer
+        //      instances.
+        this.bodyWidth      = document.body.style.width;
+        this.bodyHeight     = document.body.style.height;
+        this.bodyOverflow   = document.body.style.overflow;
+        this.docOverflow    = document.documentElement.style.overflow;
+
+        this.innerTracker = new MouseTracker({
+            userData:                 'Viewer.innerTracker',
+            element:                  this.canvas,
+            cooperativeGestureHandling: this._isCooperative,
+            startDisabled:            !this.mouseNavEnabled,
+            clickTimeThreshold:       this.clickTimeThreshold,
+            clickDistThreshold:       this.clickDistThreshold,
+            dblClickTimeThreshold:    this.dblClickTimeThreshold,
+            dblClickDistThreshold:    this.dblClickDistThreshold,
+            contextMenuHandler:       $.delegate( this, onCanvasContextMenu ),
+            keyDownHandler:           $.delegate( this, onCanvasKeyDown ),
+            keyUpHandler:             $.delegate(this, onCanvasKeyUp),
+            keyHandler:               $.delegate( this, onCanvasKeyPress ),
+            clickHandler:             $.delegate( this, onCanvasClick ),
+            dblClickHandler:          $.delegate( this, onCanvasDblClick ),
+            dragHandler:              $.delegate( this, onCanvasDrag ),
+            dragEndHandler:           $.delegate( this, onCanvasDragEnd ),
+            enterHandler:             $.delegate( this, onCanvasEnter ),
+            leaveHandler:             $.delegate( this, onCanvasLeave ),
+            pressHandler:             $.delegate( this, onCanvasPress ),
+            releaseHandler:           $.delegate( this, onCanvasRelease ),
+            nonPrimaryPressHandler:   $.delegate( this, onCanvasNonPrimaryPress ),
+            nonPrimaryReleaseHandler: $.delegate( this, onCanvasNonPrimaryRelease ),
+            scrollHandler:            $.delegate( this, onCanvasScroll ),
+            pinchHandler:             $.delegate( this, onCanvasPinch ),
+            focusHandler:             $.delegate( this, onCanvasFocus ),
+            blurHandler:              $.delegate( this, onCanvasBlur ),
+        });
+
+        // Apply the initial cooperative gesture config (canvas/container touch-action + inner tracker)
+        // now that the tracker exists. Single source of truth, also used on full-page change and toggle.
+        this._updateCooperativeGestureHandling();
+
+        this.outerTracker = new MouseTracker({
+            userData:              'Viewer.outerTracker',
+            element:               this.container,
+            startDisabled:         !this.mouseNavEnabled,
+            clickTimeThreshold:    this.clickTimeThreshold,
+            clickDistThreshold:    this.clickDistThreshold,
+            dblClickTimeThreshold: this.dblClickTimeThreshold,
+            dblClickDistThreshold: this.dblClickDistThreshold,
+            enterHandler:          $.delegate( this, onContainerEnter ),
+            leaveHandler:          $.delegate( this, onContainerLeave )
+        });
+
+        if ( this.toolbar ){
+            this.toolbar = new ControlDock({ element: this.toolbar });
+        }
+
+        this.bindStandardControls();
+
+        THIS[ this.hash ].prevContainerSize = _getSafeElemSize( this.container );
+
+        if (window.ResizeObserver) {
+            this._autoResizePolling = false;
+            this._resizeObserver = new ResizeObserver(function() {
+                THIS[_this.hash].needsResize = true;
+            });
+
+            this._resizeObserver.observe(this.container, {});
         } else {
-            _this.source = null;
+            this._autoResizePolling = true;
         }
 
-        THIS[ _this.hash ].forceRedraw = true;
-    });
-
-    this.world.addHandler('metrics-change', function(event) {
-        if (_this.viewport) {
-            _this.viewport._setContentBounds(_this.world.getHomeBounds(), _this.world.getContentFactor());
-        }
-    });
-
-    this.world.addHandler('item-index-change', function(event) {
-        // For backwards compatibility, we maintain the source property
-        _this.source = _this.world.getItemAt(0).source;
-    });
-
-    // Create the viewport
-    this.viewport = new Viewport({
-        containerSize:                      THIS[ this.hash ].prevContainerSize,
-        springStiffness:                    this.springStiffness,
-        animationTime:                      this.animationTime,
-        minZoomImageRatio:                  this.minZoomImageRatio,
-        maxZoomPixelRatio:                  this.maxZoomPixelRatio,
-        visibilityRatio:                    this.visibilityRatio,
-        wrapHorizontal:                     this.wrapHorizontal,
-        wrapVertical:                       this.wrapVertical,
-        defaultZoomLevel:                   this.defaultZoomLevel,
-        minZoomLevel:                       this.minZoomLevel,
-        maxZoomLevel:                       this.maxZoomLevel,
-        viewer:                             this,
-        degrees:                            this.degrees,
-        flipped:                            this.flipped,
-        overlayPreserveContentDirection:    this.overlayPreserveContentDirection,
-        navigatorRotate:                    this.navigatorRotate,
-        homeFillsViewer:                    this.homeFillsViewer,
-        margins:                            this.viewportMargins,
-        silenceMultiImageWarnings:          this.silenceMultiImageWarnings
-    });
-
-    this.viewport._setContentBounds(this.world.getHomeBounds(), this.world.getContentFactor());
-
-    // Create the image loader
-    this.imageLoader = new ImageLoader({
-        jobLimit: this.imageLoaderLimit,
-        timeout: options.timeout,
-        tileRetryMax: this.tileRetryMax,
-        tileRetryDelay: this.tileRetryDelay
-    });
-
-    // Create the tile cache
-    this.tileCache = new TileCache({
-        viewer: this,
-        maxImageCacheCount: this.maxImageCacheCount
-    });
-
-    //Create the drawer based on selected options
-    if (Object.prototype.hasOwnProperty.call(this.drawerOptions, 'useCanvas') ){
-        $.console.error('useCanvas is deprecated, use the "drawer" option to indicate preferred drawer(s)');
-
-        // for backwards compatibility, use HTMLDrawer if useCanvas is defined and is falsey
-        if (!this.drawerOptions.useCanvas){
-            this.drawer = 'html';
-        }
-
-        delete this.drawerOptions.useCanvas;
-    }
-    let drawerCandidates = Array.isArray(this.drawer) ? this.drawer : [this.drawer];
-    if (drawerCandidates.length === 0){
-        // if an empty array was passed in, throw a warning and use the defaults
-        // note: if the drawer option is not specified, the defaults will already be set so this won't apply
-        drawerCandidates = [$.DEFAULT_SETTINGS.drawer].flat(); // ensure it is a list
-        $.console.warn('No valid drawers were selected. Using the default value.');
-    }
-
-    // 'auto' is expanded in the candidate list in a platform-dependent way: on iOS-like devices
-    // to ['canvas'] only, on other platforms to ['webgl', 'canvas'] so that if WebGL fails at
-    // creation, canvas is tried next. Same detection as getAutoDrawerCandidates() / determineDrawer('auto').
-    drawerCandidates = drawerCandidates.flatMap(
-        function(c) {
-            return c === 'auto' ? getAutoDrawerCandidates() : [c];
-        }
-    );
-    drawerCandidates = drawerCandidates.filter(
-        function(c, i, arr) {
-            return arr.indexOf(c) === i;
-        }
-    );
-    this.drawerCandidates = drawerCandidates.map(getDrawerTypeString).filter(Boolean);
-
-    this.drawer = null;
-    for (const drawerCandidate of drawerCandidates){
-        const success = this.requestDrawer(drawerCandidate, {mainDrawer: true, redrawImmediately: false});
-        if(success){
-            break;
-        }
-    }
-
-    if (!this.drawer){
-        $.console.error('No drawer could be created!');
-        throw('Error with creating the selected drawer(s)');
-    }
-
-    // Pass the imageSmoothingEnabled option along to the drawer
-    this.drawer.setImageSmoothingEnabled(this.imageSmoothingEnabled);
-
-    // Overlay container
-    this.overlaysContainer    = $.makeNeutralElement( "div" );
-    this.canvas.appendChild( this.overlaysContainer );
-
-    // Now that we have a drawer, see if it supports rotate. If not we need to remove the rotate buttons
-    if (!this.drawer.canRotate()) {
-        // Disable/remove the rotate left/right buttons since they aren't supported
-        if (this.rotateLeft) {
-            i = this.buttonGroup.buttons.indexOf(this.rotateLeft);
-            this.buttonGroup.buttons.splice(i, 1);
-            this.buttonGroup.element.removeChild(this.rotateLeft.element);
-        }
-        if (this.rotateRight) {
-            i = this.buttonGroup.buttons.indexOf(this.rotateRight);
-            this.buttonGroup.buttons.splice(i, 1);
-            this.buttonGroup.element.removeChild(this.rotateRight.element);
-        }
-    }
-
-    this._addUpdatePixelDensityRatioEvent();
-
-    if ('navigatorAutoResize' in this) {
-        $.console.warn('navigatorAutoResize is deprecated, this value will be ignored.');
-    }
-
-    //Instantiate a navigator if configured
-    if ( this.showNavigator && !viewerFeatures.Navigator ) {
-        $.console.error("showNavigator needs the Navigator registered with OpenSeadragon.register");
-    } else if ( this.showNavigator){
-        this.navigator = new viewerFeatures.Navigator({
-            element:           this.navigatorElement,
-            id:                this.navigatorId,
-            position:          this.navigatorPosition,
-            sizeRatio:         this.navigatorSizeRatio,
-            maintainSizeRatio: this.navigatorMaintainSizeRatio,
-            top:               this.navigatorTop,
-            left:              this.navigatorLeft,
-            width:             this.navigatorWidth,
-            height:            this.navigatorHeight,
-            autoFade:          this.navigatorAutoFade,
-            prefixUrl:         this.prefixUrl,
-            viewer:            this,
-            navigatorRotate:   this.navigatorRotate,
-            background:        this.navigatorBackground,
-            opacity:           this.navigatorOpacity,
-            borderColor:       this.navigatorBorderColor,
-            displayRegionColor: this.navigatorDisplayRegionColor,
-            crossOriginPolicy: this.crossOriginPolicy,
-            animationTime:     this.animationTime,
-            drawer:            this.navigatorDrawer || options.drawer,
-            drawerOptions:     this.drawerOptions,
-            loadTilesWithAjax: this.loadTilesWithAjax,
-            ajaxHeaders:       this.ajaxHeaders,
-            ajaxWithCredentials: this.ajaxWithCredentials,
+        // Create the world
+        this.world = new World({
+            viewer: this
         });
 
-        this.navigator.addOnceHandler('drawer-error', (event) => {
-            $.console.warn(
-                'OpenSeadragon navigator drawer error: ' + event.error +
-                ' If tiles are cross-origin, set crossOriginPolicy: "Anonymous" or ' +
-                '"use-credentials" (requires CORS headers on the tile server), or set ' +
-                'navigatorDrawer: "canvas" to use canvas explicitly.'
-            );
+        this.world.addHandler('add-item', function(event) {
+            // For backwards compatibility, we maintain the source property
+            _this.source = _this.world.getItemAt(0).source;
+
+            THIS[ _this.hash ].forceRedraw = true;
+
+            if (!_this._updateRequestId) {
+                _this._updateRequestId = scheduleUpdate( _this, updateMulti );
+            }
+
+            const tiledImage = event.item;
+            const fullyLoadedHandler =  function() {
+                const newFullyLoaded = _this._areAllFullyLoaded();
+                if (newFullyLoaded !== _this._fullyLoaded) {
+                    _this._fullyLoaded = newFullyLoaded;
+
+                    /**
+                     * Fired when the viewer's aggregate "fully loaded" state changes (when all
+                     * TiledImages in the world have loaded tiles for the current view resolution).
+                     *
+                     * @event fully-loaded-change
+                     * @memberof OpenSeadragon.Viewer
+                     * @type {object}
+                     * @property {Boolean} fullyLoaded - The new aggregate "fully loaded" value
+                     * @property {OpenSeadragon.Viewer} eventSource - Reference to the Viewer instance
+                     * @property {?Object} userData - Arbitrary subscriber-defined object
+                     */
+                    _this.raiseEvent('fully-loaded-change', {
+                        fullyLoaded: newFullyLoaded
+                    });
+                }
+            };
+            tiledImage._fullyLoadedHandlerForViewer = fullyLoadedHandler;
+            tiledImage.addHandler('fully-loaded-change', fullyLoadedHandler);
         });
-    }
 
-    // Sequence mode
-    if (this.sequenceMode) {
-        this.bindSequenceControls();
-    }
+        this.world.addHandler('remove-item', function(event) {
+            const tiledImage = event.item;
 
-    // Open initial tilesources
-    if (this.tileSources) {
-        this.open( this.tileSources );
-    }
+            // SAFE cleanup with existence check
+            if (tiledImage._fullyLoadedHandlerForViewer) {
+                tiledImage.removeHandler('fully-loaded-change', tiledImage._fullyLoadedHandlerForViewer);
+                delete tiledImage._fullyLoadedHandlerForViewer; // Remove the reference
+            }
 
-    // Add custom controls
-    for ( i = 0; i < this.customControls.length; i++ ) {
-        this.addControl(
-            this.customControls[ i ].id,
-            {anchor: this.customControls[ i ].anchor}
+            // For backwards compatibility, we maintain the source property
+            if (_this.world.getItemCount()) {
+                _this.source = _this.world.getItemAt(0).source;
+            } else {
+                _this.source = null;
+            }
+
+            THIS[ _this.hash ].forceRedraw = true;
+        });
+
+        this.world.addHandler('metrics-change', function(event) {
+            if (_this.viewport) {
+                _this.viewport._setContentBounds(_this.world.getHomeBounds(), _this.world.getContentFactor());
+            }
+        });
+
+        this.world.addHandler('item-index-change', function(event) {
+            // For backwards compatibility, we maintain the source property
+            _this.source = _this.world.getItemAt(0).source;
+        });
+
+        // Create the viewport
+        this.viewport = new Viewport({
+            containerSize:                      THIS[ this.hash ].prevContainerSize,
+            springStiffness:                    this.springStiffness,
+            animationTime:                      this.animationTime,
+            minZoomImageRatio:                  this.minZoomImageRatio,
+            maxZoomPixelRatio:                  this.maxZoomPixelRatio,
+            visibilityRatio:                    this.visibilityRatio,
+            wrapHorizontal:                     this.wrapHorizontal,
+            wrapVertical:                       this.wrapVertical,
+            defaultZoomLevel:                   this.defaultZoomLevel,
+            minZoomLevel:                       this.minZoomLevel,
+            maxZoomLevel:                       this.maxZoomLevel,
+            viewer:                             this,
+            degrees:                            this.degrees,
+            flipped:                            this.flipped,
+            overlayPreserveContentDirection:    this.overlayPreserveContentDirection,
+            navigatorRotate:                    this.navigatorRotate,
+            homeFillsViewer:                    this.homeFillsViewer,
+            margins:                            this.viewportMargins,
+            silenceMultiImageWarnings:          this.silenceMultiImageWarnings
+        });
+
+        this.viewport._setContentBounds(this.world.getHomeBounds(), this.world.getContentFactor());
+
+        // Create the image loader
+        this.imageLoader = new ImageLoader({
+            jobLimit: this.imageLoaderLimit,
+            timeout: options.timeout,
+            tileRetryMax: this.tileRetryMax,
+            tileRetryDelay: this.tileRetryDelay
+        });
+
+        // Create the tile cache
+        this.tileCache = new TileCache({
+            viewer: this,
+            maxImageCacheCount: this.maxImageCacheCount
+        });
+
+        //Create the drawer based on selected options
+        if (Object.prototype.hasOwnProperty.call(this.drawerOptions, 'useCanvas') ){
+            $.console.error('useCanvas is deprecated, use the "drawer" option to indicate preferred drawer(s)');
+
+            // for backwards compatibility, use HTMLDrawer if useCanvas is defined and is falsey
+            if (!this.drawerOptions.useCanvas){
+                this.drawer = 'html';
+            }
+
+            delete this.drawerOptions.useCanvas;
+        }
+        let drawerCandidates = Array.isArray(this.drawer) ? this.drawer : [this.drawer];
+        if (drawerCandidates.length === 0){
+            // if an empty array was passed in, throw a warning and use the defaults
+            // note: if the drawer option is not specified, the defaults will already be set so this won't apply
+            drawerCandidates = [$.DEFAULT_SETTINGS.drawer].flat(); // ensure it is a list
+            $.console.warn('No valid drawers were selected. Using the default value.');
+        }
+
+        // 'auto' is expanded in the candidate list in a platform-dependent way: on iOS-like devices
+        // to ['canvas'] only, on other platforms to ['webgl', 'canvas'] so that if WebGL fails at
+        // creation, canvas is tried next. Same detection as getAutoDrawerCandidates() / determineDrawer('auto').
+        drawerCandidates = drawerCandidates.flatMap(
+            function(c) {
+                return c === 'auto' ? getAutoDrawerCandidates() : [c];
+            }
         );
+        drawerCandidates = drawerCandidates.filter(
+            function(c, i, arr) {
+                return arr.indexOf(c) === i;
+            }
+        );
+        this.drawerCandidates = drawerCandidates.map(getDrawerTypeString).filter(Boolean);
+
+        this.drawer = null;
+        for (const drawerCandidate of drawerCandidates){
+            const success = this.requestDrawer(drawerCandidate, {mainDrawer: true, redrawImmediately: false});
+            if(success){
+                break;
+            }
+        }
+
+        if (!this.drawer){
+            $.console.error('No drawer could be created!');
+            throw('Error with creating the selected drawer(s)');
+        }
+
+        // Pass the imageSmoothingEnabled option along to the drawer
+        this.drawer.setImageSmoothingEnabled(this.imageSmoothingEnabled);
+
+        // Overlay container
+        this.overlaysContainer    = $.makeNeutralElement( "div" );
+        this.canvas.appendChild( this.overlaysContainer );
+
+        // Now that we have a drawer, see if it supports rotate. If not we need to remove the rotate buttons
+        if (!this.drawer.canRotate()) {
+            // Disable/remove the rotate left/right buttons since they aren't supported
+            if (this.rotateLeft) {
+                i = this.buttonGroup.buttons.indexOf(this.rotateLeft);
+                this.buttonGroup.buttons.splice(i, 1);
+                this.buttonGroup.element.removeChild(this.rotateLeft.element);
+            }
+            if (this.rotateRight) {
+                i = this.buttonGroup.buttons.indexOf(this.rotateRight);
+                this.buttonGroup.buttons.splice(i, 1);
+                this.buttonGroup.element.removeChild(this.rotateRight.element);
+            }
+        }
+
+        this._addUpdatePixelDensityRatioEvent();
+
+        if ('navigatorAutoResize' in this) {
+            $.console.warn('navigatorAutoResize is deprecated, this value will be ignored.');
+        }
+
+        //Instantiate a navigator if configured
+        if ( this.showNavigator && !viewerFeatures.Navigator ) {
+            $.console.error("showNavigator needs the Navigator registered with OpenSeadragon.register");
+        } else if ( this.showNavigator){
+            this.navigator = new viewerFeatures.Navigator({
+                element:           this.navigatorElement,
+                id:                this.navigatorId,
+                position:          this.navigatorPosition,
+                sizeRatio:         this.navigatorSizeRatio,
+                maintainSizeRatio: this.navigatorMaintainSizeRatio,
+                top:               this.navigatorTop,
+                left:              this.navigatorLeft,
+                width:             this.navigatorWidth,
+                height:            this.navigatorHeight,
+                autoFade:          this.navigatorAutoFade,
+                prefixUrl:         this.prefixUrl,
+                viewer:            this,
+                navigatorRotate:   this.navigatorRotate,
+                background:        this.navigatorBackground,
+                opacity:           this.navigatorOpacity,
+                borderColor:       this.navigatorBorderColor,
+                displayRegionColor: this.navigatorDisplayRegionColor,
+                crossOriginPolicy: this.crossOriginPolicy,
+                animationTime:     this.animationTime,
+                drawer:            this.navigatorDrawer || options.drawer,
+                drawerOptions:     this.drawerOptions,
+                loadTilesWithAjax: this.loadTilesWithAjax,
+                ajaxHeaders:       this.ajaxHeaders,
+                ajaxWithCredentials: this.ajaxWithCredentials,
+            });
+
+            this.navigator.addOnceHandler('drawer-error', (event) => {
+                $.console.warn(
+                    'OpenSeadragon navigator drawer error: ' + event.error +
+                    ' If tiles are cross-origin, set crossOriginPolicy: "Anonymous" or ' +
+                    '"use-credentials" (requires CORS headers on the tile server), or set ' +
+                    'navigatorDrawer: "canvas" to use canvas explicitly.'
+                );
+            });
+        }
+
+        // Sequence mode
+        if (this.sequenceMode) {
+            this.bindSequenceControls();
+        }
+
+        // Open initial tilesources
+        if (this.tileSources) {
+            this.open( this.tileSources );
+        }
+
+        // Add custom controls
+        for ( i = 0; i < this.customControls.length; i++ ) {
+            this.addControl(
+                this.customControls[ i ].id,
+                {anchor: this.customControls[ i ].anchor}
+            );
+        }
+
+        // Initial fade out
+        $.requestAnimationFrame( function(){
+            beginControlsAutoHide( _this );
+        } );
+
+        // Register the viewer
+        $._viewers.set(this.element, this);
     }
-
-    // Initial fade out
-    $.requestAnimationFrame( function(){
-        beginControlsAutoHide( _this );
-    } );
-
-    // Register the viewer
-    $._viewers.set(this.element, this);
-}
-
-$.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @lends OpenSeadragon.Viewer.prototype */{
-
 
     /**
      * @function
      * @returns {Boolean}
      */
-    isOpen: function () {
+    isOpen() {
         return !!this.world.getItemCount();
-    },
+    }
 
     /**
      * Checks whether all TiledImage instances in the viewer's world are fully loaded.
@@ -718,7 +710,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {Boolean} True if all TiledImages report being fully loaded,
      *                    false if any image still has pending tiles
      */
-    _areAllFullyLoaded: function() {
+    _areAllFullyLoaded() {
         const count = this.world.getItemCount();
 
         // Iterate through all TiledImages in the viewer's world
@@ -732,15 +724,15 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         }
         // All images passed the check
         return true;
-    },
+    }
 
     /**
      * @function
      * @returns {Boolean} True if all required tiles are loaded, false otherwise
      */
-    getFullyLoaded: function() {
+    getFullyLoaded() {
         return this._fullyLoaded;
-    },
+    }
 
     /**
      * Executes the provided callback when the TiledImage is fully loaded. If already loaded,
@@ -749,7 +741,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @param {Function} callback - Function to execute when loading completes
      * @memberof OpenSeadragon.Viewer.prototype
      */
-    whenFullyLoaded: function(callback) {
+    whenFullyLoaded(callback) {
         if (this.getFullyLoaded()) {
             setTimeout(callback, 1); // Asynchronous execution
         } else {
@@ -757,25 +749,25 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
                 callback(); // Maintain context
             });
         }
-    },
+    }
 
     // deprecated
-    openDzi: function ( dzi ) {
+    openDzi(dzi) {
         $.console.error( "[Viewer.openDzi] this function is deprecated; use Viewer.open() instead." );
         return this.open( dzi );
-    },
+    }
 
     // deprecated
-    openTileSource: function ( tileSource ) {
+    openTileSource(tileSource) {
         $.console.error( "[Viewer.openTileSource] this function is deprecated; use Viewer.open() instead." );
         return this.open( tileSource );
-    },
+    }
 
     //deprecated
-    get buttons () {
+    get buttons() {
         $.console.warn('Viewer.buttons is deprecated; Please use Viewer.buttonGroup');
         return this.buttonGroup;
-    },
+    }
 
     /**
      * Open tiled images into the viewer, closing any others.
@@ -795,7 +787,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.Viewer.event:open
      * @fires OpenSeadragon.Viewer.event:open-failed
      */
-    open: function (tileSources, initialPage = undefined) {
+    open(tileSources, initialPage = undefined) {
         const _this = this;
 
         this.close();
@@ -961,7 +953,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         }
 
         return this;
-    },
+    }
 
     /**
      * Updates data within every tile in the viewer. Should be called
@@ -972,7 +964,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.Viewer.event:tile-invalidated
      * @return {OpenSeadragon.Promise<?>}
      */
-    requestInvalidate: function (restoreTiles = true) {
+    requestInvalidate(restoreTiles = true) {
         if ( !THIS[ this.hash ] || !this._drawerList ) {
             //this viewer has already been destroyed or is a child in connected mode: returning immediately
             return $.Promise.resolve();
@@ -981,15 +973,14 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         const tStamp = $.now();
         // if drawer option broadCastTileInvalidation is enabled, this is NOOP for any but the base drawer, that runs update on all
         return $.Promise.all(this._drawerList.map(drawer => drawer.viewer.world.requestInvalidate(restoreTiles, tStamp)));
-    },
-
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:close
      */
-    close: function ( ) {
+    close() {
         if ( !THIS[ this.hash ] ) {
             //this viewer has already been destroyed: returning immediately
             return this;
@@ -1023,8 +1014,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         this.raiseEvent( 'close' );
 
         return this;
-    },
-
+    }
 
     /**
      * Function to destroy the viewer and clean up everything created by OpenSeadragon.
@@ -1042,7 +1032,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.Viewer.event:before-destroy
      * @fires OpenSeadragon.Viewer.event:destroy
      */
-    destroy: function( ) {
+    destroy() {
         if ( !THIS[ this.hash ] ) {
             //this viewer has already been destroyed: returning immediately
             return;
@@ -1142,7 +1132,6 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         this.element = null;
 
 
-
         /**
          * Raised when the viewer is destroyed (see {@link OpenSeadragon.Viewer#destroy}).
          *
@@ -1155,7 +1144,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         this.raiseEvent( 'destroy' );
 
         this.removeAllHandlers();
-    },
+    }
 
     /**
      * Check if the viewer has been destroyed or not yet initialized.
@@ -1163,7 +1152,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      */
     isDestroyed() {
         return !THIS[ this.hash ];
-    },
+    }
 
     /**
      * Request a drawer for this viewer, as a supported string or drawer constructor.
@@ -1175,7 +1164,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * for this viewer type. See {@link OpenSeadragon.Options}.
      * @returns {Object | Boolean} The drawer that was created, or false if the requested drawer is not supported
      */
-    requestDrawer(drawerCandidate, options){
+    requestDrawer(drawerCandidate, options) {
         const defaultOpts = {
             mainDrawer: true,
             redrawImmediately: true,
@@ -1238,15 +1227,15 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         }
 
         return false;
-    },
+    }
 
     /**
      * @function
      * @returns {Boolean}
      */
-    isMouseNavEnabled: function () {
+    isMouseNavEnabled() {
         return this.innerTracker.isTracking();
-    },
+    }
 
     /**
      * @function
@@ -1254,7 +1243,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:mouse-enabled
      */
-    setMouseNavEnabled: function( enabled ){
+    setMouseNavEnabled(enabled) {
         this.innerTracker.setTracking( enabled );
         this.outerTracker.setTracking( enabled );
         /**
@@ -1269,16 +1258,15 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
          */
         this.raiseEvent( 'mouse-enabled', { enabled: enabled } );
         return this;
-    },
-
+    }
 
     /**
      * @function
      * @returns {Boolean}
      */
-    isKeyboardNavEnabled: function () {
+    isKeyboardNavEnabled() {
         return this.keyboardNavEnabled;
-    },
+    }
 
     /**
      * @function
@@ -1286,7 +1274,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:keyboard-enabled
      */
-    setKeyboardNavEnabled: function( enabled ){
+    setKeyboardNavEnabled(enabled) {
         this.keyboardNavEnabled = enabled;
 
         /**
@@ -1301,21 +1289,19 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
          */
         this.raiseEvent( 'keyboard-enabled', { enabled: enabled } );
         return this;
-    },
-
+    }
 
     /**
      * @function
      * @returns {Boolean}
      */
-    areControlsEnabled: function () {
+    areControlsEnabled() {
         let enabled = this.controls.length;
         for( let i = 0; i < this.controls.length; i++ ){
             enabled = enabled && this.controls[ i ].isVisible();
         }
         return enabled;
-    },
-
+    }
 
     /**
      * Shows or hides the controls (e.g. the default navigation buttons).
@@ -1326,7 +1312,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.Viewer.event:controls-enabled
      * @fires OpenSeadragon.Viewer.event:controls-fade
      */
-    setControlsEnabled: function( enabled ) {
+    setControlsEnabled(enabled) {
         if( enabled ){
             abortControlsAutoHide( this );
         } else {
@@ -1344,7 +1330,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
          */
         this.raiseEvent( 'controls-enabled', { enabled: enabled } );
         return this;
-    },
+    }
 
     /**
      * Turns debugging mode on or off for this viewer.
@@ -1352,7 +1338,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @function
      * @param {Boolean} debugMode true to turn debug on, false to turn debug off.
      */
-    setDebugMode: function(debugMode){
+    setDebugMode(debugMode) {
 
         for (let i = 0; i < this.world.getItemCount(); i++) {
             this.world.getItemAt(i).debugMode = debugMode;
@@ -1360,7 +1346,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
 
         this.debugMode = debugMode;
         this.forceRedraw();
-    },
+    }
 
     /**
      * Update headers to include when making AJAX requests.
@@ -1378,7 +1364,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @param {Object} ajaxHeaders Updated AJAX headers.
      * @param {Boolean} [propagate=true] Whether to propagate updated headers to tiled images, etc.
      */
-    setAjaxHeaders: function(ajaxHeaders, propagate) {
+    setAjaxHeaders(ajaxHeaders, propagate) {
         if (ajaxHeaders === null) {
             ajaxHeaders = {};
         }
@@ -1407,7 +1393,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
                 }
             }
         }
-    },
+    }
 
     /**
      * Adds the given button to this viewer.
@@ -1415,18 +1401,17 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @function
      * @param {OpenSeadragon.Button} button
      */
-    addButton: function( button ){
+    addButton(button) {
         this.buttonGroup.addButton(button);
-    },
+    }
 
     /**
      * @function
      * @returns {Boolean}
      */
-    isFullPage: function () {
+    isFullPage() {
         return THIS[this.hash] && THIS[ this.hash ].fullPage;
-    },
-
+    }
 
     /**
      * Toggle full page mode.
@@ -1437,7 +1422,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.Viewer.event:pre-full-page
      * @fires OpenSeadragon.Viewer.event:full-page
      */
-    setFullPage: function( fullPage ) {
+    setFullPage(fullPage) {
 
         const body = document.body;
         const bodyStyle = body.style;
@@ -1650,7 +1635,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         this.raiseEvent( 'full-page', { fullPage: fullPage } );
 
         return this;
-    },
+    }
 
     /**
      * Toggle full screen mode if supported. Toggle full page mode otherwise.
@@ -1661,7 +1646,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.Viewer.event:pre-full-screen
      * @fires OpenSeadragon.Viewer.event:full-screen
      */
-    setFullScreen: function( fullScreen ) {
+    setFullScreen(fullScreen) {
         const _this = this;
 
         if ( !fullScreenApi.supportsFullScreen ) {
@@ -1754,25 +1739,24 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             fullScreenApi.exitFullScreen();
         }
         return this;
-    },
+    }
 
     /**
      * @function
      * @returns {Boolean}
      */
-    isVisible: function () {
+    isVisible() {
         return this.container.style.visibility !== "hidden";
-    },
-
+    }
 
     //
     /**
      * @function
      * @returns {Boolean} returns true if the viewer is in fullscreen
      */
-     isFullScreen: function () {
+    isFullScreen() {
         return fullScreenApi.isFullScreen() && this.isFullPage();
-    },
+    }
 
     /**
      * @function
@@ -1780,7 +1764,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:visible
      */
-    setVisible: function( visible ){
+    setVisible(visible) {
         this.container.style.visibility = visible ? "" : "hidden";
         /**
          * Raised when the viewer is shown or hidden (see {@link OpenSeadragon.Viewer#setVisible}).
@@ -1794,8 +1778,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
          */
         this.raiseEvent( 'visible', { visible: visible } );
         return this;
-    },
-
+    }
 
     /**
      * Add a tiled image to the viewer.
@@ -1810,7 +1793,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.World.event:add-item
      * @fires OpenSeadragon.Viewer.event:add-item-failed
      */
-    addTiledImage: function( options ) {
+    addTiledImage(options) {
         $.console.assert(options, "[Viewer.addTiledImage] options is required");
         $.console.assert(options.tileSource, "[Viewer.addTiledImage] options.tileSource is required");
         $.console.assert(!options.replace || (options.index > -1 && options.index < this.world.getItemCount()),
@@ -1957,7 +1940,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         };
         options.error = raiseAddItemFailed;
         this.instantiateTiledImageClass(options);
-    },
+    }
 
     /**
      * Create a TiledImage Instance. This instance is not integrated into the viewer
@@ -1970,7 +1953,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @return {OpenSeadragon.Promise<OpenSeadragon.TiledImage|object>} A promise that resolves to the created TiledImage.
      *   Also, old options.error and options.success callbacks can be used instead to handle the output.
      */
-    instantiateTiledImageClass: function( options) {
+    instantiateTiledImageClass(options) {
         return this.instantiateTileSourceClass(options).then(event => {
             // add everybody at the front of the queue that's ready to go
             const tiledImage = new TiledImage({
@@ -2028,7 +2011,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             }
             throw e;
         });
-    },
+    }
 
     /**
      * Attempts to initialize a TileSource from various input types and configuration formats.
@@ -2040,7 +2023,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      *   Message is provided only on error, in that case the source is reference to the original source parameter that
      *   was defining the TileSource. On success, the source is a TileSource instance.
      */
-    instantiateTileSourceClass( options ) {
+    instantiateTileSourceClass(options) {
         return new $.Promise( ( resolve, reject ) => {
             if (options.placeholderFillStyle === undefined) {
                 options.placeholderFillStyle = this.placeholderFillStyle;
@@ -2155,7 +2138,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
                 }
             });
         });
-    },
+    }
 
     /**
      * Add a simple image to the viewer.
@@ -2168,7 +2151,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @fires OpenSeadragon.World.event:add-item
      * @fires OpenSeadragon.Viewer.event:add-item-failed
      */
-    addSimpleImage: function(options) {
+    addSimpleImage(options) {
         $.console.assert(options, "[Viewer.addSimpleImage] options is required");
         $.console.assert(options.url, "[Viewer.addSimpleImage] options.url is required");
 
@@ -2180,10 +2163,10 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         });
         delete opts.url;
         this.addTiledImage(opts);
-    },
+    }
 
     // deprecated
-    addLayer: function( options ) {
+    addLayer(options) {
         const _this = this;
 
         $.console.error( "[Viewer.addLayer] this function is deprecated; use Viewer.addTiledImage() instead." );
@@ -2202,60 +2185,60 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
 
         this.addTiledImage(optionsClone);
         return this;
-    },
+    }
 
     // deprecated
-    getLayerAtLevel: function( level ) {
+    getLayerAtLevel(level) {
         $.console.error( "[Viewer.getLayerAtLevel] this function is deprecated; use World.getItemAt() instead." );
         return this.world.getItemAt(level);
-    },
+    }
 
     // deprecated
-    getLevelOfLayer: function( drawer ) {
+    getLevelOfLayer(drawer) {
         $.console.error( "[Viewer.getLevelOfLayer] this function is deprecated; use World.getIndexOfItem() instead." );
         return this.world.getIndexOfItem(drawer);
-    },
+    }
 
     // deprecated
-    getLayersCount: function() {
+    getLayersCount() {
         $.console.error( "[Viewer.getLayersCount] this function is deprecated; use World.getItemCount() instead." );
         return this.world.getItemCount();
-    },
+    }
 
     // deprecated
-    setLayerLevel: function( drawer, level ) {
+    setLayerLevel(drawer, level) {
         $.console.error( "[Viewer.setLayerLevel] this function is deprecated; use World.setItemIndex() instead." );
         return this.world.setItemIndex(drawer, level);
-    },
+    }
 
     // deprecated
-    removeLayer: function( drawer ) {
+    removeLayer(drawer) {
         $.console.error( "[Viewer.removeLayer] this function is deprecated; use World.removeItem() instead." );
         return this.world.removeItem(drawer);
-    },
+    }
 
     /**
      * Force the viewer to redraw its contents.
      * @returns {OpenSeadragon.Viewer} Chainable.
      */
-    forceRedraw: function() {
+    forceRedraw() {
         THIS[ this.hash ].forceRedraw = true;
         return this;
-    },
+    }
 
     /**
      * Force the viewer to reset its size to match its container.
      */
-    forceResize: function() {
+    forceResize() {
         THIS[this.hash].needsResize = true;
         THIS[this.hash].forceResize = true;
-    },
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.Viewer} Chainable.
      */
-    bindSequenceControls: function(){
+    bindSequenceControls() {
 
         //////////////////////////////////////////////////////////////////////////
         // Image Sequence Controls
@@ -2337,14 +2320,13 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             }
         }
         return this;
-    },
-
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.Viewer} Chainable.
      */
-    bindStandardControls: function(){
+    bindStandardControls() {
         //////////////////////////////////////////////////////////////////////////
         // Navigation Controls
         //////////////////////////////////////////////////////////////////////////
@@ -2524,23 +2506,23 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
 
         }
         return this;
-    },
+    }
 
     /**
      * Gets the active page of a sequence
      * @function
      * @returns {Number}
      */
-    currentPage: function() {
+    currentPage() {
         return this._sequenceIndex;
-    },
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:page
      */
-    goToPage: function( page ){
+    goToPage(page) {
         if( this.tileSources && page >= 0 && page < this.tileSources.length ){
             this._sequenceIndex = page;
 
@@ -2566,7 +2548,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         }
 
         return this;
-    },
+    }
 
    /**
      * Adds an html element as an overlay to the current viewport.  Useful for
@@ -2590,7 +2572,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:add-overlay
      */
-    addOverlay: function( element, location, placement, onDraw ) {
+    addOverlay(element, location, placement, onDraw) {
         let options;
         if( $.isPlainObject( element ) ){
             options = element;
@@ -2632,7 +2614,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             placement: options.placement
         });
         return this;
-    },
+    }
 
     /**
      * Updates the overlay represented by the reference to the element or
@@ -2648,7 +2630,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:update-overlay
      */
-    updateOverlay: function( element, location, placement ) {
+    updateOverlay(element, location, placement) {
         element = $.getElement( element );
         const i = getOverlayIndex( this.currentOverlays, element );
 
@@ -2676,7 +2658,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             });
         }
         return this;
-    },
+    }
 
     /**
      * Removes an overlay identified by the reference element or element id
@@ -2687,7 +2669,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:remove-overlay
      */
-    removeOverlay: function( element ) {
+    removeOverlay(element) {
         element = $.getElement( element );
         const i = getOverlayIndex( this.currentOverlays, element );
 
@@ -2712,7 +2694,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             });
         }
         return this;
-    },
+    }
 
     /**
      * Removes all currently configured Overlays from this Viewer and schedules
@@ -2721,7 +2703,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @returns {OpenSeadragon.Viewer} Chainable.
      * @fires OpenSeadragon.Viewer.event:clear-overlay
      */
-    clearOverlays: function() {
+    clearOverlays() {
         while ( this.currentOverlays.length > 0 ) {
             this.currentOverlays.pop().destroy();
         }
@@ -2737,7 +2719,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
          */
         this.raiseEvent( 'clear-overlay', {} );
         return this;
-    },
+    }
 
      /**
      * Finds an overlay identified by the reference element or element id
@@ -2747,7 +2729,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      *      element id which represents the overlay content.
      * @returns {OpenSeadragon.Overlay} the matching overlay or null if none found.
      */
-    getOverlayById: function( element ) {
+    getOverlayById(element) {
         element = $.getElement( element );
         const i = getOverlayIndex( this.currentOverlays, element );
 
@@ -2756,31 +2738,32 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         } else {
             return null;
         }
-    },
+    }
 
     /**
      * Register drawer for shared updates
      * @param drawer
      * @private
      */
-    _registerDrawer: function (drawer) {
+    _registerDrawer(drawer) {
         if (!this._drawerList) {
             this._drawerList = [];
         }
         this._drawerList.push(drawer);
-    },
+    }
+
     /**
      * Unregister drawer from shared updates
      * @param drawer
      * @private
      */
-    _unregisterDrawer: function (drawer) {
+    _unregisterDrawer(drawer) {
         if (!this._drawerList) {
             $.console.warn('Viewer._unregisterDrawer: cannot unregister on viewer that is not meant to share updates.');
             return;
         }
         this._drawerList.splice(this._drawerList.indexOf(drawer), 1);
-    },
+    }
 
     /**
      * Updates the sequence buttons.
@@ -2788,7 +2771,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @private
      * @param {Number} Sequence Value
      */
-    _updateSequenceButtons: function( page ) {
+    _updateSequenceButtons(page) {
 
             if ( this.nextButton ) {
                 if(!this.tileSources || this.tileSources.length - 1 === page) {
@@ -2810,14 +2793,14 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
                     }
                 }
             }
-      },
+      }
 
     /**
      * Disables each zoom button while the target zoom is at that button's limit.
      * @function OpenSeadragon.Viewer.prototype._updateZoomButtons
      * @private
      */
-    _updateZoomButtons: function() {
+    _updateZoomButtons() {
         if ( !this.viewport ) {
             return;
         }
@@ -2826,7 +2809,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         const minZoom = this.viewport.getMinZoom();
         setButtonAtZoomLimit( this, this.zoomInButton, zoom >= maxZoom || isAtZoomLimit( zoom, maxZoom ) );
         setButtonAtZoomLimit( this, this.zoomOutButton, zoom <= minZoom || isAtZoomLimit( zoom, minZoom ) );
-    },
+    }
 
     /**
      * Display a message in the viewport
@@ -2834,7 +2817,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @private
      * @param {String} text message
      */
-    _showMessage: function ( message ) {
+    _showMessage(message) {
         this._hideMessage();
 
         const div = $.makeNeutralElement( "div" );
@@ -2845,20 +2828,20 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         $.addClass(this.messageDiv, "openseadragon-message");
 
         this.container.appendChild( this.messageDiv );
-    },
+    }
 
     /**
      * Hide any currently displayed viewport message
      * @function OpenSeadragon.Viewer.prototype._hideMessage
      * @private
      */
-    _hideMessage: function () {
+    _hideMessage() {
         const div = this.messageDiv;
         if (div) {
             div.parentNode.removeChild(div);
             delete this.messageDiv;
         }
-    },
+    }
 
     /**
      * Gets this viewer's gesture settings for the given pointer device type.
@@ -2866,7 +2849,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @param {String} type - The pointer device type to get the gesture settings for ("mouse", "touch", "pen", etc.).
      * @returns {OpenSeadragon.GestureSettings}
      */
-    gestureSettingsByDeviceType: function ( type ) {
+    gestureSettingsByDeviceType(type) {
         switch ( type ) {
             case 'mouse':
                 return this.gestureSettingsMouse;
@@ -2877,14 +2860,14 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             default:
                 return this.gestureSettingsUnknown;
         }
-    },
+    }
 
     // Whether cooperative gesture handling currently applies.
     // Single source of truth for the gesture guards so the condition stays consistent across handlers.
     // Suspended in full-page/fullscreen, where there's no surrounding page to scroll past.
     get _isCooperative() {
         return this.cooperativeGestures && !this.isFullPage();
-    },
+    }
 
     /**
      * Enable or disable cooperative gesture handling at runtime.
@@ -2892,27 +2875,27 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @param {Boolean} enabled
      * @returns {OpenSeadragon.Viewer} Chainable.
      */
-    setCooperativeGestures: function ( enabled ) {
+    setCooperativeGestures(enabled) {
         this.cooperativeGestures = !!enabled;
         this._updateCooperativeGestureHandling();
         return this;
-    },
+    }
 
     // Single source of truth for applying cooperative gesture config from the current state.
     // Used during construction, on full-page change, and on runtime toggle.
     // When active, `pan-x pan-y` lets the browser scroll the page on a one-finger touch,
     // while two-finger gestures fall through to OSD; otherwise the viewer captures all touches (`none`).
     // The container is an ancestor of the canvas and touch-action is intersected up the ancestor chain, so both must be set.
-    _updateCooperativeGestureHandling: function () {
+    _updateCooperativeGestureHandling() {
         const active = this._isCooperative;
         const touchAction = active ? 'pan-x pan-y' : 'none';
         $.setElementTouchAction( this.canvas, touchAction );
         $.setElementTouchAction( this.container, touchAction );
         this.innerTracker.setCooperativeGestureHandling( active );
-    },
+    }
 
     // private
-    _raiseCooperativeGestureEvent: function( gesture, event ) {
+    _raiseCooperativeGestureEvent(gesture, event) {
         let message;
         if ( gesture === 'scroll' ) {
             const modifier = /Mac/i.test( navigator.platform || navigator.userAgent || '' ) ? '⌘' : 'Ctrl';
@@ -2952,7 +2935,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
 
         // Return args to allow modifying message and behaviour
         return cooperativeGestureArgs;
-    },
+    }
 
     /**
      * Shows the cooperative gesture hint overlay with the given text, fading it back out after a
@@ -2964,7 +2947,7 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      * @private
      * @param {String} hintText - The hint text to display. Defaults to i18n UI strings, but users can hook into this.
      */
-    _showCooperativeMessage: function ( hintText ) {
+    _showCooperativeMessage(hintText) {
         if ( !this.cooperativeOverlay ) {
 
             this.cooperativeOverlay = $.makeNeutralElement( "div" );
@@ -3000,42 +2983,42 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         this._cooperativeOverlayTimeout = setTimeout( () => {
             this.cooperativeOverlay.style.opacity = "0";
         }, 1500 );
-    },
+    }
 
     // private
-    _drawOverlays: function() {
+    _drawOverlays() {
         const length = this.currentOverlays.length;
         for ( let i = 0; i < length; i++ ) {
             this.currentOverlays[ i ].drawHTML( this.overlaysContainer, this.viewport );
         }
-    },
+    }
 
     /**
      * Cancel the "in flight" images.
      */
-    _cancelPendingImages: function() {
+    _cancelPendingImages() {
         this._loadQueue = [];
-    },
+    }
 
     /**
      * Removes the reference strip and disables displaying it.
      * @function
      */
-    removeReferenceStrip: function() {
+    removeReferenceStrip() {
         this.showReferenceStrip = false;
 
         if (this.referenceStrip) {
             this.referenceStrip.destroy();
             this.referenceStrip = null;
         }
-    },
+    }
 
     /**
      * Enables and displays the reference strip based on the currently set tileSources.
      * Works only when the Viewer has sequenceMode set to true.
      * @function
      */
-    addReferenceStrip: function() {
+    addReferenceStrip() {
         this.showReferenceStrip = true;
 
         if (this.sequenceMode) {
@@ -3066,37 +3049,37 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
         } else {
             $.console.warn('Attempting to display a reference strip while "sequenceMode" is off.');
         }
-    },
+    }
 
     /**
      * Adds _updatePixelDensityRatio to the window resize event.
      * @private
      */
-    _addUpdatePixelDensityRatioEvent: function() {
+    _addUpdatePixelDensityRatioEvent() {
         this._updatePixelDensityRatioBind = this._updatePixelDensityRatio.bind(this);
         $.addEvent( window, 'resize', this._updatePixelDensityRatioBind );
-    },
+    }
 
     /**
      * Removes _updatePixelDensityRatio from the window resize event.
      * @private
      */
-    _removeUpdatePixelDensityRatioEvent: function() {
+    _removeUpdatePixelDensityRatioEvent() {
         $.removeEvent( window, 'resize', this._updatePixelDensityRatioBind );
-    },
+    }
 
     /**
      * Update pixel density ratio and forces a resize operation.
      * @private
      */
-     _updatePixelDensityRatio: function() {
+    _updatePixelDensityRatio() {
         const previusPixelDensityRatio = $.pixelDensityRatio;
         const currentPixelDensityRatio = $.getCurrentPixelDensityRatio();
         if (previusPixelDensityRatio !== currentPixelDensityRatio) {
             $.pixelDensityRatio = currentPixelDensityRatio;
             this.forceResize();
         }
-    },
+    }
 
     /**
      * Sets the image source to the source with index equal to
@@ -3106,14 +3089,13 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      *
      * @method
      */
-
-    goToPreviousPage: function () {
+    goToPreviousPage() {
         let previous = this._sequenceIndex - 1;
         if(this.navPrevNextWrap && previous < 0){
             previous += this.tileSources.length;
         }
         this.goToPage( previous );
-    },
+    }
 
     /**
      * Sets the image source to the source with index equal to
@@ -3123,57 +3105,57 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
      *
      * @method
      */
-    goToNextPage: function () {
+    goToNextPage() {
         let next = this._sequenceIndex + 1;
         if(this.navPrevNextWrap && next >= this.tileSources.length){
             next = 0;
         }
         this.goToPage( next );
-    },
+    }
 
-    isAnimating: function () {
+    isAnimating() {
         return THIS[ this.hash ].animating;
-    },
+    }
 
     /**
      * Starts continuous zoom-in animation (typically bound to mouse-down on the zoom-in button).
      * @function
      * @memberof OpenSeadragon.Viewer.prototype
      */
-    startZoomInAction: function () {
+    startZoomInAction() {
         THIS[ this.hash ].lastZoomTime = $.now();
         THIS[ this.hash ].zoomFactor = this.zoomPerSecond;
         THIS[ this.hash ].zooming = true;
         scheduleZoom( this );
-    },
+    }
 
     /**
      * Starts continuous zoom-out animation (typically bound to mouse-down on the zoom-out button).
      * @function
      * @memberof OpenSeadragon.Viewer.prototype
      */
-    startZoomOutAction: function () {
+    startZoomOutAction() {
         THIS[ this.hash ].lastZoomTime = $.now();
         THIS[ this.hash ].zoomFactor = 1.0 / this.zoomPerSecond;
         THIS[ this.hash ].zooming = true;
         scheduleZoom( this );
-    },
+    }
 
     /**
      * Stops any continuous zoom animation (typically bound to mouse-up/leave events on a button).
      * @function
      * @memberof OpenSeadragon.Viewer.prototype
      */
-    endZoomAction: function () {
+    endZoomAction() {
         THIS[ this.hash ].zooming = false;
-    },
+    }
 
     /**
      * Performs single-step zoom-in operation (typically bound to click/enter on the zoom-in button).
      * @function
      * @memberof OpenSeadragon.Viewer.prototype
      */
-    singleZoomInAction: function () {
+    singleZoomInAction() {
         if ( this.viewport ) {
             THIS[ this.hash ].zooming = false;
             this.viewport.zoomBy(
@@ -3181,14 +3163,14 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             );
             this.viewport.applyConstraints();
         }
-    },
+    }
 
     /**
      * Performs single-step zoom-out operation (typically bound to click/enter on the zoom-out button).
      * @function
      * @memberof OpenSeadragon.Viewer.prototype
      */
-    singleZoomOutAction: function () {
+    singleZoomOutAction() {
         if ( this.viewport ) {
             THIS[ this.hash ].zooming = false;
             this.viewport.zoomBy(
@@ -3196,8 +3178,8 @@ $.extend( Viewer.prototype, EventSource.prototype, ControlDock.prototype, /** @l
             );
             this.viewport.applyConstraints();
         }
-    },
-});
+    }
+}
 
 
 /**
@@ -3385,7 +3367,6 @@ function abortControlsAutoHide( viewer ) {
         viewer.raiseEvent( 'controls-fade', { opacity: 1.0 } );
     }
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////

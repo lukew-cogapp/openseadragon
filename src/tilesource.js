@@ -33,8 +33,6 @@
  */
 
 
-
-
 import $ from "./openseadragon.js";
 import { EventSource } from "./eventsource.js";
 import { Point } from "./point.js";
@@ -115,150 +113,148 @@ import { getString } from "./strings.js";
  *      For the latter, the construction is assumed to occur through
  *      the extending classes implementation of 'configure'.
  */
-function TileSource( options ) {
+class TileSource extends EventSource {
+    constructor(options) {
 
-    // NOTE! Manually rewriting this to a class syntax is problematic, since apply(...) would have to be overridden
-    //   static apply( target, args ) {...}
-    // and check if target inherits TileSource and if not, copy all props to the __proto__ of the target
-    EventSource.apply( this );
+        // NOTE! Manually rewriting this to a class syntax is problematic, since apply(...) would have to be overridden
+        //   static apply( target, args ) {...}
+        // and check if target inherits TileSource and if not, copy all props to the __proto__ of the target
+        super();
 
 
-    /**
-     * The URL of the image to be loaded. Can be undefined if the configuration happened
-     * via plain object or class injection
-     * @member {String} url
-     * @memberof OpenSeadragon.TileSource#
-     */
-    this.url = null;
-    /**
-     * Ratio of width to height
-     * @member {Number} aspectRatio
-     * @memberof OpenSeadragon.TileSource#
-     */
-    /**
-     * Vector storing x and y dimensions ( width and height respectively ).
-     * @member {OpenSeadragon.Point} dimensions
-     * @memberof OpenSeadragon.TileSource#
-     */
-    /**
-     * The overlap in pixels each tile shares with its adjacent neighbors.
-     * @member {Number} tileOverlap
-     * @memberof OpenSeadragon.TileSource#
-     */
-    /**
-     * The minimum pyramid level this tile source supports or should attempt to load.
-     * @member {Number} minLevel
-     * @memberof OpenSeadragon.TileSource#
-     */
-    /**
-     * The maximum pyramid level this tile source supports or should attempt to load.
-     * @member {Number} maxLevel
-     * @memberof OpenSeadragon.TileSource#
-     */
-    /**
-     *
-     * @member {Boolean} ready
-     * @memberof OpenSeadragon.TileSource#
-     */
-    /**
-     * Discard levels until reaching in-between accepted level below the downsample ratio. Overrides
-     * the global option value.
-     * @member {Number} [discardLevelsBelowDownsampleRatio=undefined]
-     * @memberof OpenSeadragon.TileSource#
-     */
+        /**
+         * The URL of the image to be loaded. Can be undefined if the configuration happened
+         * via plain object or class injection
+         * @member {String} url
+         * @memberof OpenSeadragon.TileSource#
+         */
+        this.url = null;
+        /**
+         * Ratio of width to height
+         * @member {Number} aspectRatio
+         * @memberof OpenSeadragon.TileSource#
+         */
+        /**
+         * Vector storing x and y dimensions ( width and height respectively ).
+         * @member {OpenSeadragon.Point} dimensions
+         * @memberof OpenSeadragon.TileSource#
+         */
+        /**
+         * The overlap in pixels each tile shares with its adjacent neighbors.
+         * @member {Number} tileOverlap
+         * @memberof OpenSeadragon.TileSource#
+         */
+        /**
+         * The minimum pyramid level this tile source supports or should attempt to load.
+         * @member {Number} minLevel
+         * @memberof OpenSeadragon.TileSource#
+         */
+        /**
+         * The maximum pyramid level this tile source supports or should attempt to load.
+         * @member {Number} maxLevel
+         * @memberof OpenSeadragon.TileSource#
+         */
+        /**
+         *
+         * @member {Boolean} ready
+         * @memberof OpenSeadragon.TileSource#
+         */
+        /**
+         * Discard levels until reaching in-between accepted level below the downsample ratio. Overrides
+         * the global option value.
+         * @member {Number} [discardLevelsBelowDownsampleRatio=undefined]
+         * @memberof OpenSeadragon.TileSource#
+         */
 
-    this.addHandler('ready', e => {
-        const source = e.tileSource;
-        //explicit configuration via positional args in constructor
-        //or the more idiomatic 'options' object
-        this.ready       = true;
-        this.aspectRatio = (source.width && source.height) ?
-            (source.width / source.height) : 1;
-        this.dimensions  = new Point( source.width, source.height );
+        this.addHandler('ready', e => {
+            const source = e.tileSource;
+            //explicit configuration via positional args in constructor
+            //or the more idiomatic 'options' object
+            this.ready       = true;
+            this.aspectRatio = (source.width && source.height) ?
+                (source.width / source.height) : 1;
+            this.dimensions  = new Point( source.width, source.height );
 
-        if ( source.tileSize ){
-            this._tileWidth = this._tileHeight = source.tileSize;
-            delete this.tileSize;
-        } else {
-            if( source.tileWidth ){
-                // We were passed tileWidth in options, but we want to rename it
-                // with a leading underscore to make clear that it is not safe to directly modify it
-                this._tileWidth = source.tileWidth;
-                delete this.tileWidth;
+            if ( source.tileSize ){
+                this._tileWidth = this._tileHeight = source.tileSize;
+                delete this.tileSize;
             } else {
-                this._tileWidth = 0;
+                if( source.tileWidth ){
+                    // We were passed tileWidth in options, but we want to rename it
+                    // with a leading underscore to make clear that it is not safe to directly modify it
+                    this._tileWidth = source.tileWidth;
+                    delete this.tileWidth;
+                } else {
+                    this._tileWidth = 0;
+                }
+
+                if( source.tileHeight ){
+                    // See note above about renaming this.tileWidth
+                    this._tileHeight = source.tileHeight;
+                    delete this.tileHeight;
+                } else {
+                    this._tileHeight = 0;
+                }
             }
 
-            if( source.tileHeight ){
-                // See note above about renaming this.tileWidth
-                this._tileHeight = source.tileHeight;
-                delete this.tileHeight;
+            this.tileOverlap = source.tileOverlap ? source.tileOverlap : 0;
+            this.minLevel    = source.minLevel ? source.minLevel : 0;
+            this.maxLevel    = ( undefined !== source.maxLevel && null !== source.maxLevel ) ?
+                source.maxLevel : (
+                    ( source.width && source.height ) ? Math.ceil(
+                        Math.log( Math.max( source.width, source.height ) ) /
+                        Math.log( 2 )
+                    ) : 0
+                );
+            if( source.success && $.isFunction( source.success ) ){
+                source.success( this );
+            }
+        }, null, Infinity); // important! go first to finish initialization
+
+        if( 'string' === $.type( options ) ){
+            this.url = options;
+        } else {
+            //we allow options to override anything we don't treat as
+            //required via idiomatic options or which is functionally
+            //set depending on the state of the readiness of this tile
+            //source
+            $.extend( true, this, options );
+        }
+
+        if (this.url && !this.ready) {
+            //in case the getImageInfo method is overridden and/or implies an
+            //async mechanism set some safe defaults first
+            this.aspectRatio = 1;
+            this.dimensions  = new Point( 10, 10 );
+            this._tileWidth  = 0;
+            this._tileHeight = 0;
+            this.tileOverlap = 0;
+            this.minLevel    = 0;
+            this.maxLevel    = 0;
+            this.ready       = false;
+            this._uniqueIdentifier = this.url;
+            //configuration via url implies the extending class
+            //implements and 'configure'
+            setTimeout(() => this.getImageInfo(this.url)); //needs async in case someone exits immediately
+        } else {
+            this._uniqueIdentifier = Math.floor(Math.random() * 1e10).toString(36);
+            // by default it used to fire immediately, so make the ready default
+            if (this.ready || this.ready === undefined) {
+                this.raiseEvent('ready', { tileSource: this });
             } else {
-                this._tileHeight = 0;
+                setTimeout(() => this.raiseEvent('ready', { tileSource: this }));
             }
         }
-
-        this.tileOverlap = source.tileOverlap ? source.tileOverlap : 0;
-        this.minLevel    = source.minLevel ? source.minLevel : 0;
-        this.maxLevel    = ( undefined !== source.maxLevel && null !== source.maxLevel ) ?
-            source.maxLevel : (
-                ( source.width && source.height ) ? Math.ceil(
-                    Math.log( Math.max( source.width, source.height ) ) /
-                    Math.log( 2 )
-                ) : 0
-            );
-        if( source.success && $.isFunction( source.success ) ){
-            source.success( this );
-        }
-    }, null, Infinity); // important! go first to finish initialization
-
-    if( 'string' === $.type( options ) ){
-        this.url = options;
-    } else {
-        //we allow options to override anything we don't treat as
-        //required via idiomatic options or which is functionally
-        //set depending on the state of the readiness of this tile
-        //source
-        $.extend( true, this, options );
+        return this;
     }
 
-    if (this.url && !this.ready) {
-        //in case the getImageInfo method is overridden and/or implies an
-        //async mechanism set some safe defaults first
-        this.aspectRatio = 1;
-        this.dimensions  = new Point( 10, 10 );
-        this._tileWidth  = 0;
-        this._tileHeight = 0;
-        this.tileOverlap = 0;
-        this.minLevel    = 0;
-        this.maxLevel    = 0;
-        this.ready       = false;
-        this._uniqueIdentifier = this.url;
-        //configuration via url implies the extending class
-        //implements and 'configure'
-        setTimeout(() => this.getImageInfo(this.url)); //needs async in case someone exits immediately
-    } else {
-        this._uniqueIdentifier = Math.floor(Math.random() * 1e10).toString(36);
-        // by default it used to fire immediately, so make the ready default
-        if (this.ready || this.ready === undefined) {
-            this.raiseEvent('ready', { tileSource: this });
-        } else {
-            setTimeout(() => this.raiseEvent('ready', { tileSource: this }));
-        }
-    }
-    return this;
-}
-
-/** @lends OpenSeadragon.TileSource.prototype */
-TileSource.prototype = {
-
-    getTileSize: function( level ) {
+    getTileSize(level) {
         $.console.error(
             "[TileSource.getTileSize] is deprecated. " +
             "Use TileSource.getTileWidth() and TileSource.getTileHeight() instead"
         );
         return this._tileWidth;
-    },
+    }
 
     /**
      * Return the tileWidth for a given level.
@@ -268,12 +264,12 @@ TileSource.prototype = {
      * @function
      * @param {Number} level
      */
-    getTileWidth: function( level ) {
+    getTileWidth(level) {
         if (!this._tileWidth) {
             return this.getTileSize(level);
         }
         return this._tileWidth;
-    },
+    }
 
     /**
      * Return the tileHeight for a given level.
@@ -283,12 +279,12 @@ TileSource.prototype = {
      * @function
      * @param {Number} level
      */
-    getTileHeight: function( level ) {
+    getTileHeight(level) {
         if (!this._tileHeight) {
             return this.getTileSize(level);
         }
         return this._tileHeight;
-    },
+    }
 
     /**
      * Set the maxLevel to the given level, and perform the memoization of
@@ -298,24 +294,24 @@ TileSource.prototype = {
      * @function
      * @param {Number} level
      */
-    setMaxLevel: function( level ) {
+    setMaxLevel(level) {
         this.maxLevel = level;
         this._memoizeLevelScale();
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getLevelScale: function( level ) {
+    getLevelScale(level) {
         // if getLevelScale is not memoized, we generate the memoized version
         // at the first call and return the result
         this._memoizeLevelScale();
         return this.getLevelScale( level );
-    },
+    }
 
     // private
-    _memoizeLevelScale: function() {
+    _memoizeLevelScale() {
         // see https://github.com/openseadragon/openseadragon/issues/22
         // we use the tilesources implementation of getLevelScale to generate
         // a memoized re-implementation
@@ -327,38 +323,37 @@ TileSource.prototype = {
         this.getLevelScale = function( _level ){
             return levelScaleCache[ _level ];
         };
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getNumTiles: function( level ) {
+    getNumTiles(level) {
         const scale = this.getLevelScale( level );
         const x = Math.ceil( scale * this.dimensions.x / this.getTileWidth(level) );
         const y = Math.ceil( scale * this.dimensions.y / this.getTileHeight(level) );
 
         return new Point( x, y );
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      */
-    getPixelRatio: function( level ) {
+    getPixelRatio(level) {
         const imageSizeScaled = this.dimensions.times( this.getLevelScale( level ) );
         const rx = 1.0 / imageSizeScaled.x * $.pixelDensityRatio;
         const ry = 1.0 / imageSizeScaled.y * $.pixelDensityRatio;
 
         return new Point(rx, ry);
-    },
-
+    }
 
     /**
      * @function
      * @returns {Number} The highest level in this tile source that can be contained in a single tile.
      */
-    getClosestLevel: function() {
+    getClosestLevel() {
         let i;
         let tiles;
 
@@ -370,14 +365,14 @@ TileSource.prototype = {
         }
 
         return i - 1;
-    },
+    }
 
     /**
      * @function
      * @param {Number} level
      * @param {OpenSeadragon.Point} point
      */
-    getTileAtPoint: function(level, point) {
+    getTileAtPoint(level, point) {
         const validPoint = point.x >= 0 && point.x <= 1 &&
             point.y >= 0 && point.y <= 1 / this.aspectRatio;
         $.console.assert(validPoint, "[TileSource.getTileAtPoint] must be called with a valid point.");
@@ -401,7 +396,7 @@ TileSource.prototype = {
         }
 
         return new Point(x, y);
-    },
+    }
 
     /**
      * @function
@@ -413,7 +408,7 @@ TileSource.prototype = {
      * portion of the tile to use as the source of the drawing operation (in pixels), depending on
      * the isSource parameter.
      */
-    getTileBounds: function( level, x, y, isSource ) {
+    getTileBounds(level, x, y, isSource) {
         const dimensionsScaled = this.dimensions.times( this.getLevelScale( level ) );
         const tileWidth = this.getTileWidth(level);
         const tileHeight = this.getTileHeight(level);
@@ -431,8 +426,7 @@ TileSource.prototype = {
         }
 
         return new Rect( px * scale, py * scale, sx * scale, sy * scale );
-    },
-
+    }
 
     /**
      * Responsible for retrieving, and caching the
@@ -451,7 +445,7 @@ TileSource.prototype = {
      * @param {String} url
      * @throws {Error}
      */
-    getImageInfo: function( url ) {
+    getImageInfo(url) {
         const _this = this;
         let callbackName;
         let callback;
@@ -593,7 +587,7 @@ TileSource.prototype = {
             });
         }
 
-    },
+    }
 
     /**
      * Responsible for determining if the particular TileSource supports the
@@ -609,9 +603,9 @@ TileSource.prototype = {
      *      from if any.
      * @returns {Boolean}
      */
-    supports: function( data, url ) {
+    supports(data, url) {
         return false;
-    },
+    }
 
     /**
      * Check whether two tileSources are equal. This is used for example
@@ -620,9 +614,9 @@ TileSource.prototype = {
      * @param {OpenSeadragon.TileSource} otherSource
      * @returns {Boolean}
      */
-    equals: function (otherSource) {
+    equals(otherSource) {
         return this === otherSource;
-    },
+    }
 
     /**
      * Determines if this tile source data can be batched.
@@ -630,7 +624,7 @@ TileSource.prototype = {
      */
     batchEnabled() {
         return false;
-    },
+    }
 
     /**
      * Determines if a tile request from a source (even itself!) can be batched with this source.
@@ -640,7 +634,7 @@ TileSource.prototype = {
      */
     batchCompatible(otherSource) {
         return false;
-    },
+    }
 
     /**
      * Maximum batch size. Can, for example, be derived from (average) tile size of the source.
@@ -648,7 +642,7 @@ TileSource.prototype = {
      */
     batchMaxJobs() {
         return -1;
-    },
+    }
 
     /**
      * How long to wait with a batch before processing. Big timeout means larger
@@ -657,7 +651,7 @@ TileSource.prototype = {
      */
     batchTimeout() {
         return 5;
-    },
+    }
 
     /**
      * Responsible for parsing and configuring the
@@ -677,9 +671,9 @@ TileSource.prototype = {
      *      instantiate the TileSource subclass with - what _options_ object should contain).
      * @throws {Error}
      */
-    configure: function( data, url, postData ) {
+    configure(data, url, postData) {
         throw new Error( "Method not implemented." );
-    },
+    }
 
     /**
      * Shall this source need to free some objects
@@ -687,9 +681,9 @@ TileSource.prototype = {
      * size must be set to 0 for safari to free.
      * @param {OpenSeadragon.Viewer} viewer
      */
-    destroy: function ( viewer ) {
+    destroy(viewer) {
         //no-op
-    },
+    }
 
     /**
      * Responsible for retrieving the url which will return an image for the
@@ -705,9 +699,9 @@ TileSource.prototype = {
      * @returns {String|Function} url - A string for the url or a function that returns a url string.
      * @throws {Error}
      */
-    getTileUrl: function( level, x, y ) {
+    getTileUrl(level, x, y) {
         throw new Error( "Method not implemented." );
-    },
+    }
 
     /**
      * Must use AJAX in order to work, i.e. loadTilesWithAjax = true is set.
@@ -736,9 +730,9 @@ TileSource.prototype = {
      * @param {Number} y
      * @returns {*|null} post data to send with tile configuration request
      */
-    getTilePostData: function( level, x, y ) {
+    getTilePostData(level, x, y) {
         return null;
-    },
+    }
 
     /**
      * Responsible for retrieving the headers which will be attached to the image request for the
@@ -758,9 +752,9 @@ TileSource.prototype = {
      * @param {Number} y
      * @returns {Object}
      */
-    getTileAjaxHeaders: function( level, x, y ) {
+    getTileAjaxHeaders(level, x, y) {
         return {};
-    },
+    }
 
     /**
      * The tile cache object is uniquely determined by this key and used to lookup
@@ -783,7 +777,7 @@ TileSource.prototype = {
      *   without downloading any data for internal use: user has to define the cache contents manually, via
      *   the cache interface of this class.
      */
-    getTileHashKey: function(level, x, y, url, ajaxHeaders, postData) {
+    getTileHashKey(level, x, y, url, ajaxHeaders, postData) {
         function withHeaders(hash) {
             return ajaxHeaders ? hash + "+" + JSON.stringify(ajaxHeaders) : hash;
         }
@@ -792,7 +786,7 @@ TileSource.prototype = {
             return withHeaders(this._uniqueIdentifier + ":" + level + "/" + x + "_" + y);
         }
         return withHeaders(url);
-    },
+    }
 
     /**
      * @function
@@ -800,7 +794,7 @@ TileSource.prototype = {
      * @param {Number} x
      * @param {Number} y
      */
-    tileExists: function( level, x, y ) {
+    tileExists(level, x, y) {
         const numTiles = this.getNumTiles( level );
         return level >= this.minLevel &&
             level <= this.maxLevel &&
@@ -808,7 +802,7 @@ TileSource.prototype = {
             y >= 0 &&
             x < numTiles.x &&
             y < numTiles.y;
-    },
+    }
 
     /**
      * Decide whether tiles have transparency: this is crucial for correct images blending.
@@ -819,9 +813,9 @@ TileSource.prototype = {
      * @param post tile.post value for given tile
      * @returns {boolean} true if the image has transparency
      */
-    hasTransparency: function(context2D, url, ajaxHeaders, post) {
+    hasTransparency(context2D, url, ajaxHeaders, post) {
         return url.match('.png');
-    },
+    }
 
     /**
      * Download tile data. The context attribute is the reference to the job object itself, which is extended
@@ -830,7 +824,7 @@ TileSource.prototype = {
      * Note that if you override this function, you should override also downloadTileAbort().
      * @param {OpenSeadragon.ImageJob} context job context that you have to call finish(...) on.
      */
-    downloadTileStart: function (context) {
+    downloadTileStart(context) {
         // Load the tile with an AJAX request if the loadWithAjax option is
         // set. Otherwise load the image by setting the source property of the image object.
 
@@ -897,7 +891,7 @@ TileSource.prototype = {
             }
             image.src = context.src;
         }
-    },
+    }
 
     /**
      * Provide means of aborting the execution.
@@ -907,7 +901,7 @@ TileSource.prototype = {
      * @param {OpenSeadragon.ImageJob} context job, the same object as with downloadTileStart(..)
      * @param {*} [context.userData] - Empty object to attach (and mainly read) your own data.
      */
-    downloadTileAbort: function (context) {
+    downloadTileAbort(context) {
         if (context.userData.request) {
             context.userData.request.abort();
         }
@@ -916,7 +910,7 @@ TileSource.prototype = {
             image.onload = image.onerror = image.onabort = null;
             image.src = "";
         }
-    },
+    }
 
     /**
      * Handles the fetching of multiple tiles in a single operation.
@@ -934,7 +928,7 @@ TileSource.prototype = {
         for (let i = 0; i < batchJob.jobs.length; i++) {
             this.downloadTileStart(batchJob.jobs[i]);
         }
-    },
+    }
 
     /**
      * Handles abortion of the fetching of multiple tiles.
@@ -944,7 +938,7 @@ TileSource.prototype = {
         for (let i = 0; i < batchJob.jobs.length; i++) {
             this.downloadTileAbort(batchJob.jobs[i]);
         }
-    },
+    }
 
     /**
      * Create cache object from the result of the download process. The
@@ -960,10 +954,10 @@ TileSource.prototype = {
      * @param {OpenSeadragon.Tile} tile instance the cache was created with
      * @deprecated
      */
-    createTileCache: function(cacheObject, data, tile) {
+    createTileCache(cacheObject, data, tile) {
         $.console.error("[TileSource.createTileCache] has been deprecated. Use cache API of a tile instead.");
         //no-op, we create the cache automatically
-    },
+    }
 
     /**
      * Cache object destructor, unset all properties you created to allow GC collection.
@@ -974,10 +968,10 @@ TileSource.prototype = {
      * @param {OpenSeadragon.CacheRecord} cacheObject context cache object
      * @deprecated
      */
-    destroyTileCache: function (cacheObject) {
+    destroyTileCache(cacheObject) {
         $.console.error("[TileSource.destroyTileCache] has been deprecated. Use cache API of a tile instead.");
         //no-op, handled internally
-    },
+    }
 
     /**
      * Raw data getter, should return anything that is compatible with the system, or undefined
@@ -986,10 +980,10 @@ TileSource.prototype = {
      * @returns {OpenSeadragon.Promise<?>} cache data
      * @deprecated
      */
-    getTileCacheData: function(cacheObject) {
+    getTileCacheData(cacheObject) {
         $.console.error("[TileSource.getTileCacheData] has been deprecated. Use cache API of a tile instead.");
         return cacheObject.getDataAs(undefined, false);
-    },
+    }
 
     /**
      * Compatibility image element getter
@@ -1001,10 +995,10 @@ TileSource.prototype = {
      *  @returns {Image} cache data as an Image
      *  @deprecated
      */
-    getTileCacheDataAsImage: function(cacheObject) {
+    getTileCacheDataAsImage(cacheObject) {
         $.console.error("[TileSource.getTileCacheDataAsImage] has been deprecated. Use cache API of a tile instead.");
         return cacheObject.getImage();
-    },
+    }
 
     /**
      * Compatibility context 2D getter
@@ -1015,14 +1009,11 @@ TileSource.prototype = {
      * @returns {CanvasRenderingContext2D} context of the canvas representation of the cache data
      * @deprecated
      */
-    getTileCacheDataAsContext2D: function(cacheObject) {
+    getTileCacheDataAsContext2D(cacheObject) {
         $.console.error("[TileSource.getTileCacheDataAsContext2D] has been deprecated. Use cache API of a tile instead.");
         return cacheObject.getRenderedContext();
     }
-};
-
-
-$.extend( true, TileSource.prototype, EventSource.prototype );
+}
 
 
 /**

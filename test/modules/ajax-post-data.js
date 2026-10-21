@@ -28,7 +28,7 @@
 
     let viewer = null;
     let DONE = false;
-    const OriginalLoader = OpenSeadragon.ImageLoader;
+    const originalAddJob = OpenSeadragon.ImageLoader.prototype.addJob;
     const OriginalAjax = OpenSeadragon.makeAjaxRequest;
 
     const closeViewer = function() {
@@ -43,13 +43,15 @@
             $("#qunit-fixture").html("<div id='example'></div>");
 
             //Substitute OSD parts so that it reports what it is doing
-            OpenSeadragon.PostTestTileSource = function( options ) {
-                //double test, actually received from configure(...)
-                testPostData(options.postData, "TileSource::constructor");
-                OpenSeadragon.TileSource.apply( this, [ options ] );
+            OpenSeadragon.PostTestTileSource = class extends OpenSeadragon.TileSource {
+                constructor( options ) {
+                    //double test, actually received from configure(...)
+                    testPostData(options.postData, "TileSource::constructor");
+                    super( options );
+                }
             };
 
-            OpenSeadragon.extend( OpenSeadragon.PostTestTileSource.prototype, OpenSeadragon.TileSource.prototype, {
+            OpenSeadragon.extend( OpenSeadragon.PostTestTileSource.prototype, {
                 supports: function( data, url ){
                     return url.indexOf('.post') !== -1;
                 },
@@ -90,26 +92,19 @@
                 },
             });
 
-            const Loader = function(options) {
-                OriginalLoader.apply(this, [options]);
-            };
+            OpenSeadragon.ImageLoader.prototype.addJob = function(options) {
+                testUrl(options.src, "ImageJob::addJob");
+                testPostData(options.postData, "ImageJob::addJob");
 
-            OpenSeadragon.extend( Loader.prototype, OpenSeadragon.ImageLoader.prototype, {
-                addJob: function(options) {
-                    testUrl(options.src, "ImageJob::addJob");
-                    testPostData(options.postData, "ImageJob::addJob");
-
-                    if (viewer.loadTilesWithAjax) {
-                        OriginalLoader.prototype.addJob.apply(this, [options]);
-                    } else {
-                        //no ajax means we would wait for invalid image link to load, close - passed
-                        setTimeout(() => {
-                            viewer.close();
-                        });
-                    }
+                if (viewer.loadTilesWithAjax) {
+                    originalAddJob.apply(this, [options]);
+                } else {
+                    //no ajax means we would wait for invalid image link to load, close - passed
+                    setTimeout(() => {
+                        viewer.close();
+                    });
                 }
-            });
-            OpenSeadragon.ImageLoader = Loader;
+            };
 
             let ajaxCounter = 0;
             OpenSeadragon.makeAjaxRequest = function( url, onSuccess, onError ) {
@@ -167,7 +162,7 @@
             ASSERT = null;
             viewer = null;
 
-            OpenSeadragon.ImageLoader = OriginalLoader;
+            OpenSeadragon.ImageLoader.prototype.addJob = originalAddJob;
             OpenSeadragon.makeAjaxRequest = OriginalAjax;
             OpenSeadragon.PostTestTileSource = null;
         }

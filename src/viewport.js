@@ -33,8 +33,6 @@
  */
 
 
-
-
 import $ from "./openseadragon.js";
 import { Point } from "./point.js";
 import { Rect } from "./rectangle.js";
@@ -61,120 +59,118 @@ import { Spring } from "./spring.js";
  * @param {Boolean} [options.homeFillsViewer] - See homeFillsViewer in {@link OpenSeadragon.Options}.
  * @param {Boolean} [options.silenceMultiImageWarnings] - See silenceMultiImageWarnings in {@link OpenSeadragon.Options}.
  */
-function Viewport( options ) {
+class Viewport {
+    constructor(options) {
 
-    //backward compatibility for positional args while preferring more
-    //idiomatic javascript options object as the only argument
-    const args = arguments;
-    if (args.length && args[0] instanceof Point) {
-        options = {
-            containerSize:  args[0],
-            contentSize:    args[1],
-            config:         args[2]
-        };
+        //backward compatibility for positional args while preferring more
+        //idiomatic javascript options object as the only argument
+        const args = arguments;
+        if (args.length && args[0] instanceof Point) {
+            options = {
+                containerSize:  args[0],
+                contentSize:    args[1],
+                config:         args[2]
+            };
+        }
+
+        //options.config and the general config argument are deprecated
+        //in favor of the more direct specification of optional settings
+        //being passed directly on the options object
+        if ( options.config ){
+            $.extend( true, options, options.config );
+            delete options.config;
+        }
+
+        this._margins = $.extend({
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0
+        }, options.margins || {});
+
+        delete options.margins;
+
+        options.initialDegrees = options.degrees;
+        delete options.degrees;
+
+        $.extend( true, this, {
+
+            //required settings
+            containerSize:      null,
+            contentSize:        null,
+
+            //internal state properties
+            zoomPoint:          null,
+            rotationPivot:      null,
+            viewer:             null,
+
+            //configurable options
+            springStiffness:            $.DEFAULT_SETTINGS.springStiffness,
+            animationTime:              $.DEFAULT_SETTINGS.animationTime,
+            minZoomImageRatio:          $.DEFAULT_SETTINGS.minZoomImageRatio,
+            maxZoomPixelRatio:          $.DEFAULT_SETTINGS.maxZoomPixelRatio,
+            visibilityRatio:            $.DEFAULT_SETTINGS.visibilityRatio,
+            wrapHorizontal:             $.DEFAULT_SETTINGS.wrapHorizontal,
+            wrapVertical:               $.DEFAULT_SETTINGS.wrapVertical,
+            defaultZoomLevel:           $.DEFAULT_SETTINGS.defaultZoomLevel,
+            minZoomLevel:               $.DEFAULT_SETTINGS.minZoomLevel,
+            maxZoomLevel:               $.DEFAULT_SETTINGS.maxZoomLevel,
+            initialDegrees:             $.DEFAULT_SETTINGS.degrees,
+            flipped:                    $.DEFAULT_SETTINGS.flipped,
+            homeFillsViewer:            $.DEFAULT_SETTINGS.homeFillsViewer,
+            silenceMultiImageWarnings:  $.DEFAULT_SETTINGS.silenceMultiImageWarnings
+
+        }, options );
+
+        this._updateContainerInnerSize();
+
+        this.centerSpringX = new Spring({
+            initial: 0,
+            springStiffness: this.springStiffness,
+            animationTime:   this.animationTime
+        });
+        this.centerSpringY = new Spring({
+            initial: 0,
+            springStiffness: this.springStiffness,
+            animationTime:   this.animationTime
+        });
+        this.zoomSpring    = new Spring({
+            exponential: true,
+            initial: 1,
+            springStiffness: this.springStiffness,
+            animationTime:   this.animationTime
+        });
+
+        this.degreesSpring = new Spring({
+            initial: options.initialDegrees,
+            springStiffness: this.springStiffness,
+            animationTime: this.animationTime
+        });
+
+        this._oldCenterX = this.centerSpringX.current.value;
+        this._oldCenterY = this.centerSpringY.current.value;
+        this._oldZoom    = this.zoomSpring.current.value;
+        this._oldDegrees = this.degreesSpring.current.value;
+
+        this._sizeChanged = false;
+
+        this._setContentBounds(new Rect(0, 0, 1, 1), 1);
+
+        this.goHome(true);
+        this.update();
     }
-
-    //options.config and the general config argument are deprecated
-    //in favor of the more direct specification of optional settings
-    //being passed directly on the options object
-    if ( options.config ){
-        $.extend( true, options, options.config );
-        delete options.config;
-    }
-
-    this._margins = $.extend({
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0
-    }, options.margins || {});
-
-    delete options.margins;
-
-    options.initialDegrees = options.degrees;
-    delete options.degrees;
-
-    $.extend( true, this, {
-
-        //required settings
-        containerSize:      null,
-        contentSize:        null,
-
-        //internal state properties
-        zoomPoint:          null,
-        rotationPivot:      null,
-        viewer:             null,
-
-        //configurable options
-        springStiffness:            $.DEFAULT_SETTINGS.springStiffness,
-        animationTime:              $.DEFAULT_SETTINGS.animationTime,
-        minZoomImageRatio:          $.DEFAULT_SETTINGS.minZoomImageRatio,
-        maxZoomPixelRatio:          $.DEFAULT_SETTINGS.maxZoomPixelRatio,
-        visibilityRatio:            $.DEFAULT_SETTINGS.visibilityRatio,
-        wrapHorizontal:             $.DEFAULT_SETTINGS.wrapHorizontal,
-        wrapVertical:               $.DEFAULT_SETTINGS.wrapVertical,
-        defaultZoomLevel:           $.DEFAULT_SETTINGS.defaultZoomLevel,
-        minZoomLevel:               $.DEFAULT_SETTINGS.minZoomLevel,
-        maxZoomLevel:               $.DEFAULT_SETTINGS.maxZoomLevel,
-        initialDegrees:             $.DEFAULT_SETTINGS.degrees,
-        flipped:                    $.DEFAULT_SETTINGS.flipped,
-        homeFillsViewer:            $.DEFAULT_SETTINGS.homeFillsViewer,
-        silenceMultiImageWarnings:  $.DEFAULT_SETTINGS.silenceMultiImageWarnings
-
-    }, options );
-
-    this._updateContainerInnerSize();
-
-    this.centerSpringX = new Spring({
-        initial: 0,
-        springStiffness: this.springStiffness,
-        animationTime:   this.animationTime
-    });
-    this.centerSpringY = new Spring({
-        initial: 0,
-        springStiffness: this.springStiffness,
-        animationTime:   this.animationTime
-    });
-    this.zoomSpring    = new Spring({
-        exponential: true,
-        initial: 1,
-        springStiffness: this.springStiffness,
-        animationTime:   this.animationTime
-    });
-
-    this.degreesSpring = new Spring({
-        initial: options.initialDegrees,
-        springStiffness: this.springStiffness,
-        animationTime: this.animationTime
-    });
-
-    this._oldCenterX = this.centerSpringX.current.value;
-    this._oldCenterY = this.centerSpringY.current.value;
-    this._oldZoom    = this.zoomSpring.current.value;
-    this._oldDegrees = this.degreesSpring.current.value;
-
-    this._sizeChanged = false;
-
-    this._setContentBounds(new Rect(0, 0, 1, 1), 1);
-
-    this.goHome(true);
-    this.update();
-}
-
-/** @lends OpenSeadragon.Viewport.prototype */
-Viewport.prototype = {
 
     // deprecated
-    get degrees () {
+    get degrees() {
         $.console.warn('Accessing [Viewport.degrees] is deprecated. Use viewport.getRotation instead.');
         return this.getRotation();
-    },
+    }
 
     // deprecated
-    set degrees (degrees) {
+    set degrees(degrees) {
         $.console.warn('Setting [Viewport.degrees] is deprecated. Use viewport.rotateTo, viewport.rotateBy, or viewport.setRotation instead.');
         this.rotateTo(degrees);
-    },
+    }
 
     /**
      * Updates the viewport's home bounds and constraints for the given content size.
@@ -183,7 +179,7 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:reset-size
      */
-    resetContentSize: function(contentSize) {
+    resetContentSize(contentSize) {
         $.console.assert(contentSize, "[Viewport.resetContentSize] contentSize is required");
         $.console.assert(contentSize instanceof Point, "[Viewport.resetContentSize] contentSize must be an OpenSeadragon.Point");
         $.console.assert(contentSize.x > 0, "[Viewport.resetContentSize] contentSize.x must be greater than 0");
@@ -191,13 +187,13 @@ Viewport.prototype = {
 
         this._setContentBounds(new Rect(0, 0, 1, contentSize.y / contentSize.x), contentSize.x);
         return this;
-    },
+    }
 
     // deprecated
-    setHomeBounds: function(bounds, contentFactor) {
+    setHomeBounds(bounds, contentFactor) {
         $.console.error("[Viewport.setHomeBounds] this function is deprecated; The content bounds should not be set manually.");
         this._setContentBounds(bounds, contentFactor);
-    },
+    }
 
     // Set the viewport's content bounds
     // @param {OpenSeadragon.Rect} bounds - the new bounds in viewport coordinates
@@ -205,7 +201,7 @@ Viewport.prototype = {
     // @param {Number} contentFactor - how many content units per viewport unit
     // @fires OpenSeadragon.Viewer.event:reset-size
     // @private
-    _setContentBounds: function(bounds, contentFactor) {
+    _setContentBounds(bounds, contentFactor) {
         $.console.assert(bounds, "[Viewport._setContentBounds] bounds is required");
         $.console.assert(bounds instanceof Rect, "[Viewport._setContentBounds] bounds must be an OpenSeadragon.Rect");
         $.console.assert(bounds.width > 0, "[Viewport._setContentBounds] bounds.width must be greater than 0");
@@ -242,14 +238,14 @@ Viewport.prototype = {
                 contentBounds: this._contentBounds.clone()
             });
         }
-    },
+    }
 
     /**
      * Returns the home zoom in "viewport zoom" value.
      * @function
      * @returns {Number} The home zoom in "viewport zoom".
      */
-    getHomeZoom: function() {
+    getHomeZoom() {
         if (this.defaultZoomLevel) {
             return this.defaultZoomLevel;
         }
@@ -263,16 +259,16 @@ Viewport.prototype = {
         }
 
         return output / this._contentBounds.width;
-    },
+    }
 
     /**
      * Returns the home bounds in viewport coordinates.
      * @function
      * @returns {OpenSeadragon.Rect} The home bounds in vewport coordinates.
      */
-    getHomeBounds: function() {
+    getHomeBounds() {
         return this.getHomeBoundsNoRotate().rotate(-this.getRotation());
-    },
+    }
 
     /**
      * Returns the home bounds in viewport coordinates.
@@ -281,7 +277,7 @@ Viewport.prototype = {
      * @function
      * @returns {OpenSeadragon.Rect} The home bounds in vewport coordinates.
      */
-    getHomeBoundsNoRotate: function() {
+    getHomeBoundsNoRotate() {
         const center = this._contentBounds.getCenter();
         const width  = 1.0 / this.getHomeZoom();
         const height = width / this.getAspectRatio();
@@ -292,14 +288,14 @@ Viewport.prototype = {
             width,
             height
         );
-    },
+    }
 
     /**
      * @function
      * @param {Boolean} immediately
      * @fires OpenSeadragon.Viewer.event:home
      */
-    goHome: function(immediately) {
+    goHome(immediately) {
         if (this.viewer) {
             /**
              * Raised when the "home" operation occurs (see {@link OpenSeadragon.Viewport#goHome}).
@@ -316,24 +312,24 @@ Viewport.prototype = {
             });
         }
         return this.fitBounds(this.getHomeBounds(), immediately);
-    },
+    }
 
     /**
      * @function
      */
-    getMinZoom: function() {
+    getMinZoom() {
         const homeZoom = this.getHomeZoom();
         const zoom = this.minZoomLevel ?
             this.minZoomLevel :
                 this.minZoomImageRatio * homeZoom;
 
         return zoom;
-    },
+    }
 
     /**
      * @function
      */
-    getMaxZoom: function() {
+    getMaxZoom() {
         let zoom = this.maxZoomLevel;
         if (!zoom) {
             zoom = this._contentSize.x * this.maxZoomPixelRatio / this._containerInnerSize.x;
@@ -341,41 +337,41 @@ Viewport.prototype = {
         }
 
         return Math.max( zoom, this.getHomeZoom() );
-    },
+    }
 
     /**
      * @function
      */
-    getAspectRatio: function() {
+    getAspectRatio() {
         return this._containerInnerSize.x / this._containerInnerSize.y;
-    },
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.Point} The size of the container, in screen coordinates.
      */
-    getContainerSize: function() {
+    getContainerSize() {
         return new Point(
             this.containerSize.x,
             this.containerSize.y
         );
-    },
+    }
 
     /**
      * The margins push the "home" region in from the sides by the specified amounts.
      * @function
      * @returns {Object} Properties (Numbers, in screen coordinates): left, top, right, bottom.
      */
-    getMargins: function() {
+    getMargins() {
         return $.extend({}, this._margins); // Make a copy so we are not returning our original
-    },
+    }
 
     /**
      * The margins push the "home" region in from the sides by the specified amounts.
      * @function
      * @param {Object} margins - Properties (Numbers, in screen coordinates): left, top, right, bottom.
      */
-    setMargins: function(margins) {
+    setMargins(margins) {
         $.console.assert($.type(margins) === 'object', '[Viewport.setMargins] margins must be an object');
 
         this._margins = $.extend({
@@ -390,7 +386,7 @@ Viewport.prototype = {
             this.viewer.forceRedraw();
             this.viewer._updateZoomButtons();
         }
-    },
+    }
 
     /**
      * Returns the bounds of the visible area in viewport coordinates.
@@ -398,9 +394,9 @@ Viewport.prototype = {
      * @param {Boolean} current - Pass true for the current location; defaults to false (target location).
      * @returns {OpenSeadragon.Rect} The location you are zoomed/panned to, in viewport coordinates.
      */
-    getBounds: function(current) {
+    getBounds(current) {
         return this.getBoundsNoRotate(current).rotate(-this.getRotation(current));
-    },
+    }
 
     /**
      * Returns the bounds of the visible area in viewport coordinates.
@@ -410,7 +406,7 @@ Viewport.prototype = {
      * @param {Boolean} current - Pass true for the current location; defaults to false (target location).
      * @returns {OpenSeadragon.Rect} The location you are zoomed/panned to, in viewport coordinates.
      */
-    getBoundsNoRotate: function(current) {
+    getBoundsNoRotate(current) {
         const center = this.getCenter(current);
         const width  = 1.0 / this.getZoom(current);
         const height = width / this.getAspectRatio();
@@ -421,7 +417,7 @@ Viewport.prototype = {
             width,
             height
         );
-    },
+    }
 
     /**
      * @function
@@ -429,10 +425,10 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Rect} The location you are zoomed/panned to,
      * including the space taken by margins, in viewport coordinates.
      */
-    getBoundsWithMargins: function(current) {
+    getBoundsWithMargins(current) {
         return this.getBoundsNoRotateWithMargins(current).rotate(
             -this.getRotation(current), this.getCenter(current));
-    },
+    }
 
     /**
      * @function
@@ -440,7 +436,7 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Rect} The location you are zoomed/panned to,
      * including the space taken by margins, in viewport coordinates.
      */
-    getBoundsNoRotateWithMargins: function(current) {
+    getBoundsNoRotateWithMargins(current) {
         const bounds = this.getBoundsNoRotate(current);
         const factor = this._containerInnerSize.x * this.getZoom(current);
         bounds.x -= this._margins.left / factor;
@@ -448,13 +444,13 @@ Viewport.prototype = {
         bounds.width += (this._margins.left + this._margins.right) / factor;
         bounds.height += (this._margins.top + this._margins.bottom) / factor;
         return bounds;
-    },
+    }
 
     /**
      * @function
      * @param {Boolean} current - Pass true for the current location; defaults to false (target location).
      */
-    getCenter: function( current ) {
+    getCenter(current) {
         const centerCurrent = new Point(
                 this.centerSpringX.current.value,
                 this.centerSpringY.current.value
@@ -487,26 +483,26 @@ Viewport.prototype = {
         const deltaZoomPoints = deltaZoomPixels.divide( this._containerInnerSize.x * zoom );
 
         return centerTarget.plus( deltaZoomPoints );
-    },
+    }
 
     /**
      * @function
      * @param {Boolean} current - Pass true for the current location; defaults to false (target location).
      */
-    getZoom: function( current ) {
+    getZoom(current) {
         if ( current ) {
             return this.zoomSpring.current.value;
         } else {
             return this.zoomSpring.target.value;
         }
-    },
+    }
 
     // private
-    _applyZoomConstraints: function(zoom) {
+    _applyZoomConstraints(zoom) {
         return Math.max(
             Math.min(zoom, this.getMaxZoom()),
             this.getMinZoom());
-    },
+    }
 
     /**
      * @function
@@ -514,7 +510,7 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Rect} bounds
      * @returns {OpenSeadragon.Rect} constrained bounds.
      */
-    _applyBoundaryConstraints: function(bounds) {
+    _applyBoundaryConstraints(bounds) {
         const newBounds = this.viewportToViewerElementRectangle(bounds).getBoundingBox();
         const cb = this.viewportToViewerElementRectangle(this._contentBoundsNoRotate).getBoundingBox();
 
@@ -584,7 +580,7 @@ Viewport.prototype = {
         newViewportBounds.constraintApplied = constraintApplied;
 
         return newViewportBounds;
-    },
+    }
 
     /**
      * @function
@@ -592,7 +588,7 @@ Viewport.prototype = {
      * @param {Boolean} [immediately=false] - whether the function that triggered this event was
      * called with the "immediately" flag
      */
-    _raiseConstraintsEvent: function(immediately) {
+    _raiseConstraintsEvent(immediately) {
         if (this.viewer) {
             /**
              * Raised when the viewport constraints are applied (see {@link OpenSeadragon.Viewport#applyConstraints}).
@@ -609,7 +605,7 @@ Viewport.prototype = {
                 immediately: immediately
             });
         }
-    },
+    }
 
     /**
      * Enforces the minZoom, maxZoom and visibilityRatio constraints by
@@ -619,7 +615,7 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:constrain if constraints were applied
      */
-    applyConstraints: function(immediately) {
+    applyConstraints(immediately) {
         const actualZoom = this.getZoom();
         const constrainedZoom = this._applyZoomConstraints(actualZoom);
 
@@ -635,7 +631,7 @@ Viewport.prototype = {
         }
 
         return this;
-    },
+    }
 
     /**
      * Equivalent to {@link OpenSeadragon.Viewport#applyConstraints}
@@ -644,9 +640,9 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:constrain
      */
-    ensureVisible: function(immediately) {
+    ensureVisible(immediately) {
         return this.applyConstraints(immediately);
-    },
+    }
 
     /**
      * @function
@@ -655,7 +651,7 @@ Viewport.prototype = {
      * @param {Object} options (immediately=false, constraints=false)
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    _fitBounds: function(bounds, options) {
+    _fitBounds(bounds, options) {
         options = options || {};
         const immediately = options.immediately || false;
         const constraints = options.constraints || false;
@@ -730,7 +726,7 @@ Viewport.prototype = {
             this.zoomTo(newZoom, referencePoint, immediately);
         }
         return this;
-    },
+    }
 
     /**
      * Makes the viewport zoom and pan so that the specified bounds take
@@ -744,12 +740,12 @@ Viewport.prototype = {
      * @param {Boolean} [immediately=false]
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    fitBounds: function(bounds, immediately) {
+    fitBounds(bounds, immediately) {
         return this._fitBounds(bounds, {
             immediately: immediately,
             constraints: false
         });
-    },
+    }
 
     /**
      * Makes the viewport zoom and pan so that the specified bounds take
@@ -763,41 +759,40 @@ Viewport.prototype = {
      * @param {Boolean} [immediately=false]
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    fitBoundsWithConstraints: function(bounds, immediately) {
+    fitBoundsWithConstraints(bounds, immediately) {
         return this._fitBounds(bounds, {
             immediately: immediately,
             constraints: true
         });
-    },
+    }
 
     /**
      * Zooms so the image just fills the viewer vertically.
      * @param {Boolean} immediately
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    fitVertically: function(immediately) {
+    fitVertically(immediately) {
         const box = new Rect(
             this._contentBounds.x + (this._contentBounds.width / 2),
             this._contentBounds.y,
             0,
             this._contentBounds.height);
         return this.fitBounds(box, immediately);
-    },
+    }
 
     /**
      * Zooms so the image just fills the viewer horizontally.
      * @param {Boolean} immediately
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    fitHorizontally: function(immediately) {
+    fitHorizontally(immediately) {
         const box = new Rect(
             this._contentBounds.x,
             this._contentBounds.y + (this._contentBounds.height / 2),
             this._contentBounds.width,
             0);
         return this.fitBounds(box, immediately);
-    },
-
+    }
 
     /**
      * Returns bounds taking constraints into account
@@ -808,12 +803,12 @@ Viewport.prototype = {
      *                               These flags indicate whether the viewport bounds were modified by the constraints
      *                               of the viewer rectangle, and in which dimension(s).
      */
-    getConstrainedBounds: function(current) {
+    getConstrainedBounds(current) {
         const bounds = this.getBounds(current);
         const constrainedBounds = this._applyBoundaryConstraints(bounds);
 
         return constrainedBounds;
-    },
+    }
 
     /**
      * @function
@@ -822,7 +817,7 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:pan
      */
-    panBy: function( delta, immediately ) {
+    panBy(delta, immediately) {
         const center = new Point();
         if (immediately) {
             center.x = this.centerSpringX.current.value;
@@ -832,7 +827,7 @@ Viewport.prototype = {
             center.y = this.centerSpringY.target.value;
         }
         return this.panTo( center.plus( delta ), immediately );
-    },
+    }
 
     /**
      * @function
@@ -841,7 +836,7 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:pan
      */
-    panTo: function( center, immediately ) {
+    panTo(center, immediately) {
         if ( immediately ) {
             this.centerSpringX.resetTo( center.x );
             this.centerSpringY.resetTo( center.y );
@@ -869,17 +864,17 @@ Viewport.prototype = {
         }
 
         return this;
-    },
+    }
 
     /**
      * @function
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:zoom
      */
-    zoomBy: function(factor, refPoint, immediately) {
+    zoomBy(factor, refPoint, immediately) {
         return this.zoomTo(
             this.zoomSpring.target.value * factor, refPoint, immediately);
-    },
+    }
 
     /**
      * Zooms to the specified zoom level
@@ -891,7 +886,7 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:zoom
      */
-    zoomTo: function(zoom, refPoint, immediately) {
+    zoomTo(zoom, refPoint, immediately) {
         const _this = this;
 
         this.zoomPoint = refPoint instanceof Point &&
@@ -929,7 +924,7 @@ Viewport.prototype = {
         }
 
         return this;
-    },
+    }
 
     /**
      * Rotates this viewport to the angle specified.
@@ -939,9 +934,9 @@ Viewport.prototype = {
      * or rotate immediately.
      * * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    setRotation: function(degrees, immediately) {
+    setRotation(degrees, immediately) {
         return this.rotateTo(degrees, null, immediately);
-    },
+    }
 
     /**
      * Gets the current rotation in degrees.
@@ -949,11 +944,11 @@ Viewport.prototype = {
      * @param {Boolean} [current=false] True for current rotation, false for target.
      * @returns {Number} The current rotation in degrees.
      */
-    getRotation: function(current) {
+    getRotation(current) {
         return current ?
             this.degreesSpring.current.value :
             this.degreesSpring.target.value;
-    },
+    }
 
     /**
      * Rotates this viewport to the angle specified around a pivot point. Alias for rotateTo.
@@ -965,9 +960,9 @@ Viewport.prototype = {
      * or rotate immediately.
      * * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    setRotationWithPivot: function(degrees, pivot, immediately) {
+    setRotationWithPivot(degrees, pivot, immediately) {
         return this.rotateTo(degrees, pivot, immediately);
-    },
+    }
 
     /**
      * Rotates this viewport to the angle specified.
@@ -979,7 +974,7 @@ Viewport.prototype = {
      * or rotate immediately.
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    rotateTo: function(degrees, pivot, immediately){
+    rotateTo(degrees, pivot, immediately) {
         if (!this.viewer || !this.viewer.drawer.canRotate()) {
             return this;
         }
@@ -1038,7 +1033,7 @@ Viewport.prototype = {
          */
         this.viewer.raiseEvent('rotate', {degrees: degrees, immediately: !!immediately, pivot: this.rotationPivot || this.getCenter()});
         return this;
-    },
+    }
 
     /**
      * Rotates this viewport by the angle specified.
@@ -1049,9 +1044,9 @@ Viewport.prototype = {
      * around which the rotation should be performed. Defaults to the center of the viewport.
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    rotateBy: function(degrees, pivot, immediately){
+    rotateBy(degrees, pivot, immediately) {
         return this.rotateTo(this.degreesSpring.target.value + degrees, pivot, immediately);
-    },
+    }
 
     /**
      * @function
@@ -1060,7 +1055,7 @@ Viewport.prototype = {
      * @returns {OpenSeadragon.Viewport} Chainable.
      * @fires OpenSeadragon.Viewer.event:resize
      */
-    resize: function( newContainerSize = undefined, maintain = false ) {
+    resize(newContainerSize = undefined, maintain = false) {
         if (!newContainerSize) {
             if (!this.viewer) {
                 $.console.warn('[Viewport::resize] needs newContainerSize argument when the viewport.viewer reference is not defined!');
@@ -1130,22 +1125,22 @@ Viewport.prototype = {
         }
 
         return output;
-    },
+    }
 
     // private
-    _updateContainerInnerSize: function() {
+    _updateContainerInnerSize() {
         this._containerInnerSize = new Point(
             Math.max(1, this.containerSize.x - (this._margins.left + this._margins.right)),
             Math.max(1, this.containerSize.y - (this._margins.top + this._margins.bottom))
         );
-    },
+    }
 
     /**
      * Update the zoom, degrees, and center (X and Y) springs.
      * @function
      * @returns {Boolean} True if the viewport is still animating, false otherwise.
      */
-    update: function() {
+    update() {
         const _this = this;
         this._adjustCenterSpringsForZoomPoint(function() {
             _this.zoomSpring.update();
@@ -1185,10 +1180,10 @@ Viewport.prototype = {
                           !this.degreesSpring.isAtTargetValue();
 
         return isAnimating;
-    },
+    }
 
     // private - pass true to use spring, or a number for degrees for immediate rotation
-    _rotateAboutPivot: function(degreesOrUseSpring){
+    _rotateAboutPivot(degreesOrUseSpring) {
         const useSpring = degreesOrUseSpring === true;
 
         const delta = this.rotationPivot.minus(this.getCenter());
@@ -1205,10 +1200,10 @@ Viewport.prototype = {
         const rdelta = delta.rotate(changeInDegrees * -1).times(-1);
         this.centerSpringX.shiftBy(rdelta.x);
         this.centerSpringY.shiftBy(rdelta.y);
-    },
+    }
 
     // private
-    _adjustCenterSpringsForZoomPoint: function(zoomSpringHandler) {
+    _adjustCenterSpringsForZoomPoint(zoomSpringHandler) {
         if (this.zoomPoint) {
             const oldZoomPixel = this.pixelFromPoint(this.zoomPoint, true);
             zoomSpringHandler();
@@ -1227,7 +1222,7 @@ Viewport.prototype = {
         } else {
             zoomSpringHandler();
         }
-    },
+    }
 
     /**
      * Convert a delta (translation vector) from viewport coordinates to pixels
@@ -1238,11 +1233,11 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    deltaPixelsFromPointsNoRotate: function(deltaPoints, current) {
+    deltaPixelsFromPointsNoRotate(deltaPoints, current) {
         return deltaPoints.times(
             this._containerInnerSize.x * this.getZoom(current)
         );
-    },
+    }
 
     /**
      * Convert a delta (translation vector) from viewport coordinates to pixels
@@ -1252,11 +1247,11 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    deltaPixelsFromPoints: function(deltaPoints, current) {
+    deltaPixelsFromPoints(deltaPoints, current) {
         return this.deltaPixelsFromPointsNoRotate(
             deltaPoints.rotate(this.getRotation(current)),
             current);
-    },
+    }
 
     /**
      * Convert a delta (translation vector) from pixels coordinates to viewport
@@ -1267,11 +1262,11 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    deltaPointsFromPixelsNoRotate: function(deltaPixels, current) {
+    deltaPointsFromPixelsNoRotate(deltaPixels, current) {
         return deltaPixels.divide(
             this._containerInnerSize.x * this.getZoom(current)
         );
-    },
+    }
 
     /**
      * Convert a delta (translation vector) from pixels coordinates to viewport
@@ -1281,10 +1276,10 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    deltaPointsFromPixels: function(deltaPixels, current) {
+    deltaPointsFromPixels(deltaPixels, current) {
         return this.deltaPointsFromPixelsNoRotate(deltaPixels, current)
             .rotate(-this.getRotation(current));
-    },
+    }
 
     /**
      * Convert viewport coordinates to pixels coordinates.
@@ -1295,10 +1290,10 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    pixelFromPointNoRotate: function(point, current) {
+    pixelFromPointNoRotate(point, current) {
         return this._pixelFromPointNoRotate(
             point, this.getBoundsNoRotate(current));
-    },
+    }
 
     /**
      * Convert viewport coordinates to pixel coordinates.
@@ -1307,12 +1302,12 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    pixelFromPoint: function(point, current) {
+    pixelFromPoint(point, current) {
         return this._pixelFromPoint(point, this.getBoundsNoRotate(current));
-    },
+    }
 
     // private
-    _pixelFromPointNoRotate: function(point, bounds) {
+    _pixelFromPointNoRotate(point, bounds) {
         return point.minus(
             bounds.getTopLeft()
         ).times(
@@ -1320,14 +1315,14 @@ Viewport.prototype = {
         ).plus(
             new Point(this._margins.left, this._margins.top)
         );
-    },
+    }
 
     // private
-    _pixelFromPoint: function(point, bounds) {
+    _pixelFromPoint(point, bounds) {
         return this._pixelFromPointNoRotate(
             point.rotate(this.getRotation(true), this.getCenter(true)),
             bounds);
-    },
+    }
 
     /**
      * Convert pixel coordinates to viewport coordinates.
@@ -1338,7 +1333,7 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    pointFromPixelNoRotate: function(pixel, current) {
+    pointFromPixelNoRotate(pixel, current) {
         const bounds = this.getBoundsNoRotate(current);
         return pixel.minus(
             new Point(this._margins.left, this._margins.top)
@@ -1347,7 +1342,7 @@ Viewport.prototype = {
         ).plus(
             bounds.getTopLeft()
         );
-    },
+    }
 
     /**
      * Convert pixel coordinates to viewport coordinates.
@@ -1356,20 +1351,20 @@ Viewport.prototype = {
      * defaults to false (target location).
      * @returns {OpenSeadragon.Point}
      */
-    pointFromPixel: function(pixel, current) {
+    pointFromPixel(pixel, current) {
         return this.pointFromPixelNoRotate(pixel, current).rotate(
             -this.getRotation(current),
             this.getCenter(current)
         );
-    },
+    }
 
     // private
-    _viewportToImageDelta: function( viewerX, viewerY ) {
+    _viewportToImageDelta(viewerX, viewerY) {
         const scale = this._contentBoundsNoRotate.width;
         return new Point(
             viewerX * this._contentSizeNoRotate.x / scale,
             viewerY * this._contentSizeNoRotate.x / scale);
-    },
+    }
 
     /**
      * Translates from OpenSeadragon viewer coordinate system to image coordinate system.
@@ -1382,7 +1377,7 @@ Viewport.prototype = {
      * @param {Number} [viewerY] Y coordinate in viewport coordinate system.
      * @returns {OpenSeadragon.Point} a point representing the coordinates in the image.
      */
-    viewportToImageCoordinates: function(viewerX, viewerY) {
+    viewportToImageCoordinates(viewerX, viewerY) {
         if (viewerX instanceof Point) {
             //they passed a point instead of individual components
             return this.viewportToImageCoordinates(viewerX.x, viewerX.y);
@@ -1407,15 +1402,15 @@ Viewport.prototype = {
         return this._viewportToImageDelta(
             viewerX - this._contentBoundsNoRotate.x,
             viewerY - this._contentBoundsNoRotate.y);
-    },
+    }
 
     // private
-    _imageToViewportDelta: function( imageX, imageY ) {
+    _imageToViewportDelta(imageX, imageY) {
         const scale = this._contentBoundsNoRotate.width;
         return new Point(
             imageX / this._contentSizeNoRotate.x * scale,
             imageY / this._contentSizeNoRotate.x * scale);
-    },
+    }
 
     /**
      * Translates from image coordinate system to OpenSeadragon viewer coordinate system
@@ -1428,7 +1423,7 @@ Viewport.prototype = {
      * @param {Number} [imageY] Y coordinate in image coordinate system.
      * @returns {OpenSeadragon.Point} a point representing the coordinates in the viewport.
      */
-    imageToViewportCoordinates: function(imageX, imageY) {
+    imageToViewportCoordinates(imageX, imageY) {
         if (imageX instanceof Point) {
             //they passed a point instead of individual components
             return this.imageToViewportCoordinates(imageX.x, imageX.y);
@@ -1454,7 +1449,7 @@ Viewport.prototype = {
         point.x += this._contentBoundsNoRotate.x;
         point.y += this._contentBoundsNoRotate.y;
         return point;
-    },
+    }
 
     /**
      * Translates from a rectangle which describes a portion of the image in
@@ -1471,7 +1466,7 @@ Viewport.prototype = {
      * @param {Number} [pixelHeight] the height in pixel of the rectangle.
      * @returns {OpenSeadragon.Rect} This image's bounds in viewport coordinates
      */
-    imageToViewportRectangle: function(imageX, imageY, pixelWidth, pixelHeight) {
+    imageToViewportRectangle(imageX, imageY, pixelWidth, pixelHeight) {
         let rect = imageX;
         if (!(rect instanceof Rect)) {
             //they passed individual components instead of a rectangle
@@ -1504,7 +1499,7 @@ Viewport.prototype = {
             coordB.y,
             rect.degrees
         );
-    },
+    }
 
     /**
      * Translates from a rectangle which describes a portion of
@@ -1521,7 +1516,7 @@ Viewport.prototype = {
      * @param {Number} [pointWidth] the width of the rectangle in viewport coordinate system.
      * @param {Number} [pointHeight] the height of the rectangle in viewport coordinate system.
      */
-    viewportToImageRectangle: function(viewerX, viewerY, pointWidth, pointHeight) {
+    viewportToImageRectangle(viewerX, viewerY, pointWidth, pointHeight) {
         let rect = viewerX;
         if (!(rect instanceof Rect)) {
             //they passed individual components instead of a rectangle
@@ -1554,7 +1549,7 @@ Viewport.prototype = {
             coordB.y,
             rect.degrees
         );
-    },
+    }
 
     /**
      * Convert pixel coordinates relative to the viewer element to image
@@ -1563,10 +1558,10 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Point} pixel
      * @returns {OpenSeadragon.Point}
      */
-    viewerElementToImageCoordinates: function( pixel ) {
+    viewerElementToImageCoordinates(pixel) {
         const point = this.pointFromPixel( pixel, true );
         return this.viewportToImageCoordinates( point );
-    },
+    }
 
     /**
      * Convert pixel coordinates relative to the image to
@@ -1575,10 +1570,10 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Point} pixel
      * @returns {OpenSeadragon.Point}
      */
-    imageToViewerElementCoordinates: function( pixel ) {
+    imageToViewerElementCoordinates(pixel) {
         const point = this.imageToViewportCoordinates( pixel );
         return this.pixelFromPoint( point, true );
-    },
+    }
 
     /**
      * Convert pixel coordinates relative to the window to image coordinates.
@@ -1586,13 +1581,13 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Point} pixel
      * @returns {OpenSeadragon.Point}
      */
-    windowToImageCoordinates: function(pixel) {
+    windowToImageCoordinates(pixel) {
         $.console.assert(this.viewer,
             "[Viewport.windowToImageCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = pixel.minus(
                 $.getElementPosition(this.viewer.container));
         return this.viewerElementToImageCoordinates(viewerCoordinates);
-    },
+    }
 
     /**
      * Convert image coordinates to pixel coordinates relative to the window.
@@ -1600,13 +1595,13 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Point} pixel
      * @returns {OpenSeadragon.Point}
      */
-    imageToWindowCoordinates: function(pixel) {
+    imageToWindowCoordinates(pixel) {
         $.console.assert(this.viewer,
             "[Viewport.imageToWindowCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = this.imageToViewerElementCoordinates(pixel);
         return viewerCoordinates.plus(
                 $.getElementPosition(this.viewer.container));
-    },
+    }
 
     /**
      * Convert pixel coordinates relative to the viewer element to viewport
@@ -1614,9 +1609,9 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Point} pixel
      * @returns {OpenSeadragon.Point}
      */
-    viewerElementToViewportCoordinates: function( pixel ) {
+    viewerElementToViewportCoordinates(pixel) {
         return this.pointFromPixel( pixel, true );
-    },
+    }
 
     /**
      * Convert viewport coordinates to pixel coordinates relative to the
@@ -1624,9 +1619,9 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Point} point
      * @returns {OpenSeadragon.Point}
      */
-    viewportToViewerElementCoordinates: function( point ) {
+    viewportToViewerElementCoordinates(point) {
         return this.pixelFromPoint( point, true );
-    },
+    }
 
     /**
      * Convert a rectangle in pixel coordinates relative to the viewer element
@@ -1634,13 +1629,13 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Rect} rectangle the rectangle to convert
      * @returns {OpenSeadragon.Rect} the converted rectangle
      */
-    viewerElementToViewportRectangle: function(rectangle) {
+    viewerElementToViewportRectangle(rectangle) {
         return Rect.fromSummits(
             this.pointFromPixel(rectangle.getTopLeft(), true),
             this.pointFromPixel(rectangle.getTopRight(), true),
             this.pointFromPixel(rectangle.getBottomLeft(), true)
         );
-    },
+    }
 
     /**
      * Convert a rectangle in viewport coordinates to pixel coordinates relative
@@ -1648,39 +1643,39 @@ Viewport.prototype = {
      * @param {OpenSeadragon.Rect} rectangle the rectangle to convert
      * @returns {OpenSeadragon.Rect} the converted rectangle
      */
-    viewportToViewerElementRectangle: function(rectangle) {
+    viewportToViewerElementRectangle(rectangle) {
         return Rect.fromSummits(
             this.pixelFromPoint(rectangle.getTopLeft(), true),
             this.pixelFromPoint(rectangle.getTopRight(), true),
             this.pixelFromPoint(rectangle.getBottomLeft(), true)
         );
-    },
+    }
 
     /**
      * Convert pixel coordinates relative to the window to viewport coordinates.
      * @param {OpenSeadragon.Point} pixel
      * @returns {OpenSeadragon.Point}
      */
-    windowToViewportCoordinates: function(pixel) {
+    windowToViewportCoordinates(pixel) {
         $.console.assert(this.viewer,
             "[Viewport.windowToViewportCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = pixel.minus(
                 $.getElementPosition(this.viewer.container));
         return this.viewerElementToViewportCoordinates(viewerCoordinates);
-    },
+    }
 
     /**
      * Convert viewport coordinates to pixel coordinates relative to the window.
      * @param {OpenSeadragon.Point} point
      * @returns {OpenSeadragon.Point}
      */
-    viewportToWindowCoordinates: function(point) {
+    viewportToWindowCoordinates(point) {
         $.console.assert(this.viewer,
             "[Viewport.viewportToWindowCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = this.viewportToViewerElementCoordinates(point);
         return viewerCoordinates.plus(
                 $.getElementPosition(this.viewer.container));
-    },
+    }
 
     /**
      * Convert a viewport zoom to an image zoom.
@@ -1694,7 +1689,7 @@ Viewport.prototype = {
      * target zoom.
      * @returns {Number} imageZoom The image zoom
      */
-    viewportToImageZoom: function(viewportZoom) {
+    viewportToImageZoom(viewportZoom) {
         if (this.viewer) {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
@@ -1716,7 +1711,7 @@ Viewport.prototype = {
         const scale = this._contentBoundsNoRotate.width;
         const viewportToImageZoomRatio = (containerWidth / imageWidth) * scale;
         return viewportZoom * viewportToImageZoomRatio;
-    },
+    }
 
     /**
      * Convert an image zoom to a viewport zoom.
@@ -1730,7 +1725,7 @@ Viewport.prototype = {
      * target zoom.
      * @returns {Number} viewportZoom The viewport zoom
      */
-    imageToViewportZoom: function(imageZoom) {
+    imageToViewportZoom(imageZoom) {
         if (this.viewer) {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
@@ -1752,26 +1747,26 @@ Viewport.prototype = {
         const scale = this._contentBoundsNoRotate.width;
         const viewportToImageZoomRatio = (imageWidth / containerWidth) / scale;
         return imageZoom * viewportToImageZoomRatio;
-    },
+    }
 
     /**
      * Toggles flip state and demands a new drawing on navigator and viewer objects.
      * @function
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    toggleFlip: function() {
+    toggleFlip() {
       this.setFlip(!this.getFlip());
       return this;
-    },
+    }
 
     /**
      * Get flip state stored on viewport.
      * @function
      * @returns {Boolean} Flip state.
      */
-    getFlip: function() {
+    getFlip() {
       return this.flipped;
-    },
+    }
 
     /**
      * Sets flip state according to the state input argument.
@@ -1779,7 +1774,7 @@ Viewport.prototype = {
      * @param {Boolean} state - Flip state to set.
      * @returns {OpenSeadragon.Viewport} Chainable.
      */
-    setFlip: function( state ) {
+    setFlip(state) {
       if ( this.flipped === state ) {
         return this;
       }
@@ -1802,16 +1797,16 @@ Viewport.prototype = {
        */
       this.viewer.raiseEvent('flip', {flipped: state});
       return this;
-    },
+    }
 
     /**
      * Gets current max zoom pixel ratio
      * @function
      * @returns {Number} Max zoom pixel ratio
      */
-    getMaxZoomPixelRatio: function() {
+    getMaxZoomPixelRatio() {
         return this.maxZoomPixelRatio;
-    },
+    }
 
     /**
      * Sets max zoom pixel ratio
@@ -1821,7 +1816,7 @@ Viewport.prototype = {
      * Takes effect only if current zoom is greater than set max zoom pixel ratio
      * @param {Boolean} [immediately=false] - Whether to animate to new zoom
      */
-    setMaxZoomPixelRatio: function(ratio, applyConstraints = true, immediately = false) {
+    setMaxZoomPixelRatio(ratio, applyConstraints = true, immediately = false) {
 
         $.console.assert(!isNaN(ratio), "[Viewport.setMaxZoomPixelRatio] ratio must be a number");
 
@@ -1840,8 +1835,8 @@ Viewport.prototype = {
         if (this.viewer) {
             this.viewer._updateZoomButtons();
         }
-    },
+    }
+}
 
-};
 
 export { Viewport };

@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { DisplayRect } from "./displayrectangle.js";
 import { TileSource } from "./tilesource.js";
@@ -55,50 +54,45 @@ import { getString } from "./strings.js";
  * @property {String} fileFormat
  * @property {OpenSeadragon.DisplayRect[]} displayRects
  */
-function DziTileSource( width, height, tileSize, tileOverlap, tilesUrl, fileFormat, displayRects, minLevel, maxLevel ) {
-    let level;
-    let options;
+class DziTileSource extends TileSource {
+    constructor(width, height, tileSize, tileOverlap, tilesUrl, fileFormat, displayRects, minLevel, maxLevel) {
+        let level;
+        let options;
 
-    if( $.isPlainObject( width ) ){
-        options = width;
-    }else{
-        options = {
-            width: arguments[ 0 ],
-            height: arguments[ 1 ],
-            tileSize: arguments[ 2 ],
-            tileOverlap: arguments[ 3 ],
-            tilesUrl: arguments[ 4 ],
-            fileFormat: arguments[ 5 ],
-            displayRects: arguments[ 6 ],
-            minLevel: arguments[ 7 ],
-            maxLevel: arguments[ 8 ]
-        };
-    }
+        if( $.isPlainObject( width ) ){
+            options = width;
+        }else{
+            options = {
+                width: arguments[ 0 ],
+                height: arguments[ 1 ],
+                tileSize: arguments[ 2 ],
+                tileOverlap: arguments[ 3 ],
+                tilesUrl: arguments[ 4 ],
+                fileFormat: arguments[ 5 ],
+                displayRects: arguments[ 6 ],
+                minLevel: arguments[ 7 ],
+                maxLevel: arguments[ 8 ]
+            };
+        }
 
-    this._levelRects  = {};
-    this.tilesUrl     = options.tilesUrl;
-    this.fileFormat   = options.fileFormat;
-    this.displayRects = options.displayRects;
-    this.queryParams  = options.queryParams || "";
-
-    if ( this.displayRects ) {
-        for ( let i = this.displayRects.length - 1; i >= 0; i-- ) {
-            const rect = this.displayRects[ i ];
-            for ( level = rect.minLevel; level <= rect.maxLevel; level++ ) {
-                if ( !this._levelRects[ level ] ) {
-                    this._levelRects[ level ] = [];
+        const levelRects = {};
+        if ( options.displayRects ) {
+            for ( let i = options.displayRects.length - 1; i >= 0; i-- ) {
+                const rect = options.displayRects[ i ];
+                for ( level = rect.minLevel; level <= rect.maxLevel; level++ ) {
+                    if ( !levelRects[ level ] ) {
+                        levelRects[ level ] = [];
+                    }
+                    levelRects[ level ].push( rect );
                 }
-                this._levelRects[ level ].push( rect );
             }
         }
+
+        super($.extend( {}, options, {
+            _levelRects: levelRects,
+            queryParams: options.queryParams || ""
+        } ));
     }
-
-    TileSource.apply( this, [ options ] );
-
-}
-
-$.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.DziTileSource.prototype */{
-
 
     /**
      * Determine if the data and/or url imply the image service is supported by
@@ -107,7 +101,7 @@ $.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @param {Object|Array} data
      * @param {String} [url]
      */
-    supports: function( data, url ){
+    supports(data, url) {
         let ns;
         if ( data.Image ) {
             ns = data.Image.xmlns;
@@ -121,7 +115,7 @@ $.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
 
         return (ns.indexOf('schemas.microsoft.com/deepzoom/2008') !== -1 ||
             ns.indexOf('schemas.microsoft.com/deepzoom/2009') !== -1);
-    },
+    }
 
     /**
      *
@@ -132,7 +126,7 @@ $.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @returns {Object} options - A dictionary of keyword arguments sufficient
      *      to configure this tile sources constructor.
      */
-    configure: function( data, url, postData ){
+    configure(data, url, postData) {
 
         let options;
 
@@ -157,8 +151,7 @@ $.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
         }
 
         return options;
-    },
-
+    }
 
     /**
      * @function
@@ -166,18 +159,16 @@ $.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @param {Number} x
      * @param {Number} y
      */
-    getTileUrl: function( level, x, y ) {
+    getTileUrl(level, x, y) {
         return [ this.tilesUrl, level, '/', x, '_', y, '.', this.fileFormat, this.queryParams ].join( '' );
-    },
-
+    }
 
     /**
      * Equality comparator
      */
-    equals: function(otherSource) {
+    equals(otherSource) {
         return otherSource && this.tilesUrl === otherSource.tilesUrl;
-    },
-
+    }
 
     /**
      * @function
@@ -185,7 +176,7 @@ $.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @param {Number} x
      * @param {Number} y
      */
-    tileExists: function( level, x, y ) {
+    tileExists(level, x, y) {
         const rects = this._levelRects[ level ];
         let scale;
         let xMin;
@@ -226,7 +217,7 @@ $.extend( DziTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
 
         return false;
     }
-});
+}
 
 
 /**

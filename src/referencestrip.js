@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { ControlAnchor } from "./control.js";
 import { MouseTracker } from "./mousetracker.js";
@@ -66,160 +65,157 @@ const THIS = {};
  * @memberof OpenSeadragon
  * @param {Object} options
  */
-function ReferenceStrip ( options ) {
+class ReferenceStrip {
+    constructor(options) {
 
-    const _this       = this;
-    const viewer      = options.viewer;
-    const viewerSize  = $.getElementSize( viewer.element );
-    let element;
-    let i;
+        const _this       = this;
+        const viewer      = options.viewer;
+        const viewerSize  = $.getElementSize( viewer.element );
+        let element;
+        let i;
 
-    //We may need to create a new element and id if they did not
-    //provide the id for the existing element
-    if ( !options.id ) {
-        options.id              = 'referencestrip-' + $.now();
-        this.element            = $.makeNeutralElement( "div" );
-        this.element.id         = options.id;
-        this.element.className  = 'referencestrip';
-    }
-
-    options = $.extend( true, {
-        sizeRatio:  $.DEFAULT_SETTINGS.referenceStripSizeRatio,
-        position:   $.DEFAULT_SETTINGS.referenceStripPosition,
-        scroll:     $.DEFAULT_SETTINGS.referenceStripScroll,
-        clickTimeThreshold:  $.DEFAULT_SETTINGS.clickTimeThreshold
-    }, options, {
-        element:                this.element
-    } );
-
-    $.extend( this, options );
-    //Private state properties
-    THIS[this.id] = {
-        animating:           false
-    };
-
-    this.minPixelRatio = this.viewer.minPixelRatio;
-
-    this.element.tabIndex = 0;
-
-    const style = this.element.style;
-    style.marginTop     = '0px';
-    style.marginRight   = '0px';
-    style.marginBottom  = '0px';
-    style.marginLeft    = '0px';
-    style.left          = '0px';
-    style.bottom        = '0px';
-    style.border        = '0px';
-    style.background    = '#000';
-    style.position      = 'relative';
-
-    $.setElementTouchActionNone( this.element );
-
-    $.setElementOpacity( this.element, 0.8 );
-
-    this.viewer = viewer;
-    this.tracker = new MouseTracker( {
-        userData:       'ReferenceStrip.tracker',
-        element:        this.element,
-        clickHandler:   $.delegate( this, onStripClick ),
-        dragHandler:    $.delegate( this, onStripDrag ),
-        scrollHandler:  $.delegate( this, onStripScroll ),
-        enterHandler:   $.delegate( this, onStripEnter ),
-        leaveHandler:   $.delegate( this, onStripLeave ),
-        keyDownHandler: $.delegate( this, onKeyDown ),
-        keyHandler:     $.delegate( this, onKeyPress ),
-        preProcessEventHandler: function (eventInfo) {
-            if (eventInfo.eventType === 'wheel') {
-                eventInfo.preventDefault = true;
-            }
+        //We may need to create a new element and id if they did not
+        //provide the id for the existing element
+        if ( !options.id ) {
+            options.id              = 'referencestrip-' + $.now();
+            this.element            = $.makeNeutralElement( "div" );
+            this.element.id         = options.id;
+            this.element.className  = 'referencestrip';
         }
-    } );
 
-    //Controls the position and orientation of the reference strip and sets the
-    //appropriate width and height
-    if ( options.width && options.height ) {
-        this.element.style.width  = options.width + 'px';
-        this.element.style.height = options.height + 'px';
-        viewer.addControl(
-            this.element,
-            { anchor: ControlAnchor.BOTTOM_LEFT }
-        );
-    } else {
-        if ( "horizontal" === options.scroll ) {
-            this.element.style.width = (
-                viewerSize.x *
-                options.sizeRatio *
-                viewer.tileSources.length
-            ) + ( 12 * viewer.tileSources.length ) + 'px';
+        options = $.extend( true, {
+            sizeRatio:  $.DEFAULT_SETTINGS.referenceStripSizeRatio,
+            position:   $.DEFAULT_SETTINGS.referenceStripPosition,
+            scroll:     $.DEFAULT_SETTINGS.referenceStripScroll,
+            clickTimeThreshold:  $.DEFAULT_SETTINGS.clickTimeThreshold
+        }, options, {
+            element:                this.element
+        } );
 
-            this.element.style.height = (
-                viewerSize.y *
-                options.sizeRatio
-            ) + 'px';
+        $.extend( this, options );
+        //Private state properties
+        THIS[this.id] = {
+            animating:           false
+        };
 
+        this.minPixelRatio = this.viewer.minPixelRatio;
+
+        this.element.tabIndex = 0;
+
+        const style = this.element.style;
+        style.marginTop     = '0px';
+        style.marginRight   = '0px';
+        style.marginBottom  = '0px';
+        style.marginLeft    = '0px';
+        style.left          = '0px';
+        style.bottom        = '0px';
+        style.border        = '0px';
+        style.background    = '#000';
+        style.position      = 'relative';
+
+        $.setElementTouchActionNone( this.element );
+
+        $.setElementOpacity( this.element, 0.8 );
+
+        this.viewer = viewer;
+        this.tracker = new MouseTracker( {
+            userData:       'ReferenceStrip.tracker',
+            element:        this.element,
+            clickHandler:   $.delegate( this, onStripClick ),
+            dragHandler:    $.delegate( this, onStripDrag ),
+            scrollHandler:  $.delegate( this, onStripScroll ),
+            enterHandler:   $.delegate( this, onStripEnter ),
+            leaveHandler:   $.delegate( this, onStripLeave ),
+            keyDownHandler: $.delegate( this, onKeyDown ),
+            keyHandler:     $.delegate( this, onKeyPress ),
+            preProcessEventHandler: function (eventInfo) {
+                if (eventInfo.eventType === 'wheel') {
+                    eventInfo.preventDefault = true;
+                }
+            }
+        } );
+
+        //Controls the position and orientation of the reference strip and sets the
+        //appropriate width and height
+        if ( options.width && options.height ) {
+            this.element.style.width  = options.width + 'px';
+            this.element.style.height = options.height + 'px';
             viewer.addControl(
                 this.element,
                 { anchor: ControlAnchor.BOTTOM_LEFT }
             );
         } else {
-            this.element.style.height = (
-                viewerSize.y *
-                options.sizeRatio *
-                viewer.tileSources.length
-            ) + ( 12 * viewer.tileSources.length ) + 'px';
+            if ( "horizontal" === options.scroll ) {
+                this.element.style.width = (
+                    viewerSize.x *
+                    options.sizeRatio *
+                    viewer.tileSources.length
+                ) + ( 12 * viewer.tileSources.length ) + 'px';
 
-            this.element.style.width = (
-                viewerSize.x *
-                options.sizeRatio
-            ) + 'px';
+                this.element.style.height = (
+                    viewerSize.y *
+                    options.sizeRatio
+                ) + 'px';
 
-            viewer.addControl(
-                this.element,
-                { anchor: ControlAnchor.TOP_LEFT }
-            );
+                viewer.addControl(
+                    this.element,
+                    { anchor: ControlAnchor.BOTTOM_LEFT }
+                );
+            } else {
+                this.element.style.height = (
+                    viewerSize.y *
+                    options.sizeRatio *
+                    viewer.tileSources.length
+                ) + ( 12 * viewer.tileSources.length ) + 'px';
+
+                this.element.style.width = (
+                    viewerSize.x *
+                    options.sizeRatio
+                ) + 'px';
+
+                viewer.addControl(
+                    this.element,
+                    { anchor: ControlAnchor.TOP_LEFT }
+                );
+
+            }
+        }
+
+        this.panelWidth = ( viewerSize.x * this.sizeRatio ) + 8;
+        this.panelHeight = ( viewerSize.y * this.sizeRatio ) + 8;
+        this.panels = [];
+        this.miniViewers = {};
+
+        /*jshint loopfunc:true*/
+        for ( i = 0; i < viewer.tileSources.length; i++ ) {
+
+            element = $.makeNeutralElement( 'div' );
+            element.id = this.element.id + "-" + i;
+
+            element.style.width         = _this.panelWidth + 'px';
+            element.style.height        = _this.panelHeight + 'px';
+            element.style.display       = 'inline';
+            element.style['float']      = 'left'; //Webkit
+            element.style.cssFloat      = 'left'; //Firefox
+            element.style.padding       = '2px';
+            $.setElementTouchActionNone( element );
+            $.setElementPointerEventsNone( element );
+
+            this.element.appendChild( element );
+
+            element.activePanel = false;
+
+            this.panels.push( element );
 
         }
+        loadPanels( this, this.scroll === 'vertical' ? viewerSize.y : viewerSize.x, 0 );
+        this.setFocus( 0 );
     }
-
-    this.panelWidth = ( viewerSize.x * this.sizeRatio ) + 8;
-    this.panelHeight = ( viewerSize.y * this.sizeRatio ) + 8;
-    this.panels = [];
-    this.miniViewers = {};
-
-    /*jshint loopfunc:true*/
-    for ( i = 0; i < viewer.tileSources.length; i++ ) {
-
-        element = $.makeNeutralElement( 'div' );
-        element.id = this.element.id + "-" + i;
-
-        element.style.width         = _this.panelWidth + 'px';
-        element.style.height        = _this.panelHeight + 'px';
-        element.style.display       = 'inline';
-        element.style['float']      = 'left'; //Webkit
-        element.style.cssFloat      = 'left'; //Firefox
-        element.style.padding       = '2px';
-        $.setElementTouchActionNone( element );
-        $.setElementPointerEventsNone( element );
-
-        this.element.appendChild( element );
-
-        element.activePanel = false;
-
-        this.panels.push( element );
-
-    }
-    loadPanels( this, this.scroll === 'vertical' ? viewerSize.y : viewerSize.x, 0 );
-    this.setFocus( 0 );
-
-}
-
-/** @lends OpenSeadragon.ReferenceStrip.prototype */
-ReferenceStrip.prototype = {
 
     /**
      * @function
      */
-    setFocus: function ( page ) {
+    setFocus(page) {
         const element      = this.element.querySelector('#' + this.element.id + '-' + page );
         const viewerSize   = $.getElementSize( this.viewer.canvas );
         const scrollWidth  = Number( this.element.style.width.replace( 'px', '' ) );
@@ -263,20 +259,20 @@ ReferenceStrip.prototype = {
             this.currentPage = page;
             onStripEnter.call( this, { eventSource: this.tracker } );
         }
-    },
+    }
 
     /**
      * @function
      */
-    update: function () {
+    update() {
         if ( THIS[this.id].animating ) {
             // $.console.log( 'image reference strip update' );
             return true;
         }
         return false;
-    },
+    }
 
-    destroy: function() {
+    destroy() {
         if (this.miniViewers) {
           for (const key in this.miniViewers) {
             this.miniViewers[key].destroy();
@@ -289,8 +285,7 @@ ReferenceStrip.prototype = {
             this.viewer.removeControl( this.element );
         }
     }
-
-};
+}
 
 
 /**
@@ -363,7 +358,6 @@ function onStripDrag( event ) {
     }
 
 }
-
 
 
 /**

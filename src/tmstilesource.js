@@ -43,8 +43,6 @@ import { TileSource } from "./tilesource.js";
  */
 
 
-
-
 /**
  * @class TmsTileSource
  * @classdesc A tilesource implementation for Tiled Map Services (TMS).
@@ -60,43 +58,40 @@ import { TileSource } from "./tilesource.js";
  * @param {Number} tileOverlap
  * @param {String} tilesUrl
  */
-function TmsTileSource( width, height, tileSize, tileOverlap, tilesUrl ) {
-    let options;
+class TmsTileSource extends TileSource {
+    constructor(width, height, tileSize, tileOverlap, tilesUrl) {
+        let options;
 
-    if( $.isPlainObject( width ) ){
-        options = width;
-    }else{
-        options = {
-            width: arguments[0],
-            height: arguments[1],
-            tileSize: arguments[2],
-            tileOverlap: arguments[3],
-            tilesUrl: arguments[4]
-        };
+        if( $.isPlainObject( width ) ){
+            options = width;
+        }else{
+            options = {
+                width: arguments[0],
+                height: arguments[1],
+                tileSize: arguments[2],
+                tileOverlap: arguments[3],
+                tilesUrl: arguments[4]
+            };
+        }
+        // TMS has integer multiples of 256 for width/height and adds buffer
+        // if necessary -> account for this!
+        const bufferedWidth = Math.ceil(options.width / 256) * 256;
+        const bufferedHeight = Math.ceil(options.height / 256) * 256;
+        let max;
+
+        // Compute number of zoomlevels in this tileset
+        if (bufferedWidth > bufferedHeight) {
+            max = bufferedWidth / 256;
+        } else {
+            max = bufferedHeight / 256;
+        }
+        options.maxLevel = Math.ceil(Math.log(max) / Math.log(2)) - 1;
+        options.tileSize = 256;
+        options.width = bufferedWidth;
+        options.height = bufferedHeight;
+
+        super(options);
     }
-    // TMS has integer multiples of 256 for width/height and adds buffer
-    // if necessary -> account for this!
-    const bufferedWidth = Math.ceil(options.width / 256) * 256;
-    const bufferedHeight = Math.ceil(options.height / 256) * 256;
-    let max;
-
-    // Compute number of zoomlevels in this tileset
-    if (bufferedWidth > bufferedHeight) {
-        max = bufferedWidth / 256;
-    } else {
-        max = bufferedHeight / 256;
-    }
-    options.maxLevel = Math.ceil(Math.log(max) / Math.log(2)) - 1;
-    options.tileSize = 256;
-    options.width = bufferedWidth;
-    options.height = bufferedHeight;
-
-    TileSource.apply( this, [ options ] );
-
-}
-
-$.extend( TmsTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.TmsTileSource.prototype */{
-
 
     /**
      * Determine if the data and/or url imply the image service is supported by
@@ -105,9 +100,9 @@ $.extend( TmsTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @param {Object|Array} data
      * @param {String} [url]
      */
-    supports: function( data, url ){
+    supports(data, url) {
         return ( data.type && "tiledmapservice" === data.type );
-    },
+    }
 
     /**
      *
@@ -118,10 +113,9 @@ $.extend( TmsTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @returns {Object} options - A dictionary of keyword arguments sufficient
      *      to configure this tile sources constructor.
      */
-    configure: function( data, url, postData ){
+    configure(data, url, postData) {
         return data;
-    },
-
+    }
 
     /**
      * @function
@@ -129,19 +123,20 @@ $.extend( TmsTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @param {Number} x
      * @param {Number} y
      */
-    getTileUrl: function( level, x, y ) {
+    getTileUrl(level, x, y) {
         // Convert from Deep Zoom definition to TMS zoom definition
         const yTiles = this.getNumTiles( level ).y - 1;
 
         return this.tilesUrl + level + "/" + x + "/" + (yTiles - y) + ".png";
-    },
+    }
 
     /**
      * Equality comparator
      */
-    equals: function (otherSource) {
+    equals(otherSource) {
         return otherSource && this.tilesUrl === otherSource.tilesUrl;
     }
-});
+}
+
 
 export { TmsTileSource };

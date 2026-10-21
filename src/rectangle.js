@@ -33,7 +33,6 @@
  */
 
 
-
 import $ from "./openseadragon.js";
 import { Point } from "./point.js";
 
@@ -55,116 +54,88 @@ import { Point } from "./point.js";
  * @param {Number} [height=0] The vector component 'height'.
  * @param {Number} [degrees=0] Rotation of the rectangle around (x,y) in degrees.
  */
-function Rect(x, y, width, height, degrees) {
-    /**
-     * The vector component 'x'.
-     * @member {Number} x
-     * @memberof OpenSeadragon.Rect#
-     */
-    this.x = typeof (x) === "number" ? x : 0;
-    /**
-     * The vector component 'y'.
-     * @member {Number} y
-     * @memberof OpenSeadragon.Rect#
-     */
-    this.y = typeof (y) === "number" ? y : 0;
-    /**
-     * The vector component 'width'.
-     * @member {Number} width
-     * @memberof OpenSeadragon.Rect#
-     */
-    this.width  = typeof (width) === "number" ? width : 0;
-    /**
-     * The vector component 'height'.
-     * @member {Number} height
-     * @memberof OpenSeadragon.Rect#
-     */
-    this.height = typeof (height) === "number" ? height : 0;
+class Rect {
+    constructor(x, y, width, height, degrees) {
+        /**
+         * The vector component 'x'.
+         * @member {Number} x
+         * @memberof OpenSeadragon.Rect#
+         */
+        this.x = typeof (x) === "number" ? x : 0;
+        /**
+         * The vector component 'y'.
+         * @member {Number} y
+         * @memberof OpenSeadragon.Rect#
+         */
+        this.y = typeof (y) === "number" ? y : 0;
+        /**
+         * The vector component 'width'.
+         * @member {Number} width
+         * @memberof OpenSeadragon.Rect#
+         */
+        this.width  = typeof (width) === "number" ? width : 0;
+        /**
+         * The vector component 'height'.
+         * @member {Number} height
+         * @memberof OpenSeadragon.Rect#
+         */
+        this.height = typeof (height) === "number" ? height : 0;
 
-    /**
-     * The rotation of the rectangle, in degrees.
-     * @member {Number} degrees
-     * @memberof OpenSeadragon.Rect#
-     */
-    this.degrees = typeof (degrees) === "number" ? degrees : 0;
+        /**
+         * The rotation of the rectangle, in degrees.
+         * @member {Number} degrees
+         * @memberof OpenSeadragon.Rect#
+         */
+        this.degrees = typeof (degrees) === "number" ? degrees : 0;
 
-    // Normalizes the rectangle.
-    this.degrees = $.positiveModulo(this.degrees, 360);
-    let newTopLeft, newWidth;
-    if (this.degrees >= 270) {
-        newTopLeft = this.getTopRight();
-        this.x = newTopLeft.x;
-        this.y = newTopLeft.y;
-        newWidth = this.height;
-        this.height = this.width;
-        this.width = newWidth;
-        this.degrees -= 270;
-    } else if (this.degrees >= 180) {
-        newTopLeft = this.getBottomRight();
-        this.x = newTopLeft.x;
-        this.y = newTopLeft.y;
-        this.degrees -= 180;
-    } else if (this.degrees >= 90) {
-        newTopLeft = this.getBottomLeft();
-        this.x = newTopLeft.x;
-        this.y = newTopLeft.y;
-        newWidth = this.height;
-        this.height = this.width;
-        this.width = newWidth;
-        this.degrees -= 90;
+        // Normalizes the rectangle.
+        this.degrees = $.positiveModulo(this.degrees, 360);
+        let newTopLeft, newWidth;
+        if (this.degrees >= 270) {
+            newTopLeft = this.getTopRight();
+            this.x = newTopLeft.x;
+            this.y = newTopLeft.y;
+            newWidth = this.height;
+            this.height = this.width;
+            this.width = newWidth;
+            this.degrees -= 270;
+        } else if (this.degrees >= 180) {
+            newTopLeft = this.getBottomRight();
+            this.x = newTopLeft.x;
+            this.y = newTopLeft.y;
+            this.degrees -= 180;
+        } else if (this.degrees >= 90) {
+            newTopLeft = this.getBottomLeft();
+            this.x = newTopLeft.x;
+            this.y = newTopLeft.y;
+            newWidth = this.height;
+            this.height = this.width;
+            this.width = newWidth;
+            this.degrees -= 90;
+        }
     }
-}
 
-/**
- * Builds a rectangle having the 3 specified points as summits.
- * @static
- * @memberof OpenSeadragon.Rect
- * @param {OpenSeadragon.Point} topLeft
- * @param {OpenSeadragon.Point} topRight
- * @param {OpenSeadragon.Point} bottomLeft
- * @returns {OpenSeadragon.Rect}
- */
-Rect.fromSummits = function(topLeft, topRight, bottomLeft) {
-    const width = topLeft.distanceTo(topRight);
-    const height = topLeft.distanceTo(bottomLeft);
-    const diff = topRight.minus(topLeft);
-    let radians = Math.atan(diff.y / diff.x);
-    if (diff.x < 0) {
-        radians += Math.PI;
-    } else if (diff.y < 0) {
-        radians += 2 * Math.PI;
-    }
-    return new Rect(
-        topLeft.x,
-        topLeft.y,
-        width,
-        height,
-        radians / Math.PI * 180);
-};
-
-/** @lends OpenSeadragon.Rect.prototype */
-Rect.prototype = {
     /**
      * @function
      * @returns {OpenSeadragon.Rect} a duplicate of this Rect
      */
-    clone: function() {
+    clone() {
         return new Rect(
             this.x,
             this.y,
             this.width,
             this.height,
             this.degrees);
-    },
+    }
 
     /**
      * The aspect ratio is simply the ratio of width to height.
      * @function
      * @returns {Number} The ratio of width to height.
      */
-    getAspectRatio: function() {
+    getAspectRatio() {
         return this.width / this.height;
-    },
+    }
 
     /**
      * Provides the coordinates of the upper-left corner of the rectangle as a
@@ -173,12 +144,12 @@ Rect.prototype = {
      * @returns {OpenSeadragon.Point} The coordinate of the upper-left corner of
      *  the rectangle.
      */
-    getTopLeft: function() {
+    getTopLeft() {
         return new Point(
             this.x,
             this.y
         );
-    },
+    }
 
     /**
      * Provides the coordinates of the bottom-right corner of the rectangle as a
@@ -187,10 +158,10 @@ Rect.prototype = {
      * @returns {OpenSeadragon.Point} The coordinate of the bottom-right corner of
      *  the rectangle.
      */
-    getBottomRight: function() {
+    getBottomRight() {
         return new Point(this.x + this.width, this.y + this.height)
             .rotate(this.degrees, this.getTopLeft());
-    },
+    }
 
     /**
      * Provides the coordinates of the top-right corner of the rectangle as a
@@ -199,10 +170,10 @@ Rect.prototype = {
      * @returns {OpenSeadragon.Point} The coordinate of the top-right corner of
      *  the rectangle.
      */
-    getTopRight: function() {
+    getTopRight() {
         return new Point(this.x + this.width, this.y)
             .rotate(this.degrees, this.getTopLeft());
-    },
+    }
 
     /**
      * Provides the coordinates of the bottom-left corner of the rectangle as a
@@ -211,10 +182,10 @@ Rect.prototype = {
      * @returns {OpenSeadragon.Point} The coordinate of the bottom-left corner of
      *  the rectangle.
      */
-    getBottomLeft: function() {
+    getBottomLeft() {
         return new Point(this.x, this.y + this.height)
             .rotate(this.degrees, this.getTopLeft());
-    },
+    }
 
     /**
      * Computes the center of the rectangle.
@@ -222,12 +193,12 @@ Rect.prototype = {
      * @returns {OpenSeadragon.Point} The center of the rectangle as represented
      *  as represented by a 2-dimensional vector (x,y)
      */
-    getCenter: function() {
+    getCenter() {
         return new Point(
             this.x + this.width / 2.0,
             this.y + this.height / 2.0
         ).rotate(this.degrees, this.getTopLeft());
-    },
+    }
 
     /**
      * Returns the width and height component as a vector OpenSeadragon.Point
@@ -235,9 +206,9 @@ Rect.prototype = {
      * @returns {OpenSeadragon.Point} The 2 dimensional vector representing the
      *  width and height of the rectangle.
      */
-    getSize: function() {
+    getSize() {
         return new Point(this.width, this.height);
-    },
+    }
 
     /**
      * Determines if two Rectangles have equivalent components.
@@ -245,14 +216,14 @@ Rect.prototype = {
      * @param {OpenSeadragon.Rect} rectangle The Rectangle to compare to.
      * @returns {Boolean} 'true' if all components are equal, otherwise 'false'.
      */
-    equals: function(other) {
+    equals(other) {
         return (other instanceof Rect) &&
             this.x === other.x &&
             this.y === other.y &&
             this.width === other.width &&
             this.height === other.height &&
             this.degrees === other.degrees;
-    },
+    }
 
     /**
     * Multiply all dimensions (except degrees) in this Rect by a factor and
@@ -262,14 +233,14 @@ Rect.prototype = {
     * @returns {OpenSeadragon.Rect} A new rect representing the multiplication
     *  of the vector components by the factor
     */
-    times: function(factor) {
+    times(factor) {
         return new Rect(
             this.x * factor,
             this.y * factor,
             this.width * factor,
             this.height * factor,
             this.degrees);
-    },
+    }
 
     /**
     * Translate/move this Rect by a vector and return new Rect.
@@ -277,14 +248,14 @@ Rect.prototype = {
     * @param {OpenSeadragon.Point} delta The translation vector.
     * @returns {OpenSeadragon.Rect} A new rect with altered position
     */
-    translate: function(delta) {
+    translate(delta) {
         return new Rect(
             this.x + delta.x,
             this.y + delta.y,
             this.width,
             this.height,
             this.degrees);
-    },
+    }
 
     /**
      * Returns the smallest rectangle that will contain this and the given
@@ -292,7 +263,7 @@ Rect.prototype = {
      * @param {OpenSeadragon.Rect} rect
      * @returns {OpenSeadragon.Rect} The new rectangle.
      */
-    union: function(rect) {
+    union(rect) {
         const thisBoundingBox = this.getBoundingBox();
         const otherBoundingBox = rect.getBoundingBox();
 
@@ -310,7 +281,7 @@ Rect.prototype = {
             top,
             right - left,
             bottom - top);
-    },
+    }
 
     /**
      * Returns the bounding box of the intersection of this rectangle with the
@@ -319,7 +290,7 @@ Rect.prototype = {
      * @returns {OpenSeadragon.Rect} the bounding box of the intersection
      * or null if the rectangles don't intersect.
      */
-    intersection: function(rect) {
+    intersection(rect) {
         // Simplified version of Weiler Atherton clipping algorithm
         // https://en.wikipedia.org/wiki/Weiler%E2%80%93Atherton_clipping_algorithm
         // Because we just want the bounding box of the intersection,
@@ -424,10 +395,10 @@ Rect.prototype = {
             }
         }
         return new Rect(minX, minY, maxX - minX, maxY - minY);
-    },
+    }
 
     // private
-    _getSegments: function() {
+    _getSegments() {
         const topLeft = this.getTopLeft();
         const topRight = this.getTopRight();
         const bottomLeft = this.getBottomLeft();
@@ -436,7 +407,7 @@ Rect.prototype = {
             [topRight, bottomRight],
             [bottomRight, bottomLeft],
             [bottomLeft, topLeft]];
-    },
+    }
 
     /**
      * Rotates a rectangle around a point.
@@ -446,7 +417,7 @@ Rect.prototype = {
      * Defaults to the center of the rectangle.
      * @returns {OpenSeadragon.Rect}
      */
-    rotate: function(degrees, pivot) {
+    rotate(degrees, pivot) {
         degrees = $.positiveModulo(degrees, 360);
         if (degrees === 0) {
             return this.clone();
@@ -474,14 +445,14 @@ Rect.prototype = {
             this.width,
             this.height,
             radians / Math.PI * 180);
-    },
+    }
 
     /**
      * Retrieves the smallest horizontal (degrees=0) rectangle which contains
      * this rectangle.
      * @returns {OpenSeadragon.Rect}
      */
-    getBoundingBox: function() {
+    getBoundingBox() {
         if (this.degrees === 0) {
             return this.clone();
         }
@@ -498,21 +469,21 @@ Rect.prototype = {
             minY,
             maxX - minX,
             maxY - minY);
-    },
+    }
 
     /**
      * Retrieves the smallest horizontal (degrees=0) rectangle which contains
      * this rectangle and has integers x, y, width and height
      * @returns {OpenSeadragon.Rect}
      */
-    getIntegerBoundingBox: function() {
+    getIntegerBoundingBox() {
         const boundingBox = this.getBoundingBox();
         const x = Math.floor(boundingBox.x);
         const y = Math.floor(boundingBox.y);
         const width = Math.ceil(boundingBox.width + boundingBox.x - x);
         const height = Math.ceil(boundingBox.height + boundingBox.y - y);
         return new Rect(x, y, width, height);
-    },
+    }
 
     /**
      * Determines whether a point is inside this rectangle (edge included).
@@ -522,7 +493,7 @@ Rect.prototype = {
      * @returns {Boolean} true if the point is inside this rectangle, false
      * otherwise.
      */
-    containsPoint: function(point, epsilon) {
+    containsPoint(point, epsilon) {
         epsilon = epsilon || 0;
 
         // See http://stackoverflow.com/a/2752754/1440403 for explanation
@@ -543,7 +514,7 @@ Rect.prototype = {
 
             ((point.x - bottomLeft.x) * leftDiff.x +
             (point.y - bottomLeft.y) * leftDiff.y <= epsilon);
-    },
+    }
 
     /**
      * Provides a string representation of the rectangle which is useful for
@@ -551,7 +522,7 @@ Rect.prototype = {
      * @function
      * @returns {String} A string representation of the rectangle.
      */
-    toString: function() {
+    toString() {
         return "[" +
             (Math.round(this.x * 100) / 100) + ", " +
             (Math.round(this.y * 100) / 100) + ", " +
@@ -560,6 +531,34 @@ Rect.prototype = {
             (Math.round(this.degrees * 100) / 100) + "deg" +
             "]";
     }
+}
+
+/**
+ * Builds a rectangle having the 3 specified points as summits.
+ * @static
+ * @memberof OpenSeadragon.Rect
+ * @param {OpenSeadragon.Point} topLeft
+ * @param {OpenSeadragon.Point} topRight
+ * @param {OpenSeadragon.Point} bottomLeft
+ * @returns {OpenSeadragon.Rect}
+ */
+Rect.fromSummits = function(topLeft, topRight, bottomLeft) {
+    const width = topLeft.distanceTo(topRight);
+    const height = topLeft.distanceTo(bottomLeft);
+    const diff = topRight.minus(topLeft);
+    let radians = Math.atan(diff.y / diff.x);
+    if (diff.x < 0) {
+        radians += Math.PI;
+    } else if (diff.y < 0) {
+        radians += 2 * Math.PI;
+    }
+    return new Rect(
+        topLeft.x,
+        topLeft.y,
+        width,
+        height,
+        radians / Math.PI * 180);
 };
+
 
 export { Rect };

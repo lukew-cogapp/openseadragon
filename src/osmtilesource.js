@@ -43,8 +43,6 @@ import { TileSource } from "./tilesource.js";
  */
 
 
-
-
 /**
  * @class OsmTileSource
  * @classdesc A tilesource implementation for OpenStreetMap.<br><br>
@@ -71,42 +69,39 @@ import { TileSource } from "./tilesource.js";
  * @param {Number} tileOverlap
  * @param {String} tilesUrl
  */
-function OsmTileSource( width, height, tileSize, tileOverlap, tilesUrl ) {
-    let options;
+class OsmTileSource extends TileSource {
+    constructor(width, height, tileSize, tileOverlap, tilesUrl) {
+        let options;
 
-    if( $.isPlainObject( width ) ){
-        options = width;
-    }else{
-        options = {
-            width: arguments[0],
-            height: arguments[1],
-            tileSize: arguments[2],
-            tileOverlap: arguments[3],
-            tilesUrl: arguments[4]
-        };
+        if( $.isPlainObject( width ) ){
+            options = width;
+        }else{
+            options = {
+                width: arguments[0],
+                height: arguments[1],
+                tileSize: arguments[2],
+                tileOverlap: arguments[3],
+                tilesUrl: arguments[4]
+            };
+        }
+        //apply default setting for standard public OpenStreatMaps service
+        //but allow them to be specified so fliks can host there own instance
+        //or apply against other services supportting the same standard
+        if( !options.width || !options.height ){
+            options.width = 67108864;
+            options.height = 67108864;
+        }
+        if( !options.tileSize ){
+            options.tileSize = 256;
+            options.tileOverlap = 0;
+        }
+        if( !options.tilesUrl ){
+            options.tilesUrl = "http://tile.openstreetmap.org/";
+        }
+        options.minLevel = 8;
+
+        super(options);
     }
-    //apply default setting for standard public OpenStreatMaps service
-    //but allow them to be specified so fliks can host there own instance
-    //or apply against other services supportting the same standard
-    if( !options.width || !options.height ){
-        options.width = 67108864;
-        options.height = 67108864;
-    }
-    if( !options.tileSize ){
-        options.tileSize = 256;
-        options.tileOverlap = 0;
-    }
-    if( !options.tilesUrl ){
-        options.tilesUrl = "http://tile.openstreetmap.org/";
-    }
-    options.minLevel = 8;
-
-    TileSource.apply( this, [ options ] );
-
-}
-
-$.extend( OsmTileSource.prototype, TileSource.prototype, /** @lends OpenSeadragon.OsmTileSource.prototype */{
-
 
     /**
      * Determine if the data and/or url imply the image service is supported by
@@ -115,12 +110,12 @@ $.extend( OsmTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @param {Object|Array} data
      * @param {String} [url]
      */
-    supports: function( data, url ){
+    supports(data, url) {
         return (
             data.type &&
             "openstreetmaps" === data.type
         );
-    },
+    }
 
     /**
      *
@@ -131,10 +126,9 @@ $.extend( OsmTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @returns {Object} options - A dictionary of keyword arguments sufficient
      *      to configure this tile sources constructor.
      */
-    configure: function( data, url, postData ){
+    configure(data, url, postData) {
         return data;
-    },
-
+    }
 
     /**
      * @function
@@ -142,16 +136,17 @@ $.extend( OsmTileSource.prototype, TileSource.prototype, /** @lends OpenSeadrago
      * @param {Number} x
      * @param {Number} y
      */
-    getTileUrl: function( level, x, y ) {
+    getTileUrl(level, x, y) {
         return this.tilesUrl + (level - 8) + "/" + x + "/" + y + ".png";
-    },
+    }
 
     /**
      * Equality comparator
      */
-    equals: function(otherSource) {
+    equals(otherSource) {
         return otherSource && this.tilesUrl === otherSource.tilesUrl;
     }
-});
+}
+
 
 export { OsmTileSource };
