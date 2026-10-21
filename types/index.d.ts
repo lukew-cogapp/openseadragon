@@ -113,6 +113,8 @@ declare namespace OpenSeadragon {
 
     function capitalizeFirstLetter(value: string): string;
 
+    function determineDrawer(id: string): (abstract new (...args: any[]) => DrawerBase) | null;
+
     function delegate(
         object: object,
         method: (...args: any[]) => void,
@@ -227,6 +229,16 @@ declare namespace OpenSeadragon {
         tif?: boolean;
         wdp?: boolean;
     }): void;
+
+    /**
+     * Makes drawers, tile sources, the Navigator and the ReferenceStrip
+     * available to viewers. The UMD build and the default export register
+     * all of them; named ES module imports register only what is passed here.
+     * @since 7.0.0
+     */
+    function register(
+        ...classes: Array<abstract new (...args: any[]) => DrawerBase | TileSource | Navigator | ReferenceStrip>
+    ): void;
 
     function setPageScroll(point: Point): void;
 
@@ -1747,6 +1759,11 @@ declare namespace OpenSeadragon {
 
     interface TmsTileSourceOptions extends TileSourceOptions {
         tilesUrl: string;
+    }
+
+    /** @deprecated Use World instead. */
+    class TileSourceCollection {
+        constructor(tileSize: number, tileSources: TileSource[], rows?: number, layout?: string);
     }
 
     class TmsTileSource extends TileSource {
