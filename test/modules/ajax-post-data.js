@@ -29,7 +29,7 @@
     let viewer = null;
     let DONE = false;
     const originalAddJob = OpenSeadragon.ImageLoader.prototype.addJob;
-    const OriginalAjax = OpenSeadragon.makeAjaxRequest;
+    let restoreXhr = null;
 
     const closeViewer = function() {
         if (viewer && viewer.close) {
@@ -37,60 +37,61 @@
         }
     }
 
+    //Substitute OSD parts so that it reports what it is doing
+    const PostTestTileSource = class extends OpenSeadragon.TileSource {
+        constructor( options ) {
+            //double test, actually received from configure(...)
+            testPostData(options.postData, "TileSource::constructor");
+            super( options );
+        }
+    };
+
+    OpenSeadragon.extend( PostTestTileSource.prototype, {
+        supports: function( data, url ){
+            return !!url && url.indexOf('.post') !== -1;
+        },
+
+        configure: function( data, url, postData ){
+            testUrl(url, "TileSource::configure");
+            testPostData(postData, "TileSource::configure");
+            //some default data to trigger painting
+            return {
+                postData: postData, //!important, pass to options object in the constructor
+                tilesUrl: url,
+                fileFormat: "jpg",
+                sizeData: {Width: 55, Height: 55},
+                width: 55,
+                height: 55,
+                tileSize: 55,
+                tileOverlap: 55,
+                minLevel: 1,
+                maxLevel: 1,
+                displayRects: []
+            };
+        },
+
+        getTileUrl: function( level, x, y ) {
+            return URL_USED;
+        },
+
+        getTileAjaxHeaders: function( level, x, y ) {
+            return {'Content-type': 'application/x-www-form-urlencoded'};
+        },
+
+        getTilePostData: function(level, x, y) {
+            return this.postData;
+        },
+
+        tileExists: function ( level, x, y ) {
+            return true;
+        },
+    });
+    OpenSeadragon.register(PostTestTileSource);
+
     QUnit.module('AjaxPostData', {
         beforeEach: function () {
             testLog.reset();
             $("#qunit-fixture").html("<div id='example'></div>");
-
-            //Substitute OSD parts so that it reports what it is doing
-            OpenSeadragon.PostTestTileSource = class extends OpenSeadragon.TileSource {
-                constructor( options ) {
-                    //double test, actually received from configure(...)
-                    testPostData(options.postData, "TileSource::constructor");
-                    super( options );
-                }
-            };
-
-            OpenSeadragon.extend( OpenSeadragon.PostTestTileSource.prototype, {
-                supports: function( data, url ){
-                    return url.indexOf('.post') !== -1;
-                },
-
-                configure: function( data, url, postData ){
-                    testUrl(url, "TileSource::configure");
-                    testPostData(postData, "TileSource::configure");
-                    //some default data to trigger painting
-                    return {
-                        postData: postData, //!important, pass to options object in the constructor
-                        tilesUrl: url,
-                        fileFormat: "jpg",
-                        sizeData: {Width: 55, Height: 55},
-                        width: 55,
-                        height: 55,
-                        tileSize: 55,
-                        tileOverlap: 55,
-                        minLevel: 1,
-                        maxLevel: 1,
-                        displayRects: []
-                    };
-                },
-
-                getTileUrl: function( level, x, y ) {
-                    return URL_USED;
-                },
-
-                getTileAjaxHeaders: function( level, x, y ) {
-                    return {'Content-type': 'application/x-www-form-urlencoded'};
-                },
-
-                getTilePostData: function(level, x, y) {
-                    return this.postData;
-                },
-
-                tileExists: function ( level, x, y ) {
-                    return true;
-                },
-            });
 
             OpenSeadragon.ImageLoader.prototype.addJob = function(options) {
                 testUrl(options.src, "ImageJob::addJob");
@@ -107,37 +108,14 @@
             };
 
             let ajaxCounter = 0;
-            OpenSeadragon.makeAjaxRequest = function( url, onSuccess, onError ) {
-                let withCredentials;
-                let headers;
-                let responseType;
-                let postData;
-                let options;
-
-                // Note that our preferred API is that you pass in a single object; the named
-                // arguments are for legacy support.
-                if( $.isPlainObject( url ) ){
-                    onSuccess = url.success;
-                    onError = url.error;
-                    withCredentials = url.withCredentials;
-                    headers = url.headers;
-                    responseType = url.responseType || null;
-                    postData = url.postData || null;
-                    options = url; //save original stuff
-                    url = url.url;
-
-                    //since we test that postData value equals to "" but here is correctly parsed to null
-                    //to avoid POST request
-                    if (options.postData === "") {
-                        ASSERT.ok(postData == null, "Empty post data is parsed as null");
-                    } else {
-                        testPostData(postData, "AJAX");
-                    }
+            restoreXhr = Util.fakeXhr(function(request) {
+                // makeAjaxRequest sends empty post data as null, to avoid a POST request
+                if (request.body === null && POST_DATA === "") {
+                    ASSERT.ok(true, "Empty post data is parsed as null");
                 } else {
-                    testPostData(postData, "AJAX");
+                    testPostData(request.body, "AJAX");
                 }
-
-                testUrl(url, "AJAX");
+                testUrl(request.url, "AJAX");
 
                 //first AJAX firing is the image info getter, second is the first tile request: can exit
                 ajaxCounter++;
@@ -145,17 +123,10 @@
                     setTimeout(() => {
                         viewer.close();
                     });
-                    return null;
+                    return false;
                 }
-
-                const request = Promise.resolve(url);
-                //some required properties to pass through processResponse(...)
-                request.responseText = "some text";
-                request.status = 200;
-
-                onSuccess(request);
-                return request;
-            };
+                return true;
+            });
         },
 
         afterEach: function () {
@@ -163,8 +134,7 @@
             viewer = null;
 
             OpenSeadragon.ImageLoader.prototype.addJob = originalAddJob;
-            OpenSeadragon.makeAjaxRequest = OriginalAjax;
-            OpenSeadragon.PostTestTileSource = null;
+            restoreXhr();
         }
     });
 

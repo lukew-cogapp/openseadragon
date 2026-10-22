@@ -34,7 +34,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 
 /**
  * Prefixed fullscreen members are not in the DOM typings, so they are dynamic.
@@ -156,7 +156,5 @@ fullScreenApi.cancelFullScreen = function() {
     $.console.error("cancelFullScreen is deprecated. Use exitFullScreen instead.");
     fullScreenApi.exitFullScreen();
 };
-
-$.extend( $, fullScreenApi );
 
 export { fullScreenApi };

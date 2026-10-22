@@ -1,4 +1,4 @@
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { DrawerBase } from "./drawerbase.js";
 import { Mat3 } from "./matrix3.js";
 import { Point } from "./point.js";

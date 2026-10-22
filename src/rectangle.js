@@ -34,7 +34,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { Point } from "./point.js";
 
 /**

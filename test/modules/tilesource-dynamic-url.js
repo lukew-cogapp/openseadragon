@@ -7,7 +7,7 @@
     let done = null;
     let DYNAMIC_URL = "";
     let viewer = null;
-    const OriginalAjax = OpenSeadragon.makeAjaxRequest;
+    let restoreXhr = null;
     const OriginalTileGetUrl = OpenSeadragon.Tile.prototype.getUrl;
     // These variables allow tracking when the first request for data has finished
     let firstUrlPromise = null;
@@ -29,67 +29,54 @@
         });
     };
 
+    const DynamicUrlTestTileSource = class extends OpenSeadragon.TileSource {};
+
+    OpenSeadragon.extend( DynamicUrlTestTileSource.prototype, {
+        supports: function(_data, url){
+            return !!url && url.indexOf('dynamic') !== -1;
+        },
+
+        configure: function(_data, url, postData){
+            //some default data to trigger painting
+            return {
+                postData: postData,
+                tilesUrl: url,
+                fileFormat: "jpg",
+                sizeData: {Width: 55, Height: 55},
+                width: 55,
+                height: 55,
+                tileSize: 55,
+                tileOverlap: 55,
+                minLevel: 1,
+                maxLevel: 1,
+                displayRects: []
+            };
+        },
+
+        // getTileUrl return a function that must be called by Tile.getUrl
+        getTileUrl: function(_level, _x, _y) {
+            // Assert that custom tile source is called correctly
+            ASSERT.ok(true, 'DynamicUrlTileSource.getTileUrl called');
+            return () => DYNAMIC_URL;
+        },
+
+        tileExists: function (_level, _x, _y) {
+            return true;
+        }
+    });
+    OpenSeadragon.register(DynamicUrlTestTileSource);
+
     QUnit.module('TileSourceDynamicUrl', {
         beforeEach: function () {
             testLog.reset();
             $("#qunit-fixture").html("<div id='example'></div>");
 
-            // Add test tile source to OSD
-            OpenSeadragon.DynamicUrlTestTileSource = class extends OpenSeadragon.TileSource {};
-
-            OpenSeadragon.extend( OpenSeadragon.DynamicUrlTestTileSource.prototype, {
-                supports: function(_data, url){
-                    return url.indexOf('dynamic') !== -1;
-                },
-
-                configure: function(_data, url, postData){
-                    //some default data to trigger painting
-                    return {
-                        postData: postData,
-                        tilesUrl: url,
-                        fileFormat: "jpg",
-                        sizeData: {Width: 55, Height: 55},
-                        width: 55,
-                        height: 55,
-                        tileSize: 55,
-                        tileOverlap: 55,
-                        minLevel: 1,
-                        maxLevel: 1,
-                        displayRects: []
-                    };
-                },
-
-                // getTileUrl return a function that must be called by Tile.getUrl
-                getTileUrl: function(_level, _x, _y) {
-                    // Assert that custom tile source is called correctly
-                    ASSERT.ok(true, 'DynamicUrlTileSource.getTileUrl called');
-                    return () => DYNAMIC_URL;
-                },
-
-                tileExists: function (_level, _x, _y) {
-                    return true;
-                }
-            });
-
             let hasCompletedImageInfoRequest = false;
-            OpenSeadragon.makeAjaxRequest = function(url, onSuccess, onError) {
-                // Note that our preferred API is that you pass in a single object; the named
-                // arguments are for legacy support.
-                if( $.isPlainObject(url)){
-                    onSuccess = url.success;
-                    onError = url.error;
-                    withCredentials = url.withCredentials;
-                    headers = url.headers;
-                    responseType = url.responseType || null;
-                    postData = url.postData || null;
-                    options = url; //save original stuff
-                    url = url.url;
-                }
-
+            restoreXhr = Util.fakeXhr(function(request) {
                 //first AJAX firing is the image info getter, second is the first tile request: can exit
                 if (hasCompletedImageInfoRequest) {
                     // Assert dynamic url from tileSource is called
-                    ASSERT.equal(url, DYNAMIC_URL, 'Called dynamic url correctly: ' + DYNAMIC_URL);
+                    ASSERT.equal(request.url, DYNAMIC_URL, 'Called dynamic url correctly: ' + DYNAMIC_URL);
                     // If we've only queried for one url, resolve that promise to set up second query
                     // Otherwise close viewer
                     if (isFirstUrlPromiseResolved) {
@@ -98,20 +85,11 @@
                     } else {
                         firstUrlPromiseResolver();
                     }
-
-                    return null;
+                    return false;
                 }
-
                 hasCompletedImageInfoRequest = true;
-
-                const request = Promise.resolve(url);
-                //some required properties to pass through processResponse(...)
-                request.responseText = "some text";
-                request.status = 200;
-
-                onSuccess(request);
-                return request;
-            };
+                return true;
+            });
 
             // Override Tile::getUrl to ensure getUrl is called successfully.
             OpenSeadragon.Tile.prototype.getUrl = function () {
@@ -133,7 +111,7 @@
 
             viewer = null;
 
-            OpenSeadragon.makeAjaxRequest = OriginalAjax;
+            restoreXhr();
             OpenSeadragon.Tile.prototype.getUrl = OriginalTileGetUrl;
         }
     });

@@ -34,7 +34,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 
 /**
  * @typedef {Object} Event

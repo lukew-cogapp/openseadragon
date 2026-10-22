@@ -929,14 +929,6 @@ import { Point } from "./point.js";
  * @memberof OpenSeadragon
  */
 
-function OpenSeadragon( /** @type {Partial<Options>} */ options ){
-    // Viewer is assigned onto the namespace by the UMD build (umd.js).
-    return new (/** @type {any} */ (OpenSeadragon).Viewer)( options );
-}
-const $ = OpenSeadragon;
-
-
-
 
 /**
  * The OpenSeadragon version.
@@ -948,7 +940,7 @@ const $ = OpenSeadragon;
  * @property {Number} revision - The revision number.
  * @since 1.0.0
  */
-OpenSeadragon.version = {
+export const version = {
     versionStr: __OSD_VERSION__,
     major: parseInt(__OSD_VERSION__.split('.')[0], 10),
     minor: parseInt(__OSD_VERSION__.split('.')[1], 10),
@@ -982,6 +974,66 @@ const toString    = Object.prototype.toString;
 const hasOwn      = Object.prototype.hasOwnProperty;
 
 /**
+ * A convenient alias for console when available, and a simple null
+ * function when console is unavailable.
+ * @static
+ * @private
+ * @param {*} [msg]
+ */
+function nullfunction( msg ){
+    //document.location.hash = msg;
+}
+
+export const console = /** @type {Console} */ (window.console || {
+    log:    nullfunction,
+    debug:  nullfunction,
+    info:   nullfunction,
+    warn:   nullfunction,
+    error:  nullfunction,
+    assert: nullfunction
+});
+
+/**
+ * An enumeration of Browser vendors.
+ * @static
+ * @type {Object<string, number>}
+ * @property {Number} UNKNOWN
+ * @property {Number} IE
+ * @property {Number} FIREFOX
+ * @property {Number} SAFARI
+ * @property {Number} CHROME
+ * @property {Number} OPERA
+ * @property {Number} EDGE
+ * @property {Number} CHROMEEDGE
+ */
+export const BROWSERS = {
+    UNKNOWN:    0,
+    IE:         1,
+    FIREFOX:    2,
+    SAFARI:     3,
+    CHROME:     4,
+    OPERA:      5,
+    EDGE:       6,
+    CHROMEEDGE: 7
+};
+
+/**
+ * The current browser vendor, version, and related information regarding detected features.
+ * @member {Object} Browser
+ * @memberof OpenSeadragon
+ * @static
+ * @type {{vendor: number, version: number, alpha: boolean, opacity?: boolean}}
+ * @property {OpenSeadragon.BROWSERS} vendor - One of the {@link OpenSeadragon.BROWSERS} enumeration values.
+ * @property {Number} version
+ * @property {Boolean} alpha - Does the browser support image alpha transparency.
+ */
+export const Browser = {
+    vendor:     BROWSERS.UNKNOWN,
+    version:    0,
+    alpha:      true
+};
+
+/**
  * Taken from jQuery 1.6.1
  * @function isFunction
  * @param {*} obj
@@ -989,9 +1041,9 @@ const hasOwn      = Object.prototype.hasOwnProperty;
  * @memberof OpenSeadragon
  * @see {@link http://www.jquery.com/ jQuery}
  */
-OpenSeadragon.isFunction = function( obj ) {
-    return $.type(obj) === "function";
-};
+export function isFunction( obj ) {
+    return type(obj) === "function";
+}
 
 /**
  * Taken from jQuery 1.6.1
@@ -1001,8 +1053,8 @@ OpenSeadragon.isFunction = function( obj ) {
  * @memberof OpenSeadragon
  * @see {@link http://www.jquery.com/ jQuery}
  */
-OpenSeadragon.isArray = Array.isArray || function( obj ) {
-    return $.type(obj) === "array";
+export const isArray = Array.isArray || function( obj ) {
+    return type(obj) === "array";
 };
 
 
@@ -1015,9 +1067,9 @@ OpenSeadragon.isArray = Array.isArray || function( obj ) {
  * @memberof OpenSeadragon
  * @see {@link http://www.jquery.com/ jQuery}
  */
-OpenSeadragon.isWindow = function( obj ) {
+export function isWindow( obj ) {
     return obj && typeof obj === "object" && "setInterval" in obj;
-};
+}
 
 
 /**
@@ -1028,11 +1080,11 @@ OpenSeadragon.isWindow = function( obj ) {
  * @memberof OpenSeadragon
  * @see {@link http://www.jquery.com/ jQuery}
  */
-OpenSeadragon.type = function( obj ) {
+export function type( obj ) {
     return ( obj === null ) || ( obj === undefined ) ?
         String( obj ) :
         class2type[ toString.call(obj) ] || "object";
-};
+}
 
 
 /**
@@ -1043,11 +1095,11 @@ OpenSeadragon.type = function( obj ) {
  * @memberof OpenSeadragon
  * @see {@link http://www.jquery.com/ jQuery}
  */
-OpenSeadragon.isPlainObject = function( obj ) {
+export function isPlainObject( obj ) {
     // Must be an Object.
     // Because of IE, we also have to check the presence of the constructor property.
     // Make sure that DOM nodes and window objects don't pass through, as well
-    if ( !obj || OpenSeadragon.type(obj) !== "object" || obj.nodeType || $.isWindow( obj ) ) {
+    if ( !obj || type(obj) !== "object" || obj.nodeType || isWindow( obj ) ) {
         return false;
     }
 
@@ -1067,7 +1119,7 @@ OpenSeadragon.isPlainObject = function( obj ) {
     }
 
     return lastKey === undefined || hasOwn.call( obj, lastKey );
-};
+}
 
 
 /**
@@ -1078,37 +1130,28 @@ OpenSeadragon.isPlainObject = function( obj ) {
  * @memberof OpenSeadragon
  * @see {@link http://www.jquery.com/ jQuery}
  */
-OpenSeadragon.isEmptyObject = function( obj ) {
+export function isEmptyObject( obj ) {
     for ( const name in obj ) {
         return false;
     }
     return true;
-};
+}
 
 /**
  * Shim around Object.freeze. Does nothing if Object.freeze is not supported.
  * @param {Object} obj The object to freeze.
  * @returns {Object} obj The frozen object.
  */
-OpenSeadragon.freezeObject = function(obj) {
-    if (Object.freeze) {
-        $.freezeObject = Object.freeze;
-    } else {
-        $.freezeObject = function(obj) {
-            return obj;
-        };
-    }
-    return $.freezeObject(obj);
-};
+export const freezeObject = Object.freeze;
 
 /**
  * True if the browser supports the HTML5 canvas element
  * @member {Boolean} supportsCanvas
  * @memberof OpenSeadragon
  */
-OpenSeadragon.supportsCanvas = (function () {
+export const supportsCanvas = (function () {
     const canvasElement = document.createElement( 'canvas' );
-    return !!( $.isFunction( canvasElement.getContext ) &&
+    return !!( isFunction( canvasElement.getContext ) &&
                 canvasElement.getContext( '2d' ) );
 }());
 
@@ -1117,7 +1160,7 @@ OpenSeadragon.supportsCanvas = (function () {
  * @argument {HTMLCanvasElement} canvas The canvas to test.
  * @returns {Boolean} True if the canvas is tainted.
  */
-OpenSeadragon.isCanvasTainted = function(canvas) {
+export function isCanvasTainted(canvas) {
     let isTainted = false;
     try {
         // We test if the canvas is tainted by retrieving data from it.
@@ -1127,14 +1170,14 @@ OpenSeadragon.isCanvasTainted = function(canvas) {
         isTainted = true;
     }
     return isTainted;
-};
+}
 
 /**
  * True if the browser supports the EventTarget.addEventListener() method
  * @member {Boolean} supportsAddEventListener
  * @memberof OpenSeadragon
  */
-OpenSeadragon.supportsAddEventListener = (function () {
+export const supportsAddEventListener = (function () {
     return !!(/** @type {*} */ (document.documentElement).addEventListener && document.addEventListener);
 }());
 
@@ -1143,7 +1186,7 @@ OpenSeadragon.supportsAddEventListener = (function () {
  * @member {Boolean} supportsRemoveEventListener
  * @memberof OpenSeadragon
  */
-OpenSeadragon.supportsRemoveEventListener = (function () {
+export const supportsRemoveEventListener = (function () {
     return !!(/** @type {*} */ (document.documentElement).removeEventListener && document.removeEventListener);
 }());
 
@@ -1152,10 +1195,10 @@ OpenSeadragon.supportsRemoveEventListener = (function () {
  * @member {Boolean} supportsEventListenerOptions
  * @memberof OpenSeadragon
  */
-OpenSeadragon.supportsEventListenerOptions = (function () {
+export const supportsEventListenerOptions = (function () {
     let supported = 0;
 
-    if ( $.supportsAddEventListener ) {
+    if ( supportsAddEventListener ) {
         try {
             const options = {
                 get capture() {
@@ -1187,7 +1230,7 @@ OpenSeadragon.supportsEventListenerOptions = (function () {
  * @member {boolean}
  * @memberof OpenSeadragon
  */
-OpenSeadragon.supportsAsync = true;
+export const supportsAsync = true;
 
 /**
  * A ratio comparing the device screen's pixel density to the canvas's backing store pixel density,
@@ -1196,8 +1239,8 @@ OpenSeadragon.supportsAsync = true;
  * @memberof OpenSeadragon
  * @returns {Number}
  */
-OpenSeadragon.getCurrentPixelDensityRatio = function() {
-    if ( $.supportsCanvas ) {
+export function getCurrentPixelDensityRatio() {
+    if ( supportsCanvas ) {
         const context = /** @type {*} */ (document.createElement('canvas').getContext('2d'));
         const devicePixelRatio = window.devicePixelRatio || 1;
         const backingStoreRatio = context.webkitBackingStorePixelRatio ||
@@ -1209,7 +1252,7 @@ OpenSeadragon.getCurrentPixelDensityRatio = function() {
     } else {
         return 1;
     }
-};
+}
 
 /**
  * A ratio comparing the device screen's pixel density to the canvas's backing store pixel density,
@@ -1217,7 +1260,12 @@ OpenSeadragon.getCurrentPixelDensityRatio = function() {
  * @member {Number} pixelDensityRatio
  * @memberof OpenSeadragon
  */
-OpenSeadragon.pixelDensityRatio = $.getCurrentPixelDensityRatio();
+export let pixelDensityRatio = getCurrentPixelDensityRatio();
+
+/** @param {Number} ratio */
+export function setPixelDensityRatio(ratio) {
+    pixelDensityRatio = ratio;
+}
 
 
 
@@ -1241,7 +1289,7 @@ OpenSeadragon.pixelDensityRatio = $.getCurrentPixelDensityRatio();
  * @memberof OpenSeadragon
  * @see {@link http://www.jquery.com/ jQuery}
  */
-OpenSeadragon.extend = function() {
+export function extend() {
     let options;
     let name;
     let src;
@@ -1262,14 +1310,8 @@ OpenSeadragon.extend = function() {
     }
 
     // Handle case when target is a string or something (possible in deep copy)
-    if ( typeof target !== "object" && !OpenSeadragon.isFunction( target ) ) {
+    if ( typeof target !== "object" && !isFunction( target ) ) {
         target = {};
-    }
-
-    // extend jQuery itself if only one argument is passed
-    if ( length === i ) {
-        target = this;
-        --i;
     }
 
     for ( ; i < length; i++ ) {
@@ -1288,7 +1330,7 @@ OpenSeadragon.extend = function() {
 
                     copy = descriptor.value;
                 } else {
-                    $.console.warn('Could not copy inherited property "' + name + '".');
+                    console.warn('Could not copy inherited property "' + name + '".');
                     continue;
                 }
 
@@ -1298,19 +1340,19 @@ OpenSeadragon.extend = function() {
                 }
 
                 // Recurse if we're merging plain objects or arrays
-                if ( deep && copy && ( OpenSeadragon.isPlainObject( copy ) || ( copyIsArray = OpenSeadragon.isArray( copy ) ) ) ) {
+                if ( deep && copy && ( isPlainObject( copy ) || ( copyIsArray = isArray( copy ) ) ) ) {
                     src = target[ name ];
 
                     if ( copyIsArray ) {
                         copyIsArray = false;
-                        clone = src && OpenSeadragon.isArray( src ) ? src : [];
+                        clone = src && isArray( src ) ? src : [];
 
                     } else {
-                        clone = src && OpenSeadragon.isPlainObject( src ) ? src : {};
+                        clone = src && isPlainObject( src ) ? src : {};
                     }
 
                     // Never move original objects, clone them
-                    target[ name ] = OpenSeadragon.extend( deep, clone, copy );
+                    target[ name ] = extend( deep, clone, copy );
 
                 // Don't bring in undefined values
                 } else if ( copy !== undefined ) {
@@ -1322,7 +1364,7 @@ OpenSeadragon.extend = function() {
 
     // Return the modified object
     return target;
-};
+}
 
 function isIOSDevice () {
     if (typeof navigator !== 'object') {
@@ -1342,7 +1384,7 @@ function isIOSDevice () {
  * @static
  * @type {Object<string, any>}
  */
-OpenSeadragon.DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
     //DATA SOURCE DETAILS
     xmlPath:                null,
     tileSources:            null,
@@ -1608,7 +1650,7 @@ OpenSeadragon.DEFAULT_SETTINGS = {
  * @param {Function} method
  * @returns {Function}
  */
-OpenSeadragon.delegate = function( object, method ) {
+export function delegate( object, method ) {
     return function(){
         /** @type {*} */
         let args = arguments;
@@ -1617,31 +1659,8 @@ OpenSeadragon.delegate = function( object, method ) {
         }
         return method.apply( object, args );
     };
-};
+}
 
-/**
- * An enumeration of Browser vendors.
- * @static
- * @type {Object<string, number>}
- * @property {Number} UNKNOWN
- * @property {Number} IE
- * @property {Number} FIREFOX
- * @property {Number} SAFARI
- * @property {Number} CHROME
- * @property {Number} OPERA
- * @property {Number} EDGE
- * @property {Number} CHROMEEDGE
- */
-OpenSeadragon.BROWSERS = {
-    UNKNOWN:    0,
-    IE:         1,
-    FIREFOX:    2,
-    SAFARI:     3,
-    CHROME:     4,
-    OPERA:      5,
-    EDGE:       6,
-    CHROMEEDGE: 7
-};
 
 /**
  * An enumeration of when subpixel rounding should occur.
@@ -1651,7 +1670,7 @@ OpenSeadragon.BROWSERS = {
  * @property {Number} ONLY_AT_REST Do not apply subpixel rounding for transparency during animation (panning, zoom, rotation) and apply it once animation is over.
  * @property {Number} ALWAYS Apply subpixel rounding for transparency during animation and when animation is over.
  */
-OpenSeadragon.SUBPIXEL_ROUNDING_OCCURRENCES = {
+export const SUBPIXEL_ROUNDING_OCCURRENCES = {
     NEVER:        0,
     ONLY_AT_REST: 1,
     ALWAYS:       2
@@ -1665,7 +1684,7 @@ OpenSeadragon.SUBPIXEL_ROUNDING_OCCURRENCES = {
  * @static
  * @type {Map<Element, import("./viewer.js").Viewer>}
  */
-OpenSeadragon._viewers = new Map();
+export const _viewers = new Map();
 
    /**
  * Returns the {@link Viewer} attached to a given DOM element. If there is
@@ -1674,9 +1693,9 @@ OpenSeadragon._viewers = new Map();
  * @param {String|HTMLElement} element Accepts an id or element.
  * @returns {import("./viewer.js").Viewer|undefined} The viewer attached to the given element, or undefined.
  */
-OpenSeadragon.getViewer = function(element) {
-    return $._viewers.get(this.getElement(element));
-};
+export function getViewer(element) {
+    return _viewers.get(getElement(element));
+}
 
 /**
  * Returns a DOM Element for the given id or element.
@@ -1684,12 +1703,12 @@ OpenSeadragon.getViewer = function(element) {
  * @param {String|HTMLElement} element Accepts an id or element.
  * @returns {HTMLElement} The element with the given id, null, or the element itself.
  */
-OpenSeadragon.getElement = function( element ) {
+export function getElement( element ) {
     if ( typeof ( element ) === "string" ) {
         element = /** @type {HTMLElement} */ (document.getElementById( element ));
     }
     return element;
-};
+}
 
 /**
  * Determines the position of the upper-left corner of the element.
@@ -1697,13 +1716,13 @@ OpenSeadragon.getElement = function( element ) {
  * @param {HTMLElement|String} element - the element we want the position for.
  * @returns {Point} - the position of the upper left corner of the element.
  */
-OpenSeadragon.getElementPosition = function( element ) {
+export function getElementPosition( element ) {
     let result = new Point();
     let isFixed;
     let offsetParent;
 
-    element      = $.getElement( element );
-    isFixed      = $.getElementStyle( element ).position === "fixed";
+    element      = getElement( element );
+    isFixed      = getElementStyle( element ).position === "fixed";
     offsetParent = getOffsetParent( element, isFixed );
 
     while ( offsetParent ) {
@@ -1712,16 +1731,16 @@ OpenSeadragon.getElementPosition = function( element ) {
         result.y += element.offsetTop;
 
         if ( isFixed ) {
-            result = result.plus( $.getPageScroll() );
+            result = result.plus( getPageScroll() );
         }
 
         element = offsetParent;
-        isFixed = $.getElementStyle( element ).position === "fixed";
+        isFixed = getElementStyle( element ).position === "fixed";
         offsetParent = getOffsetParent( element, isFixed );
     }
 
     return result;
-};
+}
 
 /**
  * Determines the position of the upper-left corner of the element adjusted for current page and/or element scroll.
@@ -1729,8 +1748,8 @@ OpenSeadragon.getElementPosition = function( element ) {
  * @param {HTMLElement|String} element - the element we want the position for.
  * @returns {Point} - the position of the upper left corner of the element adjusted for current page and/or element scroll.
  */
-OpenSeadragon.getElementOffset = function( element ) {
-    element = $.getElement( element );
+export function getElementOffset( element ) {
+    element = getElement( element );
 
     const doc = element && element.ownerDocument;
     let boundingRect = { top: 0, left: 0 };
@@ -1755,7 +1774,7 @@ OpenSeadragon.getElementOffset = function( element ) {
         boundingRect.left + ( win.pageXOffset || docElement.scrollLeft ) - ( docElement.clientLeft || 0 ),
         boundingRect.top + ( win.pageYOffset || docElement.scrollTop ) - ( docElement.clientTop || 0 )
     );
-};
+}
 
 /**
  * Determines the height and width of the given element.
@@ -1763,14 +1782,14 @@ OpenSeadragon.getElementOffset = function( element ) {
  * @param {HTMLElement|String} element
  * @returns {Point}
  */
-OpenSeadragon.getElementSize = function( element ) {
-    element = $.getElement( element );
+export function getElementSize( element ) {
+    element = getElement( element );
 
     return new Point(
         element.clientWidth,
         element.clientHeight
     );
-};
+}
 
 /**
  * Returns the CSSStyle object for the given element.
@@ -1778,17 +1797,12 @@ OpenSeadragon.getElementSize = function( element ) {
  * @param {HTMLElement|String} element
  * @returns {CSSStyleDeclaration}
  */
-OpenSeadragon.getElementStyle = /** @type {*} */ (document.documentElement).currentStyle ?
-    /** @param {HTMLElement|String} element */
-    function( element ) {
-        element = $.getElement( element );
-        return /** @type {*} */ (element).currentStyle;
-    } :
-    /** @param {HTMLElement|String} element */
-    function( element ) {
-        element = $.getElement( element );
-        return window.getComputedStyle( element, "" );
-    };
+export function getElementStyle( element ) {
+    return window.getComputedStyle( getElement( element ), "" );
+}
+
+/** @type {Object<string, string|null>} */
+const vendorPrefixMemo = {};
 
 /**
  * Returns the property with the correct vendor prefix appended.
@@ -1796,44 +1810,38 @@ OpenSeadragon.getElementStyle = /** @type {*} */ (document.documentElement).curr
  * @returns {String|null} the property with the correct prefix or null if not
  * supported.
  */
-OpenSeadragon.getCssPropertyWithVendorPrefix = function(property) {
-    /** @type {Object<string, string|null>} */
-    const memo = {};
-
-    $.getCssPropertyWithVendorPrefix = function(property) {
-        if (memo[property] !== undefined) {
-            return memo[property];
-        }
-        const style = /** @type {*} */ (document.createElement('div').style);
-        let result = null;
-        if (style[property] !== undefined) {
-            result = property;
-        } else {
-            const prefixes = ['Webkit', 'Moz', 'MS', 'O',
-                'webkit', 'moz', 'ms', 'o'];
-            const suffix = $.capitalizeFirstLetter(property);
-            for (let i = 0; i < prefixes.length; i++) {
-                const prop = prefixes[i] + suffix;
-                if (style[prop] !== undefined) {
-                    result = prop;
-                    break;
-                }
+export function getCssPropertyWithVendorPrefix(property) {
+    if (vendorPrefixMemo[property] !== undefined) {
+        return vendorPrefixMemo[property];
+    }
+    const style = /** @type {*} */ (document.createElement('div').style);
+    let result = null;
+    if (style[property] !== undefined) {
+        result = property;
+    } else {
+        const prefixes = ['Webkit', 'Moz', 'MS', 'O',
+            'webkit', 'moz', 'ms', 'o'];
+        const suffix = capitalizeFirstLetter(property);
+        for (let i = 0; i < prefixes.length; i++) {
+            const prop = prefixes[i] + suffix;
+            if (style[prop] !== undefined) {
+                result = prop;
+                break;
             }
         }
-        memo[property] = result;
-        return result;
-    };
-    return $.getCssPropertyWithVendorPrefix(property);
-};
+    }
+    vendorPrefixMemo[property] = result;
+    return result;
+}
 
 /**
  * Capitalizes the first letter of a string
  * @param {String} string
  * @returns {String} The string with the first letter capitalized
  */
-OpenSeadragon.capitalizeFirstLetter = function(string) {
+export function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
-};
+}
 
 /**
  * Compute the modulo of a number but makes sure to always return
@@ -1842,13 +1850,13 @@ OpenSeadragon.capitalizeFirstLetter = function(string) {
  * @param {Number} modulo the modulo
  * @returns {Number} the result of the modulo of number
  */
-OpenSeadragon.positiveModulo = function(number, modulo) {
+export function positiveModulo(number, modulo) {
     let result = number % modulo;
     if (result < 0) {
         result += modulo;
     }
     return result;
-};
+}
 
 /**
  * Determines if a point is within the bounding rectangle of the given element (hit-test).
@@ -1857,12 +1865,12 @@ OpenSeadragon.positiveModulo = function(number, modulo) {
  * @param {Point} point
  * @returns {Boolean}
  */
-OpenSeadragon.pointInElement = function( element, point ) {
-    element = $.getElement( element );
-    const offset = $.getElementOffset( element );
-    const size = $.getElementSize( element );
+export function pointInElement( element, point ) {
+    element = getElement( element );
+    const offset = getElementOffset( element );
+    const size = getElementSize( element );
     return point.x >= offset.x && point.x < offset.x + size.x && point.y < offset.y + size.y && point.y >= offset.y;
-};
+}
 
 /**
  * Gets the position of the mouse on the screen for a given event.
@@ -1870,166 +1878,36 @@ OpenSeadragon.pointInElement = function( element, point ) {
  * @param {MouseEvent} event
  * @returns {Point}
  */
-OpenSeadragon.getMousePosition = function( event ) {
-
-    if ( typeof ( event.pageX ) === "number" ) {
-        $.getMousePosition = function( event ){
-            const result = new Point();
-
-            result.x = event.pageX;
-            result.y = event.pageY;
-
-            return result;
-        };
-    } else if ( typeof ( event.clientX ) === "number" ) {
-        $.getMousePosition = function( event ){
-            const result = new Point();
-
-            result.x =
-                event.clientX +
-                document.body.scrollLeft +
-                document.documentElement.scrollLeft;
-            result.y =
-                event.clientY +
-                document.body.scrollTop +
-                document.documentElement.scrollTop;
-
-            return result;
-        };
-    } else {
-        throw new Error(
-            "Unknown event mouse position, no known technique."
-        );
-    }
-
-    return $.getMousePosition( event );
-};
+export function getMousePosition( event ) {
+    return new Point(event.pageX, event.pageY);
+}
 
 /**
  * Determines the page's current scroll position.
  * @function
  * @returns {Point}
  */
-OpenSeadragon.getPageScroll = function() {
-    const docElement = document.documentElement || {};
-    const body = document.body || {};
-
-    if ( typeof ( window.pageXOffset ) === "number" ) {
-        $.getPageScroll = function(){
-            return new Point(
-                window.pageXOffset,
-                window.pageYOffset
-            );
-        };
-    } else if ( body.scrollLeft || body.scrollTop ) {
-        $.getPageScroll = function(){
-            return new Point(
-                document.body.scrollLeft,
-                document.body.scrollTop
-            );
-        };
-    } else if ( docElement.scrollLeft || docElement.scrollTop ) {
-        $.getPageScroll = function(){
-            return new Point(
-                document.documentElement.scrollLeft,
-                document.documentElement.scrollTop
-            );
-        };
-    } else {
-        // We can't reassign the function yet, as there was no scroll.
-        return new Point(0, 0);
-    }
-
-    return $.getPageScroll();
-};
+export function getPageScroll() {
+    return new Point(window.pageXOffset, window.pageYOffset);
+}
 
 /**
  * Set the page scroll position.
  * @function
  * @param {Point} scroll
  */
-OpenSeadragon.setPageScroll = function( scroll ) {
-    if ( typeof ( window.scrollTo ) !== "undefined" ) {
-        $.setPageScroll = function( scroll ) {
-            window.scrollTo( scroll.x, scroll.y );
-        };
-    } else {
-        const originalScroll = $.getPageScroll();
-        if ( originalScroll.x === scroll.x &&
-            originalScroll.y === scroll.y ) {
-            // We are already correctly positioned and there
-            // is no way to detect the correct method.
-            return;
-        }
-
-        document.body.scrollLeft = scroll.x;
-        document.body.scrollTop = scroll.y;
-        let currentScroll = $.getPageScroll();
-        if ( currentScroll.x !== originalScroll.x &&
-            currentScroll.y !== originalScroll.y ) {
-            $.setPageScroll = function( scroll ) {
-                document.body.scrollLeft = scroll.x;
-                document.body.scrollTop = scroll.y;
-            };
-            return;
-        }
-
-        document.documentElement.scrollLeft = scroll.x;
-        document.documentElement.scrollTop = scroll.y;
-        currentScroll = $.getPageScroll();
-        if ( currentScroll.x !== originalScroll.x &&
-            currentScroll.y !== originalScroll.y ) {
-            $.setPageScroll = function( scroll ) {
-                document.documentElement.scrollLeft = scroll.x;
-                document.documentElement.scrollTop = scroll.y;
-            };
-            return;
-        }
-
-        // We can't find anything working, so we do nothing.
-        $.setPageScroll = function( scroll ) {
-        };
-    }
-
-    $.setPageScroll( scroll );
-};
+export function setPageScroll( scroll ) {
+    window.scrollTo( scroll.x, scroll.y );
+}
 
 /**
  * Determines the size of the browsers window.
  * @function
  * @returns {Point}
  */
-OpenSeadragon.getWindowSize = function() {
-    const docElement = document.documentElement || {};
-    const body = document.body || {};
-
-    if ( typeof ( window.innerWidth ) === 'number' ) {
-        $.getWindowSize = function(){
-            return new Point(
-                window.innerWidth,
-                window.innerHeight
-            );
-        };
-    } else if ( docElement.clientWidth || docElement.clientHeight ) {
-        $.getWindowSize = function(){
-            return new Point(
-                document.documentElement.clientWidth,
-                document.documentElement.clientHeight
-            );
-        };
-    } else if ( body.clientWidth || body.clientHeight ) {
-        $.getWindowSize = function(){
-            return new Point(
-                document.body.clientWidth,
-                document.body.clientHeight
-            );
-        };
-    } else {
-        throw new Error("Unknown window size, no known technique.");
-    }
-
-    return $.getWindowSize();
-};
+export function getWindowSize() {
+    return new Point(window.innerWidth, window.innerHeight);
+}
 
 /**
  * Wraps the given element in a nest of divs so that the element can
@@ -2038,9 +1916,9 @@ OpenSeadragon.getWindowSize = function() {
  * @param {HTMLElement|String} element
  * @returns {HTMLElement} outermost wrapper element
  */
-OpenSeadragon.makeCenteredNode = function( element ) {
+export function makeCenteredNode( element ) {
     // Convert a possible ID to an actual HTMLElement
-    element = $.getElement( element );
+    element = getElement( element );
 
     /*
         CSS tables require you to have a display:table/row/cell hierarchy so we need to create
@@ -2048,23 +1926,23 @@ OpenSeadragon.makeCenteredNode = function( element ) {
      */
 
     const wrappers = [
-        $.makeNeutralElement( 'div' ),
-        $.makeNeutralElement( 'div' ),
-        $.makeNeutralElement( 'div' )
+        makeNeutralElement( 'div' ),
+        makeNeutralElement( 'div' ),
+        makeNeutralElement( 'div' )
     ];
 
     // It feels like we should be able to pass style dicts to makeNeutralElement:
-    $.extend(wrappers[0].style, {
+    extend(wrappers[0].style, {
         display: "table",
         height: "100%",
         width: "100%"
     });
 
-    $.extend(wrappers[1].style, {
+    extend(wrappers[1].style, {
         display: "table-row"
     });
 
-    $.extend(wrappers[2].style, {
+    extend(wrappers[2].style, {
         display: "table-cell",
         verticalAlign: "middle",
         textAlign: "center"
@@ -2075,7 +1953,12 @@ OpenSeadragon.makeCenteredNode = function( element ) {
     wrappers[2].appendChild(element);
 
     return wrappers[0];
-};
+}
+
+/** @type {string[]} */
+let traceLogs = [];
+/** @type {ReturnType<typeof setInterval>|undefined} */
+let traceTimer;
 
 /**
  * Log trace information from the system. Useful for logging and debugging
@@ -2084,39 +1967,30 @@ OpenSeadragon.makeCenteredNode = function( element ) {
  * @param {import("./tile.js").Tile|import("./tilecache.js").CacheRecord|string} tile message to log or tile to inspect
  * @param {boolean} [stacktrace] if true log the stacktrace
  */
-OpenSeadragon.trace = function(tile, stacktrace = false) {
-    /** @type {string[]} */
-    this.__traceLogs = [];
-    setInterval(() => {
-        if (!this.__traceLogs.length) {
-            return;
-        }
-        console.log(this.__traceLogs.join('\n'));
-        this.__traceLogs = [];
-    }, 2000);
-    /**
-     * @param {*} tile
-     * @param {boolean} [stacktrace]
-     */
-    this.trace = function (tile, stacktrace = false) {
-        if (typeof tile === 'string') {
-            this.__traceLogs.push(tile);
-            if (stacktrace) {
-                this.__traceLogs.push(.../** @type {string} */ (new Error().stack).split('\n').slice(1));
+export function trace(tile, stacktrace = false) {
+    /** @type {*} */
+    let entry = tile;
+    if (!traceTimer) {
+        traceTimer = setInterval(() => {
+            if (traceLogs.length) {
+                console.log(traceLogs.join('\n'));
+                traceLogs = [];
             }
-            return;
+        }, 2000);
+    }
+    if (typeof entry === 'string') {
+        traceLogs.push(entry);
+    } else {
+        if (typeof entry.getCache === 'function') {
+            entry = entry.getCache(entry.originalCacheKey);
         }
-        if (typeof tile.getCache === 'function') {
-            tile = tile.getCache(tile.originalCacheKey);
-        }
-        const cacheTile = tile._tiles[0];
-        this.__traceLogs.push(`Cache ${cacheTile.toString()} loaded ${cacheTile.loaded} loading ${cacheTile.loading} cacheCount ${Object.keys(cacheTile._caches).length} - CACHE ${tile.__invStamp}`);
-        if (stacktrace) {
-            this.__traceLogs.push(.../** @type {string} */ (new Error().stack).split('\n').slice(1));
-        }
-    };
-    this.trace(tile, stacktrace);
-};
+        const cacheTile = entry._tiles[0];
+        traceLogs.push(`Cache ${cacheTile.toString()} loaded ${cacheTile.loaded} loading ${cacheTile.loading} cacheCount ${Object.keys(cacheTile._caches).length} - CACHE ${entry.__invStamp}`);
+    }
+    if (stacktrace) {
+        traceLogs.push(.../** @type {string} */ (new Error().stack).split('\n').slice(1));
+    }
+}
 
 /**
  * Creates an easily positionable element of the given type that therefor
@@ -2125,7 +1999,7 @@ OpenSeadragon.trace = function(tile, stacktrace = false) {
  * @param {String} tagName
  * @returns {HTMLElement}
  */
-OpenSeadragon.makeNeutralElement = function( tagName ) {
+export function makeNeutralElement( tagName ) {
     const element = document.createElement( tagName );
     const style   = element.style;
 
@@ -2136,24 +2010,16 @@ OpenSeadragon.makeNeutralElement = function( tagName ) {
     style.position   = "static";
 
     return element;
-};
+}
 
 /**
  * Returns the current milliseconds, using Date.now() if available
  * @function
  * @returns {number}
  */
-OpenSeadragon.now = function( ) {
-    if (Date.now) {
-        $.now = Date.now;
-    } else {
-        $.now = function() {
-            return new Date().getTime();
-        };
-    }
-
-    return $.now();
-};
+export function now() {
+    return Date.now();
+}
 
 /**
  * Ensures an image is loaded correctly to support alpha transparency.
@@ -2161,13 +2027,13 @@ OpenSeadragon.now = function( ) {
  * @param {String} src
  * @returns {HTMLImageElement}
  */
-OpenSeadragon.makeTransparentImage = function( src ) {
-    const img = /** @type {HTMLImageElement} */ ($.makeNeutralElement( "img" ));
+export function makeTransparentImage( src ) {
+    const img = /** @type {HTMLImageElement} */ (makeNeutralElement( "img" ));
 
     img.src = src;
 
     return img;
-};
+}
 
 /**
  * Sets the opacity of the specified element.
@@ -2176,18 +2042,18 @@ OpenSeadragon.makeTransparentImage = function( src ) {
  * @param {Number} opacity
  * @param {Boolean} [usesAlpha]
  */
-OpenSeadragon.setElementOpacity = function( element, opacity, usesAlpha ) {
+export function setElementOpacity( element, opacity, usesAlpha ) {
 
     let ieOpacity;
     let ieFilter;
 
-    element = $.getElement( element );
+    element = getElement( element );
 
-    if ( usesAlpha && !$.Browser.alpha ) {
+    if ( usesAlpha && !Browser.alpha ) {
         opacity = Math.round( opacity );
     }
 
-    if ( $.Browser.opacity ) {
+    if ( Browser.opacity ) {
         element.style.opacity = /** @type {*} */ (opacity < 1 ? opacity : "");
     } else {
         if ( opacity < 1 ) {
@@ -2198,7 +2064,7 @@ OpenSeadragon.setElementOpacity = function( element, opacity, usesAlpha ) {
             element.style.filter = "";
         }
     }
-};
+}
 
 /**
  * Sets the specified element's touch-action style attribute to the given value.
@@ -2206,23 +2072,23 @@ OpenSeadragon.setElementOpacity = function( element, opacity, usesAlpha ) {
  * @param {HTMLElement|String} element
  * @param {String} value - CSS touch-action value, e.g. 'none' or 'pan-x pan-y'.
  */
-OpenSeadragon.setElementTouchAction = function( element, value ) {
-    element = $.getElement( element );
+export function setElementTouchAction( element, value ) {
+    element = getElement( element );
     if ( typeof element.style.touchAction !== 'undefined' ) {
         element.style.touchAction = value;
     } else if ( typeof /** @type {*} */ (element.style).msTouchAction !== 'undefined' ) {
         /** @type {*} */ (element.style).msTouchAction = value;
     }
-};
+}
 
 /**
  * Sets the specified element's touch-action style attribute to 'none'.
  * @function
  * @param {HTMLElement|String} element
  */
-OpenSeadragon.setElementTouchActionNone = function( element ) {
-    $.setElementTouchAction( element, 'none' );
-};
+export function setElementTouchActionNone( element ) {
+    setElementTouchAction( element, 'none' );
+}
 
 /**
  * Sets the specified element's pointer-events style attribute to the passed value.
@@ -2230,21 +2096,21 @@ OpenSeadragon.setElementTouchActionNone = function( element ) {
  * @param {HTMLElement|String} element
  * @param {String} value
  */
-OpenSeadragon.setElementPointerEvents = function( element, value ) {
-    element = $.getElement( element );
+export function setElementPointerEvents( element, value ) {
+    element = getElement( element );
     if (typeof element.style !== 'undefined' && typeof element.style.pointerEvents !== 'undefined' ) {
         element.style.pointerEvents = value;
     }
-};
+}
 
 /**
  * Sets the specified element's pointer-events style attribute to 'none'.
  * @function
  * @param {HTMLElement|String} element
  */
-OpenSeadragon.setElementPointerEventsNone = function( element ) {
-    $.setElementPointerEvents( element, 'none' );
-};
+export function setElementPointerEventsNone( element ) {
+    setElementPointerEvents( element, 'none' );
+}
 
 /**
  * Add the specified CSS class to the element if not present.
@@ -2252,8 +2118,8 @@ OpenSeadragon.setElementPointerEventsNone = function( element ) {
  * @param {HTMLElement|String} element
  * @param {String} className
  */
-OpenSeadragon.addClass = function( element, className ) {
-    element = $.getElement( element );
+export function addClass( element, className ) {
+    element = getElement( element );
 
     if (!element.className) {
         element.className = className;
@@ -2261,7 +2127,7 @@ OpenSeadragon.addClass = function( element, className ) {
         indexOf( ' ' + className + ' ' ) === -1 ) {
         element.className += ' ' + className;
     }
-};
+}
 
 /**
  * Find the first index at which an element is found in an array or -1
@@ -2276,49 +2142,9 @@ OpenSeadragon.addClass = function( element, className ) {
  * @param {Number} [fromIndex=0] Index to start research.
  * @returns {Number} The index of the element in the array.
  */
-OpenSeadragon.indexOf = function( array, searchElement, fromIndex ) {
-    if ( /** @type {*} */ (Array.prototype).indexOf ) {
-        /**
-         * @param {Array<any>} array
-         * @param {*} searchElement
-         * @param {number} [fromIndex]
-         * @returns {number}
-         */
-        this.indexOf = function( array, searchElement, fromIndex ) {
-            return array.indexOf( searchElement, fromIndex );
-        };
-    } else {
-        /**
-         * @param {Array<any>} array
-         * @param {*} searchElement
-         * @param {number} [fromIndex]
-         * @returns {number}
-         */
-        this.indexOf = function( array, searchElement, fromIndex ) {
-            let pivot = ( fromIndex ) ? fromIndex : 0;
-            if ( !array ) {
-                throw new TypeError( );
-            }
-
-            const length = array.length;
-            if ( length === 0 || pivot >= length ) {
-                return -1;
-            }
-
-            if ( pivot < 0 ) {
-                pivot = length - Math.abs( pivot );
-            }
-
-            for ( let i = pivot; i < length; i++ ) {
-                if ( array[i] === searchElement ) {
-                    return i;
-                }
-            }
-            return -1;
-        };
-    }
-    return this.indexOf( array, searchElement, fromIndex );
-};
+export function indexOf( array, searchElement, fromIndex ) {
+    return array.indexOf( searchElement, fromIndex );
+}
 
 /**
  * Remove the specified CSS class from the element.
@@ -2326,10 +2152,10 @@ OpenSeadragon.indexOf = function( array, searchElement, fromIndex ) {
  * @param {HTMLElement|String} element
  * @param {String} className
  */
-OpenSeadragon.removeClass = function( element, className ) {
+export function removeClass( element, className ) {
     const newClasses = [];
 
-    element = $.getElement( element );
+    element = getElement( element );
     const oldClasses = element.className.split( /\s+/ );
     for ( let i = 0; i < oldClasses.length; i++ ) {
         if ( oldClasses[ i ] && oldClasses[ i ] !== className ) {
@@ -2337,7 +2163,7 @@ OpenSeadragon.removeClass = function( element, className ) {
         }
     }
     element.className = newClasses.join(' ');
-};
+}
 
 /**
  * Convert passed addEventListener() options to boolean or options object,
@@ -2347,101 +2173,49 @@ OpenSeadragon.removeClass = function( element, className ) {
  * with the optional Boolean properties capture, passive and once.
  * @returns {Boolean|AddEventListenerOptions} The options in the form the browser supports.
  */
-OpenSeadragon.normalizeEventListenerOptions = function (options) {
+export function normalizeEventListenerOptions(options) {
     let opts;
     if ( typeof options !== 'undefined' ) {
         if ( typeof options === 'boolean' ) {
             // Legacy Boolean useCapture
-            opts = $.supportsEventListenerOptions ? { capture: options } : options;
+            opts = supportsEventListenerOptions ? { capture: options } : options;
         } else {
             // Options object
-            opts = $.supportsEventListenerOptions ? options :
+            opts = supportsEventListenerOptions ? options :
                 ( ( typeof options.capture !== 'undefined' ) ? options.capture : false );
         }
     } else {
         // No options specified - Legacy optional useCapture argument
         //   (for IE, first supported on version 9, so we'll pass a Boolean)
-        opts = $.supportsEventListenerOptions ? { capture: false } : false;
+        opts = supportsEventListenerOptions ? { capture: false } : false;
     }
     return opts;
-};
+}
 
 /**
  * Adds an event listener for the given element, eventName and handler.
  * @function
- * @param {Element|String} element
+ * @param {HTMLElement|String} element
  * @param {String} eventName
  * @param {Function} handler
- * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
- * @param {Boolean} [options.capture]
- * @param {Boolean} [options.passive]
- * @param {Boolean} [options.once]
+ * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
  */
-OpenSeadragon.addEvent = function () {
-    if ( $.supportsAddEventListener ) {
-        /**
-         * @param {HTMLElement|String} element
-         * @param {String} eventName
-         * @param {Function} handler
-         * @param {Boolean|AddEventListenerOptions} [options]
-         */
-        return function ( element, eventName, handler, options ) {
-            options = $.normalizeEventListenerOptions(options);
-            element = $.getElement( element );
-            element.addEventListener( eventName, /** @type {*} */ (handler), options );
-        };
-    } else if ( /** @type {*} */ (document.documentElement).attachEvent && /** @type {*} */ (document).attachEvent ) {
-        /**
-         * @param {HTMLElement|String} element
-         * @param {String} eventName
-         * @param {Function} handler
-         */
-        return function ( element, eventName, handler ) {
-            element = $.getElement( element );
-            /** @type {*} */ (element).attachEvent( 'on' + eventName, handler );
-        };
-    } else {
-        throw new Error( "No known event model." );
-    }
-}();
+export function addEvent( element, eventName, handler, options ) {
+    getElement( element ).addEventListener( eventName, /** @type {*} */ (handler), normalizeEventListenerOptions(options) );
+}
 
 /**
  * Remove a given event listener for the given element, event type and
  * handler.
  * @function
- * @param {Element|String} element
+ * @param {HTMLElement|String} element
  * @param {String} eventName
  * @param {Function} handler
- * @param {Boolean|Object} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
- * @param {Boolean} [options.capture]
+ * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
  */
-OpenSeadragon.removeEvent = function () {
-    if ( $.supportsRemoveEventListener ) {
-        /**
-         * @param {HTMLElement|String} element
-         * @param {String} eventName
-         * @param {Function} handler
-         * @param {Boolean|EventListenerOptions} [options]
-         */
-        return function ( element, eventName, handler, options ) {
-            options = $.normalizeEventListenerOptions(options);
-            element = $.getElement( element );
-            element.removeEventListener( eventName, /** @type {*} */ (handler), options );
-        };
-    } else if ( /** @type {*} */ (document.documentElement).detachEvent && /** @type {*} */ (document).detachEvent ) {
-        /**
-         * @param {HTMLElement|String} element
-         * @param {String} eventName
-         * @param {Function} handler
-         */
-        return function( element, eventName, handler ) {
-            element = $.getElement( element );
-            /** @type {*} */ (element).detachEvent( 'on' + eventName, handler );
-        };
-    } else {
-        throw new Error( "No known event model." );
-    }
-}();
+export function removeEvent( element, eventName, handler, options ) {
+    getElement( element ).removeEventListener( eventName, /** @type {*} */ (handler), normalizeEventListenerOptions(options) );
+}
 
 /**
  * Cancels the default browser behavior had the event propagated all
@@ -2449,9 +2223,9 @@ OpenSeadragon.removeEvent = function () {
  * @function
  * @param {Event} event
  */
-OpenSeadragon.cancelEvent = function( event ) {
+export function cancelEvent( event ) {
     event.preventDefault();
-};
+}
 
 /**
  * Returns true if {@link OpenSeadragon.cancelEvent|cancelEvent} has been called on
@@ -2460,18 +2234,18 @@ OpenSeadragon.cancelEvent = function( event ) {
  * @param {Event} event
  * @returns {Boolean}
  */
-OpenSeadragon.eventIsCanceled = function( event ) {
+export function eventIsCanceled( event ) {
     return event.defaultPrevented;
-};
+}
 
 /**
  * Stops the propagation of the event through the DOM in the capturing and bubbling phases.
  * @function
  * @param {Event} event
  */
-OpenSeadragon.stopEvent = function( event ) {
+export function stopEvent( event ) {
     event.stopPropagation();
-};
+}
 
 /**
  * Retrieves the value of a url parameter from the window.location string.
@@ -2479,11 +2253,11 @@ OpenSeadragon.stopEvent = function( event ) {
  * @param {String} key
  * @returns {String|null} The value of the url parameter or null if no param matches.
  */
-OpenSeadragon.getUrlParameter = function( key ) {
+export function getUrlParameter( key ) {
     // eslint-disable-next-line no-use-before-define
     const value = URLPARAMS[ key ];
     return value ? value : null;
-};
+}
 
 /**
  * Retrieves the protocol used by the url. The url can either be absolute
@@ -2493,14 +2267,14 @@ OpenSeadragon.getUrlParameter = function( key ) {
  * @param {String} url The url to retrieve the protocol from.
  * @returns {String} The protocol (http:, https:, file:, ftp: ...)
  */
-OpenSeadragon.getUrlProtocol = function( url ) {
+export function getUrlProtocol( url ) {
     const match = url.match(/^([a-z]+:)\/\//i);
     if ( match === null ) {
         // Relative URL, retrive the protocol from window.location
         return window.location.protocol;
     }
     return match[1].toLowerCase();
-};
+}
 
 /**
  * Create an XHR object
@@ -2508,16 +2282,9 @@ OpenSeadragon.getUrlProtocol = function( url ) {
  * The deprecated `local` argument is ignored (IE/ActiveXObject file protocol no longer supported).
  * @returns {XMLHttpRequest}
  */
-OpenSeadragon.createAjaxRequest = function() {
-    if ( window.XMLHttpRequest ) {
-        $.createAjaxRequest = function() {
-            return new XMLHttpRequest();
-        };
-        return new XMLHttpRequest();
-    } else {
-        throw new Error( "Browser doesn't support XMLHttpRequest." );
-    }
-};
+export function createAjaxRequest() {
+    return new XMLHttpRequest();
+}
 
 /**
  * Makes an AJAX request.
@@ -2541,7 +2308,7 @@ OpenSeadragon.createAjaxRequest = function() {
  * @throws {Error}
  * @returns {XMLHttpRequest}
  */
-OpenSeadragon.makeAjaxRequest = function(
+export function makeAjaxRequest(
     /** @type {*} */ url,
     /** @type {Function} */ onSuccess,
     /** @type {Function} */ onError
@@ -2553,7 +2320,7 @@ OpenSeadragon.makeAjaxRequest = function(
 
     // Note that our preferred API is that you pass in a single object; the named
     // arguments are for legacy support.
-    if( $.isPlainObject( url ) ){
+    if( isPlainObject( url ) ){
         onSuccess = url.success;
         onError = url.error;
         withCredentials = url.withCredentials;
@@ -2562,13 +2329,13 @@ OpenSeadragon.makeAjaxRequest = function(
         postData = url.postData || null;
         url = url.url;
     } else {
-        $.console.warn("OpenSeadragon.makeAjaxRequest() deprecated usage!");
+        console.warn("makeAjaxRequest() deprecated usage!");
     }
 
-    const protocol = $.getUrlProtocol( url );
-    const request = $.createAjaxRequest();
+    const protocol = getUrlProtocol( url );
+    const request = createAjaxRequest();
 
-    if ( !$.isFunction( onSuccess ) ) {
+    if ( !isFunction( onSuccess ) ) {
         throw new Error( "makeAjaxRequest requires a success callback" );
     }
 
@@ -2585,10 +2352,10 @@ OpenSeadragon.makeAjaxRequest = function(
                   protocol !== "https:" )) {
                 onSuccess( request );
             } else {
-                if ( $.isFunction( onError ) ) {
+                if ( isFunction( onError ) ) {
                     onError( request );
                 } else {
-                    $.console.error( "AJAX request returned %d: %s", request.status, url );
+                    console.error( "AJAX request returned %d: %s", request.status, url );
                 }
             }
         }
@@ -2616,17 +2383,17 @@ OpenSeadragon.makeAjaxRequest = function(
 
         request.send(postData);
     } catch (e) {
-        $.console.error( "%s while making AJAX request: %s", /** @type {Error} */ (e).name, /** @type {Error} */ (e).message );
+        console.error( "%s while making AJAX request: %s", /** @type {Error} */ (e).name, /** @type {Error} */ (e).message );
 
         request.onreadystatechange = function(){};
 
-        if ( $.isFunction( onError ) ) {
+        if ( isFunction( onError ) ) {
             onError( request, e );
         }
     }
 
     return request;
-};
+}
 
 /**
  * Taken from jQuery 1.6.1
@@ -2641,14 +2408,14 @@ OpenSeadragon.makeAjaxRequest = function(
  * @param {String} [options.callbackName] The name of the callback to
  *      request the jsonp provider with.
  */
-OpenSeadragon.jsonp = function( options ){
+export function jsonp( options ){
     /** @type {*} */
     let script;
     let url     = options.url;
     const head    = document.head ||
             document.getElementsByTagName( "head" )[ 0 ] ||
             document.documentElement;
-    const jsonpCallback = options.callbackName || 'openseadragon' + $.now();
+    const jsonpCallback = options.callbackName || 'openseadragon' + now();
     const previous      = /** @type {*} */ (window)[ jsonpCallback ];
     const replace       = "$1" + jsonpCallback + "$2";
     const callbackParam = options.param || 'callback';
@@ -2669,7 +2436,7 @@ OpenSeadragon.jsonp = function( options ){
         } else {
             /** @type {*} */ (window)[ jsonpCallback ] = previous;
         }
-        if( callback && $.isFunction( callback ) ){
+        if( callback && isFunction( callback ) ){
             callback( response );
         }
     };
@@ -2708,16 +2475,16 @@ OpenSeadragon.jsonp = function( options ){
     // This arises when a base node is used (#2709 and #4378).
     head.insertBefore( script, head.firstChild );
 
-};
+}
 
 /**
  * Fully deprecated. Will throw an error.
  * @function
  * @deprecated use {@link OpenSeadragon.Viewer#open}
  */
-OpenSeadragon.createFromDZI = function() {
-    throw "OpenSeadragon.createFromDZI is deprecated, use Viewer.open.";
-};
+export function createFromDZI() {
+    throw "createFromDZI is deprecated, use Viewer.open.";
+}
 
 /**
  * Parses an XML string into a DOM Document.
@@ -2725,20 +2492,9 @@ OpenSeadragon.createFromDZI = function() {
  * @param {String} string
  * @returns {Document}
  */
-OpenSeadragon.parseXml = function( string ) {
-    if ( window.DOMParser ) {
-
-        $.parseXml = function( string ) {
-            const parser = new DOMParser();
-            return parser.parseFromString( string, "text/xml" );
-        };
-
-    } else {
-        throw new Error( "Browser doesn't support XML DOM." );
-    }
-
-    return $.parseXml( string );
-};
+export function parseXml( string ) {
+    return new DOMParser().parseFromString( string, "text/xml" );
+}
 
 /**
  * Parses a JSON string into a Javascript object.
@@ -2746,10 +2502,9 @@ OpenSeadragon.parseXml = function( string ) {
  * @param {String} string
  * @returns {Object}
  */
-OpenSeadragon.parseJSON = function(string) {
-    $.parseJSON = window.JSON.parse;
-    return $.parseJSON(string);
-};
+export function parseJSON( string ) {
+    return JSON.parse( string );
+}
 
 /**
  * Reports whether the image format is supported for tiling in this
@@ -2758,11 +2513,11 @@ OpenSeadragon.parseJSON = function(string) {
  * @param {String} [extension]
  * @returns {Boolean}
  */
-OpenSeadragon.imageFormatSupported = function( extension ) {
+export function imageFormatSupported( extension ) {
     extension = extension ? extension : "";
     // eslint-disable-next-line no-use-before-define
     return !!FILEFORMATS[ extension.toLowerCase() ];
-};
+}
 
 /**
  * Updates supported image formats with user-specified values.
@@ -2786,14 +2541,14 @@ OpenSeadragon.imageFormatSupported = function( extension ) {
  * @param {Object<string, boolean>} formats An object containing format extensions as
  * keys and booleans as values.
  */
-OpenSeadragon.setImageFormatsSupported = function(formats) {
+export function setImageFormatsSupported(formats) {
     //TODO: how to deal with this within the data pipeline?
     // $.console.warn("setImageFormatsSupported method is deprecated. You should check that" +
     //     " the system supports your TileSources by implementing corresponding data type converters.");
 
     // eslint-disable-next-line no-use-before-define
-    $.extend(FILEFORMATS, formats);
-};
+    extend(FILEFORMATS, formats);
+}
 
 
 //TODO: $.console is often used inside a try/catch block which generally
@@ -2801,42 +2556,8 @@ OpenSeadragon.setImageFormatsSupported = function(formats) {
 //      is attached.  Although I've been guilty of the same anti-pattern
 //      I eventually was convinced that errors should naturally propagate in
 //      all but the most special cases.
-/**
- * A convenient alias for console when available, and a simple null
- * function when console is unavailable.
- * @static
- * @private
- * @param {*} [msg]
- */
-function nullfunction( msg ){
-    //document.location.hash = msg;
-}
-
-OpenSeadragon.console = /** @type {Console} */ (window.console || {
-    log:    nullfunction,
-    debug:  nullfunction,
-    info:   nullfunction,
-    warn:   nullfunction,
-    error:  nullfunction,
-    assert: nullfunction
-});
 
 
-/**
- * The current browser vendor, version, and related information regarding detected features.
- * @member {Object} Browser
- * @memberof OpenSeadragon
- * @static
- * @type {{vendor: number, version: number, alpha: boolean, opacity?: boolean}}
- * @property {OpenSeadragon.BROWSERS} vendor - One of the {@link OpenSeadragon.BROWSERS} enumeration values.
- * @property {Number} version
- * @property {Boolean} alpha - Does the browser support image alpha transparency.
- */
-OpenSeadragon.Browser = {
-    vendor:     $.BROWSERS.UNKNOWN,
-    version:    0,
-    alpha:      true
-};
 
 
 /** @type {Object<string, boolean>} */
@@ -2873,8 +2594,8 @@ const URLPARAMS = {};
             if( !!(/** @type {*} */ (window)).attachEvent &&
                 !!(/** @type {*} */ (window)).ActiveXObject ) {
 
-                $.Browser.vendor = $.BROWSERS.IE;
-                $.Browser.version = parseFloat(
+                Browser.vendor = BROWSERS.IE;
+                Browser.version = parseFloat(
                     ua.substring(
                         ua.indexOf( "MSIE" ) + 5,
                         ua.indexOf( ";", ua.indexOf( "MSIE" ) ) )
@@ -2884,25 +2605,25 @@ const URLPARAMS = {};
         case "Netscape":
             if (/** @type {*} */ (window).addEventListener) {
                 if ( ua.indexOf( "Edge" ) >= 0 ) {
-                    $.Browser.vendor = $.BROWSERS.EDGE;
-                    $.Browser.version = parseFloat(
+                    Browser.vendor = BROWSERS.EDGE;
+                    Browser.version = parseFloat(
                         ua.substring( ua.indexOf( "Edge" ) + 5 )
                     );
                 } else if ( ua.indexOf( "Edg" ) >= 0 ) {
-                    $.Browser.vendor = $.BROWSERS.CHROMEEDGE;
-                    $.Browser.version = parseFloat(
+                    Browser.vendor = BROWSERS.CHROMEEDGE;
+                    Browser.version = parseFloat(
                         ua.substring( ua.indexOf( "Edg" ) + 4 )
                     );
                 } else if ( ua.indexOf( "Firefox" ) >= 0 ) {
-                    $.Browser.vendor = $.BROWSERS.FIREFOX;
-                    $.Browser.version = parseFloat(
+                    Browser.vendor = BROWSERS.FIREFOX;
+                    Browser.version = parseFloat(
                         ua.substring( ua.indexOf( "Firefox" ) + 8 )
                     );
                 } else if ( ua.indexOf( "Safari" ) >= 0 ) {
-                    $.Browser.vendor = ua.indexOf( "Chrome" ) >= 0 ?
-                        $.BROWSERS.CHROME :
-                        $.BROWSERS.SAFARI;
-                    $.Browser.version = parseFloat(
+                    Browser.vendor = ua.indexOf( "Chrome" ) >= 0 ?
+                        BROWSERS.CHROME :
+                        BROWSERS.SAFARI;
+                    Browser.version = parseFloat(
                         ua.substring(
                             ua.substring( 0, ua.indexOf( "Safari" ) ).lastIndexOf( "/" ) + 1,
                             ua.indexOf( "Safari" )
@@ -2911,15 +2632,15 @@ const URLPARAMS = {};
                 } else {
                     regex = new RegExp( "Trident/.*rv:([0-9]{1,}[.0-9]{0,})");
                     if ( regex.exec( ua ) !== null ) {
-                        $.Browser.vendor = $.BROWSERS.IE;
-                        $.Browser.version = parseFloat( RegExp.$1 );
+                        Browser.vendor = BROWSERS.IE;
+                        Browser.version = parseFloat( RegExp.$1 );
                     }
                 }
             }
             break;
         case "Opera":
-            $.Browser.vendor = $.BROWSERS.OPERA;
-            $.Browser.version = parseFloat( ver );
+            Browser.vendor = BROWSERS.OPERA;
+            Browser.version = parseFloat( ver );
             break;
     }
 
@@ -2937,21 +2658,21 @@ const URLPARAMS = {};
             try {
                 URLPARAMS[ key ] = decodeURIComponent( value );
             } catch (e) {
-                $.console.error( "Ignoring malformed URL parameter: %s=%s", key, value );
+                console.error( "Ignoring malformed URL parameter: %s=%s", key, value );
             }
         }
     }
 
     //determine if this browser supports image alpha transparency
-    $.Browser.alpha = !(
-        $.Browser.vendor === $.BROWSERS.CHROME && $.Browser.version < 2
+    Browser.alpha = !(
+        Browser.vendor === BROWSERS.CHROME && Browser.version < 2
     );
 
     //determine if this browser supports element.style.opacity
-    $.Browser.opacity = true;
+    Browser.opacity = true;
 
-    if ( $.Browser.vendor === $.BROWSERS.IE ) {
-        $.console.error('Internet Explorer is not supported by OpenSeadragon');
+    if ( Browser.vendor === BROWSERS.IE ) {
+        console.error('Internet Explorer is not supported by OpenSeadragon');
     }
 })();
 
@@ -2962,17 +2683,17 @@ const URLPARAMS = {};
  * @param {FrameRequestCallback} callback
  * @returns {number}
  */
-OpenSeadragon.requestAnimationFrame = function( callback ) {
+export function requestAnimationFrame( callback ) {
     return window.requestAnimationFrame( callback );
-};
+}
 
 /**
  * @function
  * @param {number} requestId
  */
-OpenSeadragon.cancelAnimationFrame = function( requestId ) {
+export function cancelAnimationFrame( requestId ) {
     window.cancelAnimationFrame( requestId );
-};
+}
 
 /**
  * @private
@@ -3018,7 +2739,7 @@ function getOffsetParent( element, isFixed ) {
  * This proxy is also necessary because OperaMini does not implement Promises (checks fail).
  * @type {PromiseConstructor}
  */
-OpenSeadragon.Promise = /** @type {PromiseConstructor} */ (/** @type {unknown} */ (window["Promise"] && $.supportsAsync ? window["Promise"] : class {
+export const Promise = /** @type {PromiseConstructor} */ (/** @type {unknown} */ (window["Promise"] && supportsAsync ? window["Promise"] : class {
     /** @param {Function} handler */
     constructor(handler) {
         this._error = false;
@@ -3043,7 +2764,7 @@ OpenSeadragon.Promise = /** @type {PromiseConstructor} */ (/** @type {unknown} *
      * @param {boolean} isError
      */
     _adopt(value, isError) {
-        while (value instanceof /** @type {*} */ ($.Promise)) {
+        while (value instanceof /** @type {*} */ (Promise)) {
             isError = isError || value._error;
             value = value.__value;
         }
@@ -3082,7 +2803,7 @@ OpenSeadragon.Promise = /** @type {PromiseConstructor} */ (/** @type {unknown} *
         // result is discarded.
         try {
             const result = handler();
-            if (result instanceof /** @type {*} */ ($.Promise) && result._error) {
+            if (result instanceof /** @type {*} */ (Promise) && result._error) {
                 this._adopt(result, true);
             }
         } catch (e) {
@@ -3128,4 +2849,3 @@ OpenSeadragon.Promise = /** @type {PromiseConstructor} */ (/** @type {unknown} *
     }
 }));
 
-export default OpenSeadragon;

@@ -8,14 +8,14 @@
     QUnit.module("spring", {
         beforeEach: function () {
             now = 0;
-            originalNow = OpenSeadragon.now;
+            originalNow = Date.now;
 
-            OpenSeadragon.now = function() {
+            Date.now = function() {
                 return now;
             };
         },
         afterEach: function () {
-            OpenSeadragon.now = originalNow;
+            Date.now = originalNow;
         }
     });
 

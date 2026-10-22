@@ -65,6 +65,8 @@ declare namespace OpenSeadragon {
 
     const pixelDensityRatio: number;
 
+    function setPixelDensityRatio(ratio: number): void;
+
     enum Placement {
         CENTER,
         TOP_LEFT,
@@ -122,7 +124,7 @@ declare namespace OpenSeadragon {
 
     function eventIsCanceled(event: OSDEvent<any>): boolean;
 
-    function extend(): any;
+    function extend(...args: any[]): any;
 
     function getCssPropertyWithVendorPrefix(property: string): string;
 

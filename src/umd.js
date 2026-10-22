@@ -32,10 +32,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import $ from "./openseadragon.js";
+import * as utils from "./openseadragon.js";
 import * as classes from "./index.js";
+import { fullScreenApi } from "./fullscreen.js";
 
-Object.assign($, classes);
+/**
+ * The script-tag global: a callable that creates a {@link Viewer}, carrying
+ * every utility and class as a property.
+ * @param {Partial<utils.Options>} options
+ */
+function OpenSeadragon(options) {
+    return new classes.Viewer(options);
+}
+Object.assign(OpenSeadragon, utils, classes, fullScreenApi);
+Object.defineProperty(OpenSeadragon, "pixelDensityRatio", { get: () => utils.pixelDensityRatio });
+
 classes.register(
     classes.HTMLDrawer,
     classes.CanvasDrawer,
@@ -53,4 +64,4 @@ classes.register(
     classes.ReferenceStrip
 );
 
-export default $;
+export default OpenSeadragon;

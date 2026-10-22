@@ -33,7 +33,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { CacheRecord } from "./tilecache.js";
 import { EventSource } from "./eventsource.js";
 import { Point } from "./point.js";

@@ -1,6 +1,6 @@
 import { expectType, expectError } from 'tsd';
 import { Viewer, CanvasDrawer, WebGLDrawer, IIIFTileSource, DziTileSource, Navigator, ReferenceStrip,
-    TileSourceCollection, Point, register, determineDrawer } from '..';
+    TileSourceCollection, Point, register, determineDrawer, extend, getElementSize } from '..';
 
 register(CanvasDrawer, WebGLDrawer, IIIFTileSource, DziTileSource, Navigator, ReferenceStrip);
 expectError(register(Point));
@@ -13,3 +13,6 @@ expectType<Viewer>(viewer);
 expectType<Point>(viewer.viewport.getCenter());
 
 new TileSourceCollection(256, []);
+
+expectType<any>(extend({}, { a: 1 }));
+expectType<Point>(getElementSize("viewer"));

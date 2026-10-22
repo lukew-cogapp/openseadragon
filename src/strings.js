@@ -35,7 +35,7 @@
 
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 
 //TODO: I guess this is where the i18n needs to be reimplemented.  I'll look
 //      into existing patterns for i18n in javascript but i think that mimicking

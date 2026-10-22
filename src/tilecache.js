@@ -34,7 +34,7 @@
 
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { converter } from "./datatypeconverter.js";
 
 

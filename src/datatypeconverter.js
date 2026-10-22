@@ -35,7 +35,7 @@
 
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { PriorityQueue } from "./priorityqueue.js";
 
 

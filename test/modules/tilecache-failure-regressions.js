@@ -95,7 +95,7 @@
     Converter.learnDestroy(T_C, () => {});
 
     // Minimal drawer that requests T_C and uses private cache with preload
-    OpenSeadragon.__FailTestDrawer = class extends OpenSeadragon.DrawerBase {
+    const FailTestDrawer = class extends OpenSeadragon.DrawerBase {
         constructor(opts) {
             super(opts);
             this.testEvents = new OpenSeadragon.EventSource();
@@ -132,7 +132,7 @@
     };
 
     // Empty test source that returns constant data (0) as T_A
-    OpenSeadragon.__FailTestTileSource = class extends OpenSeadragon.TileSource {
+    const FailTestTileSource = class extends OpenSeadragon.TileSource {
         supports(data) {
             const isSupported = !!(data && data.isFailTestSource);
             if (isSupported) this.source = data.isFailTestSource;
@@ -155,6 +155,8 @@
         downloadTileStart(context) { context.finish(0, null, T_A); }
         getClosestLevel() { return Infinity; } // force invalidation for all tiles
     };
+
+    OpenSeadragon.register(FailTestDrawer, FailTestTileSource);
 
     QUnit.module('TileCache failure regressions', {
         beforeEach: function () {

@@ -33,7 +33,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { EventSource } from "./eventsource.js";
 import { MouseTracker } from "./mousetracker.js";
 

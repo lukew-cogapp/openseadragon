@@ -33,7 +33,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { ControlAnchor } from "./control.js";
 import { MouseTracker } from "./mousetracker.js";
 import { Viewer } from "./viewer.js";

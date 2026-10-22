@@ -34,7 +34,7 @@
 
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 
     /**
      * An enumeration of positions to anchor an element.

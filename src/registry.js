@@ -33,7 +33,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { DrawerBase } from "./drawerbase.js";
 
 // The viewer only knows the drawers, tile sources and optional features
@@ -66,20 +66,6 @@ function register(...classes) {
             $.console.error("register: %s is not a drawer, tile source or viewer feature", Class);
         }
     }
-}
-
-// Classes assigned straight onto the namespace, as plugins written for
-// earlier versions do, are still found after the registered ones.
-/**
- * @param {Function[]} registered
- * @param {function(Function, string): boolean} isMatch
- * @returns {Function[]}
- */
-function candidates(registered, isMatch) {
-    const namespace = /** @type {Record<string, any>} */ ($);
-    const extra = Object.keys($).filter((key) =>
-        $.isFunction(namespace[key]) && !registered.includes(namespace[key]) && isMatch(namespace[key], key));
-    return registered.concat(extra.map((key) => namespace[key]));
 }
 
 /** @param {Function} Drawer */
@@ -117,7 +103,7 @@ function determineDrawer(id) {
     if (id === 'auto') {
         id = getAutoDrawerCandidates()[0];
     }
-    return candidates(drawers, isDrawer).find((Drawer) => isDrawer(Drawer) && drawerType(Drawer) === id) || null;
+    return drawers.find((Drawer) => isDrawer(Drawer) && drawerType(Drawer) === id) || null;
 }
 
 /**
@@ -131,8 +117,7 @@ function determineDrawer(id) {
  * @returns {Function|null}
  */
 function determineTileSourceType(tileSource, data, url) {
-    const isTileSource = /** @param {Function} Class @param {string} key */ (Class, key) => /.+TileSource$/.test(key) && $.isFunction(Class.prototype.supports);
-    const found = candidates(tileSources, isTileSource).find(
+    const found = tileSources.find(
         (TileSource) => TileSource.prototype.supports.call(tileSource, data, url));
     if (!found) {
         $.console.error("No TileSource was able to open %s %s", url, data);

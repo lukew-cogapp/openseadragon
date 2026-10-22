@@ -33,7 +33,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { Point } from "./point.js";
 import { TileSource } from "./tilesource.js";
 import { getString } from "./strings.js";

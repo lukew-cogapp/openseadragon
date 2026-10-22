@@ -34,7 +34,7 @@
 
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { DrawerBase } from "./drawerbase.js";
 import { Point } from "./point.js";
 

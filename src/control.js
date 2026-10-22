@@ -34,7 +34,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 
 /**
  * An enumeration of supported locations where controls can be anchored.

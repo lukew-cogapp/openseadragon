@@ -33,7 +33,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { Placement } from "./placement.js";
 import { Point } from "./point.js";
 import { Rect } from "./rectangle.js";

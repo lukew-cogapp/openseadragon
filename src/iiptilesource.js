@@ -34,7 +34,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { Point } from "./point.js";
 import { TileSource } from "./tilesource.js";
 
@@ -176,7 +176,7 @@ import { TileSource } from "./tilesource.js";
         headers: this.ajaxHeaders,
         success: function( xhr ) {
           try {
-            $[ "IIPTileSource" ].prototype.parseIIP.call( _this, xhr.responseText );
+            IIPTileSource.prototype.parseIIP.call( _this, xhr.responseText );
             _this.ready = true;
             _this.raiseEvent( 'ready', { tileSource: _this } );
           }

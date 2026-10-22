@@ -33,7 +33,7 @@
  */
 
 
-import $ from "./openseadragon.js";
+import * as $ from "./openseadragon.js";
 import { Button } from "./button.js";
 import { ButtonGroup } from "./buttongroup.js";
 import { ControlAnchor } from "./control.js";
@@ -3076,7 +3076,7 @@ class Viewer extends ControlDock {
         const previusPixelDensityRatio = $.pixelDensityRatio;
         const currentPixelDensityRatio = $.getCurrentPixelDensityRatio();
         if (previusPixelDensityRatio !== currentPixelDensityRatio) {
-            $.pixelDensityRatio = currentPixelDensityRatio;
+            $.setPixelDensityRatio(currentPixelDensityRatio);
             this.forceResize();
         }
     }

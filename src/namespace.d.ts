@@ -64,7 +64,7 @@ declare namespace OpenSeadragon {
     type WebGLDrawer = import("./webgldrawer.js").WebGLDrawer;
     type World = import("./world.js").World;
     type ZoomifyTileSource = import("./zoomifytilesource.js").ZoomifyTileSource;
-    type BROWSERS = (typeof import("./openseadragon.js").default.BROWSERS)[keyof typeof import("./openseadragon.js").default.BROWSERS];
+    type BROWSERS = (typeof import("./openseadragon.js").BROWSERS)[keyof typeof import("./openseadragon.js").BROWSERS];
     type Promise<T> = globalThis.Promise<T>;
     namespace MouseTracker {
         type EventProcessInfo = import("./mousetracker.js").EventProcessInfo;

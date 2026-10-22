@@ -32,5 +32,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+export * from "./openseadragon.js";
 export * from "./index.js";
 export { default } from "./umd.js";
