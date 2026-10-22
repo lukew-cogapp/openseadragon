@@ -67,7 +67,7 @@ class Navigator extends Viewer {
         if( options.element || options.id ){
             if ( options.element ) {
                 if ( options.id ){
-                    $.console.warn("Given option.id for Navigator was ignored since option.element was provided and is being used instead.");
+                    console.warn("Given option.id for Navigator was ignored since option.element was provided and is being used instead.");
                 }
 
                 // Don't overwrite the element's id if it has one already
@@ -496,7 +496,7 @@ class Navigator extends Viewer {
             this.element.style.display = 'none';
         }
     } else {
-        $.console.warn("[OpenSeadragon.Navigator.setVisible] Navigator element is not defined.");
+        console.warn("[OpenSeadragon.Navigator.setVisible] Navigator element is not defined.");
     }
 
     return Viewer.prototype.setVisible.apply(this, [visible]);

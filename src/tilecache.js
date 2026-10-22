@@ -59,7 +59,7 @@ class InternalCacheRecord {
         this._ondestroy = onDestroy;
         this._type = type;
 
-        if (data instanceof $.Promise) {
+        if (data instanceof Promise) {
             this._promise = data;
             data.then(data => {
                 this.loaded = true;
@@ -94,7 +94,7 @@ class InternalCacheRecord {
      */
     await() {
         if (!this._promise) { //if not cache loaded, do not fail
-            return $.Promise.resolve(this._data);
+            return Promise.resolve(this._data);
         }
         return this._promise;
     }
@@ -120,7 +120,7 @@ class InternalCacheRecord {
                 try {
                     this._ondestroy(this._data);
                 } catch (e) {
-                    $.console.error("[InternalCacheRecord.destroy] drawer internal cache free threw:", e);
+                    console.error("[InternalCacheRecord.destroy] drawer internal cache free threw:", e);
                 }
             }
             this._data = null;
@@ -173,20 +173,20 @@ class CacheRecord {
      */
     await() {
         if (!this._promise) { //if not cache loaded, do not fail
-            return $.Promise.resolve(this._data);
+            return Promise.resolve(this._data);
         }
         return this._promise;
     }
 
     getImage() {
-        $.console.error("[CacheRecord.getImage] options.image is deprecated. Moreover, it might not work" +
+        console.error("[CacheRecord.getImage] options.image is deprecated. Moreover, it might not work" +
             " correctly as the cache system performs conversion asynchronously in case the type needs to be converted.");
         this.transformTo("image");
         return this.data;
     }
 
     getRenderedContext() {
-        $.console.error("[CacheRecord.getRenderedContext] options.getRenderedContext  is deprecated. Moreover, it might not work" +
+        console.error("[CacheRecord.getRenderedContext] options.getRenderedContext  is deprecated. Moreover, it might not work" +
             " correctly as the cache system performs conversion asynchronously in case the type needs to be converted.");
         this.transformTo("context2d");
         return this.data;
@@ -200,11 +200,11 @@ class CacheRecord {
      */
     setDataAs(data, type) {
         //allow set data with destroyed state, destroys the data if necessary
-        $.console.assert(data !== undefined && data !== null, "[CacheRecord.setDataAs] needs valid data to set!");
+        console.assert(data !== undefined && data !== null, "[CacheRecord.setDataAs] needs valid data to set!");
         if (this._conversionJobQueue) {
             //delay saving if ongiong conversion, these were registered first
             let resolver = null;
-            const promise = new $.Promise((resolve, reject) => {
+            const promise = new Promise((resolve, reject) => {
                 resolver = resolve;
             });
             this._conversionJobQueue.push(() => resolver(this._overwriteData(data, type)));
@@ -234,7 +234,7 @@ class CacheRecord {
     _transformDataIfNeeded(referenceTile, data, type, copy) {
         //might get destroyed in meanwhile
         if (this._destroyed) {
-            return $.Promise.resolve();
+            return Promise.resolve();
         }
 
         let result;
@@ -279,7 +279,7 @@ class CacheRecord {
     getDataForRendering(drawer, tileToDraw) {
         // Test cache state
         if (this._destroyed) {
-            $.console.error(`Attempt to draw tile with destroyed main cache ${this}!`);
+            console.error(`Attempt to draw tile with destroyed main cache ${this}!`);
             tileToDraw._unload();
             return undefined;
         }
@@ -289,11 +289,11 @@ class CacheRecord {
             if (this._promise) {
                 return undefined;
             }
-            $.console.error(`Attempt to draw cache ${this} when not loaded!`);
+            console.error(`Attempt to draw cache ${this} when not loaded!`);
             return undefined;
         }
         if (this._destroyed) {
-            $.console.error(`Attempt to draw tile with destroyed main cache ${this}!`);
+            console.error(`Attempt to draw tile with destroyed main cache ${this}!`);
             tileToDraw._unload();  // try to restore the state so that the tile is later on fetched again
             return undefined;
         }
@@ -303,7 +303,7 @@ class CacheRecord {
         // unable to provide the rendering data immediatelly - return.
         const supportedTypes = drawer.getSupportedDataFormats();
         if (!supportedTypes.includes(this.type)) {
-            $.console.error(`Attempt to draw tile cache ${this} with unsupported type '${this.type}' for the target drawer!`);
+            console.error(`Attempt to draw tile cache ${this} with unsupported type '${this.type}' for the target drawer!`);
             this.prepareForRendering(drawer);
             return undefined;
         }
@@ -317,7 +317,7 @@ class CacheRecord {
             // or check internal cache state before returning
             const internalCache = this._getInternalCacheRef(drawer);
             if (!internalCache || !internalCache.loaded) {
-                $.console.error(`Attempt to draw tile cache ${this} with internal cache non-ready state!`);
+                console.error(`Attempt to draw tile cache ${this} with internal cache non-ready state!`);
                 return undefined;
             }
             return internalCache;
@@ -412,12 +412,12 @@ class CacheRecord {
             delete this[DRAWER_INTERNAL_CACHE][drawerID];
         }
 
-        $.console.assert(this._tRef, "Data Create called from invalidation routine needs tile reference!");
+        console.assert(this._tRef, "Data Create called from invalidation routine needs tile reference!");
         const transformedData = drawer.internalCacheCreate(this, this._tRef);
-        $.console.assert(transformedData !== undefined, "[DrawerBase.internalCacheCreate] must return a value if usePrivateCache is enabled!");
+        console.assert(transformedData !== undefined, "[DrawerBase.internalCacheCreate] must return a value if usePrivateCache is enabled!");
         if (transformedData === undefined || transformedData === null) {
             // do not store in the internal cache which would later hand undefined/null to the drawer destructor
-            return $.Promise.resolve(undefined);
+            return Promise.resolve(undefined);
         }
         internalCache = this[DRAWER_INTERNAL_CACHE][drawerID] = new InternalCacheRecord(transformedData,
             drawerID, (data) => drawer.internalCacheFree(data));
@@ -446,9 +446,9 @@ class CacheRecord {
             delete this[DRAWER_INTERNAL_CACHE][drawerID];
         }
 
-        $.console.assert(this._tRef, "Data Create called from drawing loop needs tile reference!");
+        console.assert(this._tRef, "Data Create called from drawing loop needs tile reference!");
         const transformedData = drawer.internalCacheCreate(this, this._tRef);
-        $.console.assert(transformedData !== undefined, "[DrawerBase.internalCacheCreate] must return a value if usePrivateCache is enabled!");
+        console.assert(transformedData !== undefined, "[DrawerBase.internalCacheCreate] must return a value if usePrivateCache is enabled!");
         if (transformedData === undefined || transformedData === null) {
             // do not store in the internal cache which would later hand undefined/null to the drawer destructor
             return undefined;
@@ -469,7 +469,7 @@ class CacheRecord {
     _getInternalCacheRef(drawer) {
         const options = drawer.options;
         if (!options.usePrivateCache) {
-            $.console.error("[CacheRecord.prepareInternalCacheSync] must not be called when usePrivateCache is false.");
+            console.error("[CacheRecord.prepareInternalCacheSync] must not be called when usePrivateCache is false.");
             return undefined;
         }
 
@@ -507,7 +507,7 @@ class CacheRecord {
         if (!this.loaded) {
             this._conversionJobQueue = this._conversionJobQueue || [];
             let resolver = null;
-            const promise = new $.Promise((resolve, reject) => {
+            const promise = new Promise((resolve, reject) => {
                 resolver = resolve;
             });
 
@@ -576,11 +576,11 @@ class CacheRecord {
             try {
                 cache.destroy();
             } catch (e) {
-                $.console.error("[CacheRecord] internal cache destroy threw:", e);
+                console.error("[CacheRecord] internal cache destroy threw:", e);
             }
         } else {
             cache.await().then(() => cache.destroy())
-                .catch((e) => $.console.error("[CacheRecord] internal cache destroy threw:", e));
+                .catch((e) => console.error("[CacheRecord] internal cache destroy threw:", e));
         }
     }
 
@@ -623,7 +623,7 @@ class CacheRecord {
         try {
             transformedData = drawer.internalCacheCreate(this, this._tRef);
         } catch (e) {
-            $.console.error("[CacheRecord._rebuildInternalCache] internalCacheCreate threw:", e);
+            console.error("[CacheRecord._rebuildInternalCache] internalCacheCreate threw:", e);
             transformedData = undefined;
         }
         if (transformedData === undefined || transformedData === null) {
@@ -651,7 +651,7 @@ class CacheRecord {
             swap(); // sync (non-preload) drawer: replace immediately, no blink
         } else {
             fresh.await().then(swap).catch(e => {
-                $.console.error("[CacheRecord._rebuildInternalCache] internal cache refresh failed:", e);
+                console.error("[CacheRecord._rebuildInternalCache] internal cache refresh failed:", e);
                 this._safeDestroyInternal(fresh);
             });
         }
@@ -683,7 +683,7 @@ class CacheRecord {
      * Must not be called on active cache, e.g. first call destroy().
      */
     revive() {
-        $.console.assert(!this.loaded && !this._type, "[CacheRecord.revive] must not be called when loaded!");
+        console.assert(!this.loaded && !this._type, "[CacheRecord.revive] must not be called when loaded!");
         this._tiles = [];
         this._data = null;
         this._type = null;
@@ -711,7 +711,7 @@ class CacheRecord {
             } else if (this._promise) {
                 const oldType = this._type;
                 this._promise.then(x => this._destroySelfUnsafe(x, oldType))
-                    .catch((e) => $.console.error("[CacheRecord.destroy] async threw:", e));
+                    .catch((e) => console.error("[CacheRecord.destroy] async threw:", e));
             }
         }
 
@@ -723,7 +723,7 @@ class CacheRecord {
         try {
             converter.destroy(data, type);
         } catch (e) {
-            $.console.error("[CacheRecord._destroySelfUnsafe] data destroy threw:", e);
+            console.error("[CacheRecord._destroySelfUnsafe] data destroy threw:", e);
         }
         this.destroyInternalCache();
         // might've got revived in meanwhile if async ...
@@ -748,7 +748,7 @@ class CacheRecord {
         if (this._destroyed) {
             return;
         }
-        $.console.assert(tile, '[CacheRecord.addTile] tile is required');
+        console.assert(tile, '[CacheRecord.addTile] tile is required');
 
         // first come first served, data for existing tiles is NOT overridden
         if (data !== undefined && data !== null && this._tiles.length < 1) {
@@ -759,7 +759,7 @@ class CacheRecord {
 
             // in case we attempt to write to existing data object
             if (this.type && this._promise) {
-                if (data instanceof $.Promise) {
+                if (data instanceof Promise) {
                     this._promise = data.then(d => {
                         this._overwriteData(d, type);
                     });
@@ -768,7 +768,7 @@ class CacheRecord {
                 }
             } else {
                 // If we receive async callback, we consume the async state
-                if (data instanceof $.Promise) {
+                if (data instanceof Promise) {
                     this._promise = data.then(data => {
                         if (this._destroyed) {
                             try {
@@ -787,7 +787,7 @@ class CacheRecord {
                     });
                     this._data = null;
                 } else {
-                    this._promise = $.Promise.resolve(data);
+                    this._promise = Promise.resolve(data);
                     this._data = data;
                     this.loaded = true;
                 }
@@ -802,7 +802,7 @@ class CacheRecord {
                 // proper initialization it is a bug
                 this._tiles.push(tile);
             } else if (!tileExists) {
-                $.console.warn("Tile %s caching attempt without data argument on uninitialized cache entry!", tile);
+                console.warn("Tile %s caching attempt without data argument on uninitialized cache entry!", tile);
             }
         }
     }
@@ -827,7 +827,7 @@ class CacheRecord {
                 return true;
             }
         }
-        $.console.warn('[CacheRecord.removeTile] trying to remove unknown tile', tile);
+        console.warn('[CacheRecord.removeTile] trying to remove unknown tile', tile);
         return false;
     }
 
@@ -884,7 +884,7 @@ class CacheRecord {
         if (this._destroyed) {
             //we have received the ownership of the data, destroy it too since we are destroyed
             converter.destroy(data, type);
-            return $.Promise.resolve();
+            return Promise.resolve();
         }
         if (this.loaded) {
             // No-op if attempt to replace with the same object
@@ -894,7 +894,7 @@ class CacheRecord {
             converter.destroy(this._data, this._type);
             this._type = type;
             this._data = data;
-            this._promise = $.Promise.resolve(data);
+            this._promise = Promise.resolve(data);
             // main data changed: rebuild each drawer's internal (derived) cache from the new
             // data. Double-buffered so preload/async drawers keep showing the old texture
             // until the replacement is ready (no blink); the old one is freed after the swap.
@@ -910,7 +910,7 @@ class CacheRecord {
             converter.destroy(this._data, this._type);
             this._type = type;
             this._data = data;
-            this._promise = $.Promise.resolve(data);
+            this._promise = Promise.resolve(data);
             const internal = this[DRAWER_INTERNAL_CACHE];
             if (internal) {
                 // same as above - force regenerate
@@ -933,7 +933,7 @@ class CacheRecord {
     _convert(from, to) {
         const conversionPath = converter.getConversionPath(from, to);
         if (!conversionPath) {
-            $.console.error(`[CacheRecord._convert] Conversion ${from} ---> ${to} cannot be done!`);
+            console.error(`[CacheRecord._convert] Conversion ${from} ---> ${to} cannot be done!`);
             return; //no-op
         }
 
@@ -945,7 +945,7 @@ class CacheRecord {
                 _this._data = x;
                 _this.loaded = true;
                 _this._checkAwaitsConvert();
-                return $.Promise.resolve(x);
+                return Promise.resolve(x);
             }
             const edge = conversionPath[i];
             let y;
@@ -953,15 +953,15 @@ class CacheRecord {
                 y = edge.transform(_this._tRef, x);
             } catch (err) {
                 converter.destroy(x, edge.origin.value); // prevent leak
-                return $.Promise.reject(`[CacheRecord._convert] sync failure (while converting using ${edge.target.value}, ${edge.origin.value})`);
+                return Promise.reject(`[CacheRecord._convert] sync failure (while converting using ${edge.target.value}, ${edge.origin.value})`);
             }
             if (y === undefined) {
                 _this.loaded = false;
                 converter.destroy(x, edge.origin.value); // prevent leak
-                return $.Promise.reject(`[CacheRecord._convert] data mid result undefined value (while converting using ${edge.target.value}, ${edge.origin.value})`);
+                return Promise.reject(`[CacheRecord._convert] data mid result undefined value (while converting using ${edge.target.value}, ${edge.origin.value})`);
             }
             converter.destroy(x, edge.origin.value);
-            const result = $.type(y) === "promise" ? y : $.Promise.resolve(y);
+            const result = $.type(y) === "promise" ? y : Promise.resolve(y);
             return result.then(res => convert(res, i + 1));
         };
 
@@ -984,7 +984,7 @@ class CacheRecord {
      * @private
      */
     _handleConversionError(e) {
-        $.console.error("[CacheRecord] Conversion/preparation error:", e);
+        console.error("[CacheRecord] Conversion/preparation error:", e);
 
         // Release what the record still holds before losing the reference to it: destroy() is a no-op
         // once _destroyed is set, so this is the last chance to run the destructors. Read paths such
@@ -993,7 +993,7 @@ class CacheRecord {
             try {
                 converter.destroy(this._data, this._type);
             } catch (destroyError) {
-                $.console.error("[CacheRecord] data destroy threw while handling a conversion error:",
+                console.error("[CacheRecord] data destroy threw while handling a conversion error:",
                     destroyError);
             }
         }
@@ -1006,7 +1006,7 @@ class CacheRecord {
         // WORKING CACHE: do not escalate to TileCache, do not unload tiles.
         // A working cache is not registered (no cacheKey and/or no owner).
         if (!this.cacheKey || !this._ownerTileCache) {
-            this._promise = $.Promise.resolve(undefined);
+            this._promise = Promise.resolve(undefined);
             this._tiles = [];
             this._tRef = null;
             return;
@@ -1080,13 +1080,13 @@ class TileCache {
      * @returns {OpenSeadragon.CacheRecord} - The cache record the tile was attached to.
      */
     cacheTile(options) {
-        $.console.assert(options, "[TileCache.cacheTile] options is required");
+        console.assert(options, "[TileCache.cacheTile] options is required");
         const theTile = options.tile;
-        $.console.assert(theTile, "[TileCache.cacheTile] options.tile is required");
-        $.console.assert(theTile.cacheKey, "[TileCache.cacheTile] options.tile.cacheKey is required");
+        console.assert(theTile, "[TileCache.cacheTile] options.tile is required");
+        console.assert(theTile.cacheKey, "[TileCache.cacheTile] options.tile.cacheKey is required");
 
         if (options.image instanceof Image) {
-            $.console.warn("[TileCache.cacheTile] options.image is deprecated!");
+            console.warn("[TileCache.cacheTile] options.image is deprecated!");
             options.data = options.image;
             options.dataType = "image";
         }
@@ -1096,7 +1096,7 @@ class TileCache {
         let cacheRecord = this._cachesLoaded[cacheKey];
         if (!cacheRecord) {
             if (options.data === undefined) {
-                $.console.error("[TileCache.cacheTile] options.image was renamed to options.data. '.image' attribute " +
+                console.error("[TileCache.cacheTile] options.image was renamed to options.data. '.image' attribute " +
                     "has been deprecated and will be removed in the future.");
                 options.data = options.image;
             }
@@ -1122,19 +1122,19 @@ class TileCache {
             } else {
                 //allow anything but undefined, null, false (other values mean the data was set, for example '0')
                 const validData = options.data !== undefined && options.data !== null && options.data !== false;
-                $.console.assert(validData, "[TileCache.cacheTile] options.data is required to create an CacheRecord");
+                console.assert(validData, "[TileCache.cacheTile] options.data is required to create an CacheRecord");
                 cacheRecord = this._cachesLoaded[cacheKey] = new CacheRecord();
                 this._cachesLoadedCount++;
             }
         }
 
         if (!options.dataType) {
-            $.console.error("[TileCache.cacheTile] options.dataType is newly required. " +
+            console.error("[TileCache.cacheTile] options.dataType is newly required. " +
                 "For easier use of the cache system, use the tile instance API.");
 
             // We need to force data acquisition now to guess the type
             if (typeof options.data === 'function') {
-                $.console.error("[TileCache.cacheTile] options.dataType is mandatory " +
+                console.error("[TileCache.cacheTile] options.dataType is mandatory " +
                     " when data item is a callback!");
             }
             options.dataType = converter.guessType(options.data);
@@ -1162,16 +1162,16 @@ class TileCache {
 
         if (!originalCache) {
             originalCache = this._zombiesLoaded[oldKey];
-            $.console.assert(originalCache, "[TileCache.renameCache] oldCacheKey must reference existing cache!");
+            console.assert(originalCache, "[TileCache.renameCache] oldCacheKey must reference existing cache!");
             if (this._zombiesLoaded[newKey]) {
-                $.console.error("Cannot rename zombie cache %s to %s: the target cache is occupied!",
+                console.error("Cannot rename zombie cache %s to %s: the target cache is occupied!",
                     oldKey, newKey);
                 return null;
             }
             this._zombiesLoaded[newKey] = originalCache;
             delete this._zombiesLoaded[oldKey];
         } else if (this._cachesLoaded[newKey]) {
-            $.console.error("Cannot rename cache %s to %s: the target cache is occupied!",
+            console.error("Cannot rename cache %s to %s: the target cache is occupied!",
                 oldKey, newKey);
             return null; // do not remove, we perform additional fixes on caches later on when swap occurred
         } else {
@@ -1209,8 +1209,8 @@ class TileCache {
         const theTile = options.tile;
         const cacheKey = options.copyTargetKey;
         const cacheRecord = this._cachesLoaded[cacheKey] || this._zombiesLoaded[cacheKey];
-        $.console.assert(cacheRecord, "[TileCache.cloneCache] attempt to clone non-existent cache %s!", cacheKey);
-        $.console.assert(!this._cachesLoaded[options.newCacheKey],
+        console.assert(cacheRecord, "[TileCache.cloneCache] attempt to clone non-existent cache %s!", cacheKey);
+        console.assert(!this._cachesLoaded[options.newCacheKey],
             "[TileCache.cloneCache] attempt to copy clone to existing cache %s!", options.newCacheKey);
 
         const desiredType = options.desiredType || undefined;
@@ -1242,7 +1242,7 @@ class TileCache {
         const targetKey = options.targetKey,
             tile = options.tile;
         if (!options.tileAllowNotLoaded && !tile.loaded && !tile.loading) {
-            $.console.warn("Attempt to inject cache on tile in invalid state: this is probably a bug!");
+            console.warn("Attempt to inject cache on tile in invalid state: this is probably a bug!");
             return false;
         }
         const consumer = this._cachesLoaded[targetKey];
@@ -1254,7 +1254,7 @@ class TileCache {
             }
         }
         if (this._cachesLoaded[targetKey]) {
-            $.console.error("The inject routine should've freed cache!");
+            console.error("The inject routine should've freed cache!");
         }
 
         const cache = options.cache;
@@ -1298,7 +1298,7 @@ class TileCache {
             victim = this._cachesLoaded[victimKey],
             tile = options.tile;
         if (!victim || (!options.tileAllowNotLoaded && !tile.loaded && !tile.loading)) {
-            $.console.warn("Attempt to consume cache on tile in invalid state: this is probably a bug!");
+            console.warn("Attempt to consume cache on tile in invalid state: this is probably a bug!");
             return;
         }
         const consumer = this._cachesLoaded[consumerKey];
@@ -1310,7 +1310,7 @@ class TileCache {
             }
         }
         if (this._cachesLoaded[consumerKey]) {
-            $.console.error("The consume routine should've freed cache!");
+            console.error("The consume routine should've freed cache!");
         }
         // Just swap victim to become new consumer
         const resultCache = this.renameCache({
@@ -1438,7 +1438,7 @@ class TileCache {
             }
         }
 
-        cache._promise = $.Promise.resolve(undefined);
+        cache._promise = Promise.resolve(undefined);
         cache._tiles = [];
         cache._tRef = null;
         cache._ownerTileCache = null;
@@ -1449,7 +1449,7 @@ class TileCache {
      * @param {OpenSeadragon.TiledImage} tiledImage
      */
     clearTilesFor(tiledImage) {
-        $.console.assert(tiledImage, '[TileCache.clearTilesFor] tiledImage is required');
+        console.assert(tiledImage, '[TileCache.clearTilesFor] tiledImage is required');
         let tile;
 
         let cacheOverflows = this._cachesLoadedCount + this._zombiesLoadedCount > this._maxCacheItemCount;
@@ -1540,7 +1540,7 @@ class TileCache {
      * @returns {OpenSeadragon.CacheRecord|undefined}
      */
     getCacheRecord(cacheKey) {
-        $.console.assert(cacheKey, '[TileCache.getCacheRecord] cacheKey is required');
+        console.assert(cacheKey, '[TileCache.getCacheRecord] cacheKey is required');
         return this._cachesLoaded[cacheKey] || this._zombiesLoaded[cacheKey];
     }
 
@@ -1574,7 +1574,7 @@ class TileCache {
                     return;
                 }
             }
-            $.console.error("Attempt to delete an orphan cache that is not in zombie list: this could be a bug!", cache);
+            console.error("Attempt to delete an orphan cache that is not in zombie list: this could be a bug!", cache);
             cache.destroy();
         }
     }
@@ -1616,12 +1616,12 @@ class TileCache {
                 }
                 return true;
             }
-            $.console.error("[TileCache.unloadCacheForTile] System tried to delete tile from cache it " +
+            console.error("[TileCache.unloadCacheForTile] System tried to delete tile from cache it " +
                 "does not belong to! This could mean a bug in the cache system.");
             return false;
         }
         if (!okIfNotExists) {
-            $.console.warn("[TileCache.unloadCacheForTile] Attempting to delete missing cache!");
+            console.warn("[TileCache.unloadCacheForTile] Attempting to delete missing cache!");
         }
         return false;
     }
@@ -1633,7 +1633,7 @@ class TileCache {
      */
     unloadTile(tile, destroy = false) {
         if (!tile.loaded) {
-            $.console.warn("Attempt to unload already unloaded tile.");
+            console.warn("Attempt to unload already unloaded tile.");
             return;
         }
         const index = this._tilesLoaded.findIndex(x => x === tile);
@@ -1647,7 +1647,7 @@ class TileCache {
      * @private
      */
     _unloadTile(tile, destroy, deleteAtIndex = undefined) {
-        $.console.assert(tile, '[TileCache._unloadTile] tile is required');
+        console.assert(tile, '[TileCache._unloadTile] tile is required');
 
         for (const key in tile._caches) {
             //we are 'ok' to remove tile caches here since we later call destroy on tile, otherwise

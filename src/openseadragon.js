@@ -973,25 +973,6 @@ const class2type = /** @type {Object<string, string>} */ ({
 const toString    = Object.prototype.toString;
 const hasOwn      = Object.prototype.hasOwnProperty;
 
-/**
- * A convenient alias for console when available, and a simple null
- * function when console is unavailable.
- * @static
- * @private
- * @param {*} [msg]
- */
-function nullfunction( msg ){
-    //document.location.hash = msg;
-}
-
-export const console = /** @type {Console} */ (window.console || {
-    log:    nullfunction,
-    debug:  nullfunction,
-    info:   nullfunction,
-    warn:   nullfunction,
-    error:  nullfunction,
-    assert: nullfunction
-});
 
 /**
  * An enumeration of Browser vendors.
@@ -1022,15 +1003,13 @@ export const BROWSERS = {
  * @member {Object} Browser
  * @memberof OpenSeadragon
  * @static
- * @type {{vendor: number, version: number, alpha: boolean, opacity?: boolean}}
+ * @type {{vendor: number, version: number}}
  * @property {OpenSeadragon.BROWSERS} vendor - One of the {@link OpenSeadragon.BROWSERS} enumeration values.
  * @property {Number} version
- * @property {Boolean} alpha - Does the browser support image alpha transparency.
  */
 export const Browser = {
     vendor:     BROWSERS.UNKNOWN,
-    version:    0,
-    alpha:      true
+    version:    0
 };
 
 /**
@@ -1171,66 +1150,6 @@ export function isCanvasTainted(canvas) {
     }
     return isTainted;
 }
-
-/**
- * True if the browser supports the EventTarget.addEventListener() method
- * @member {Boolean} supportsAddEventListener
- * @memberof OpenSeadragon
- */
-export const supportsAddEventListener = (function () {
-    return !!(/** @type {*} */ (document.documentElement).addEventListener && document.addEventListener);
-}());
-
-/**
- * True if the browser supports the EventTarget.removeEventListener() method
- * @member {Boolean} supportsRemoveEventListener
- * @memberof OpenSeadragon
- */
-export const supportsRemoveEventListener = (function () {
-    return !!(/** @type {*} */ (document.documentElement).removeEventListener && document.removeEventListener);
-}());
-
-/**
- * True if the browser supports the newer EventTarget.addEventListener options argument
- * @member {Boolean} supportsEventListenerOptions
- * @memberof OpenSeadragon
- */
-export const supportsEventListenerOptions = (function () {
-    let supported = 0;
-
-    if ( supportsAddEventListener ) {
-        try {
-            const options = {
-                get capture() {
-                    supported++;
-                    return false;
-                },
-                get once() {
-                    supported++;
-                    return false;
-                },
-                get passive() {
-                    supported++;
-                    return false;
-                }
-            };
-            window.addEventListener("test", /** @type {*} */ (null), options);
-            window.removeEventListener("test", /** @type {*} */ (null), options);
-        } catch ( e ) {
-            supported = 0;
-        }
-    }
-
-    return supported >= 3;
-}());
-
-/**
- * If true, OpenSeadragon uses async execution, else it uses synchronous execution.
- * Note that disabling async means no plugins that use Promises / async will work with OSD.
- * @member {boolean}
- * @memberof OpenSeadragon
- */
-export const supportsAsync = true;
 
 /**
  * A ratio comparing the device screen's pixel density to the canvas's backing store pixel density,
@@ -2040,30 +1959,9 @@ export function makeTransparentImage( src ) {
  * @function
  * @param {HTMLElement|String} element
  * @param {Number} opacity
- * @param {Boolean} [usesAlpha]
  */
-export function setElementOpacity( element, opacity, usesAlpha ) {
-
-    let ieOpacity;
-    let ieFilter;
-
-    element = getElement( element );
-
-    if ( usesAlpha && !Browser.alpha ) {
-        opacity = Math.round( opacity );
-    }
-
-    if ( Browser.opacity ) {
-        element.style.opacity = /** @type {*} */ (opacity < 1 ? opacity : "");
-    } else {
-        if ( opacity < 1 ) {
-            ieOpacity = Math.round( 100 * opacity );
-            ieFilter  = "alpha(opacity=" + ieOpacity + ")";
-            element.style.filter = ieFilter;
-        } else {
-            element.style.filter = "";
-        }
-    }
+export function setElementOpacity( element, opacity ) {
+    getElement( element ).style.opacity = /** @type {*} */ (opacity < 1 ? opacity : "");
 }
 
 /**
@@ -2166,30 +2064,13 @@ export function removeClass( element, className ) {
 }
 
 /**
- * Convert passed addEventListener() options to boolean or options object,
- * depending on browser support.
+ * Convert addEventListener() options to an options object.
  * @function
- * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
- * with the optional Boolean properties capture, passive and once.
- * @returns {Boolean|AddEventListenerOptions} The options in the form the browser supports.
+ * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or an options object.
+ * @returns {AddEventListenerOptions}
  */
 export function normalizeEventListenerOptions(options) {
-    let opts;
-    if ( typeof options !== 'undefined' ) {
-        if ( typeof options === 'boolean' ) {
-            // Legacy Boolean useCapture
-            opts = supportsEventListenerOptions ? { capture: options } : options;
-        } else {
-            // Options object
-            opts = supportsEventListenerOptions ? options :
-                ( ( typeof options.capture !== 'undefined' ) ? options.capture : false );
-        }
-    } else {
-        // No options specified - Legacy optional useCapture argument
-        //   (for IE, first supported on version 9, so we'll pass a Boolean)
-        opts = supportsEventListenerOptions ? { capture: false } : false;
-    }
-    return opts;
+    return typeof options === 'boolean' ? { capture: options } : options || { capture: false };
 }
 
 /**
@@ -2198,7 +2079,7 @@ export function normalizeEventListenerOptions(options) {
  * @param {HTMLElement|String} element
  * @param {String} eventName
  * @param {Function} handler
- * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
+ * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or an options object
  */
 export function addEvent( element, eventName, handler, options ) {
     getElement( element ).addEventListener( eventName, /** @type {*} */ (handler), normalizeEventListenerOptions(options) );
@@ -2211,7 +2092,7 @@ export function addEvent( element, eventName, handler, options ) {
  * @param {HTMLElement|String} element
  * @param {String} eventName
  * @param {Function} handler
- * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or if [supportsEventListenerOptions]{@link OpenSeadragon.supportsEventListenerOptions}, can be an object
+ * @param {Boolean|AddEventListenerOptions} [options] Boolean useCapture, or an options object
  */
 export function removeEvent( element, eventName, handler, options ) {
     getElement( element ).removeEventListener( eventName, /** @type {*} */ (handler), normalizeEventListenerOptions(options) );
@@ -2543,19 +2424,13 @@ export function imageFormatSupported( extension ) {
  */
 export function setImageFormatsSupported(formats) {
     //TODO: how to deal with this within the data pipeline?
-    // $.console.warn("setImageFormatsSupported method is deprecated. You should check that" +
+    // console.warn("setImageFormatsSupported method is deprecated. You should check that" +
     //     " the system supports your TileSources by implementing corresponding data type converters.");
 
     // eslint-disable-next-line no-use-before-define
     extend(FILEFORMATS, formats);
 }
 
-
-//TODO: $.console is often used inside a try/catch block which generally
-//      prevents allowings errors to occur with detection until a debugger
-//      is attached.  Although I've been guilty of the same anti-pattern
-//      I eventually was convinced that errors should naturally propagate in
-//      all but the most special cases.
 
 
 
@@ -2663,13 +2538,6 @@ const URLPARAMS = {};
         }
     }
 
-    //determine if this browser supports image alpha transparency
-    Browser.alpha = !(
-        Browser.vendor === BROWSERS.CHROME && Browser.version < 2
-    );
-
-    //determine if this browser supports element.style.opacity
-    Browser.opacity = true;
 
     if ( Browser.vendor === BROWSERS.IE ) {
         console.error('Internet Explorer is not supported by OpenSeadragon');
@@ -2734,118 +2602,4 @@ function getOffsetParent( element, isFixed ) {
  * a second argument of type B, and returns a promise that resolves to a value of type T.
  */
 
-/**
- * Promise proxy in OpenSeadragon, enables $.supportsAsync feature.
- * This proxy is also necessary because OperaMini does not implement Promises (checks fail).
- * @type {PromiseConstructor}
- */
-export const Promise = /** @type {PromiseConstructor} */ (/** @type {unknown} */ (window["Promise"] && supportsAsync ? window["Promise"] : class {
-    /** @param {Function} handler */
-    constructor(handler) {
-        this._error = false;
-        /** @type {*} */
-        this.__value = undefined;
-
-        try {
-            handler(
-                (/** @type {*} */ value) => this._adopt(value, false),
-                (/** @type {*} */ error) => this._adopt(error, true)
-            );
-        } catch (e) {
-            this._adopt(e, true);
-        }
-    }
-
-    /**
-     * Unwrap all nested promises and take over both the value and the rejected state: a handler
-     * returning a rejected promise has to reject the chain, as it does natively.
-     * @private
-     * @param {*} value
-     * @param {boolean} isError
-     */
-    _adopt(value, isError) {
-        while (value instanceof /** @type {*} */ (Promise)) {
-            isError = isError || value._error;
-            value = value.__value;
-        }
-        this.__value = value;
-        this._error = !!isError;
-    }
-
-    /** @param {Function} handler */
-    then(handler) {
-        if (!this._error) {
-            try {
-                this._adopt(handler(this._value), false);
-            } catch (e) {
-                this._adopt(e, true);
-            }
-        }
-        return this;
-    }
-
-    /** @param {Function} handler */
-    catch(handler) {
-        if (this._error) {
-            try {
-                this._adopt(handler(this._value), false);
-            } catch (e) {
-                this._adopt(e, true);
-            }
-        }
-        return this;
-    }
-
-    /** @param {Function} handler */
-    finally(handler) {
-        // Runs whichever way the chain went, and passes the outcome through untouched: only a throw
-        // from the handler, or a rejected promise it returns, replaces it - as natively. A fulfilled
-        // result is discarded.
-        try {
-            const result = handler();
-            if (result instanceof /** @type {*} */ (Promise) && result._error) {
-                this._adopt(result, true);
-            }
-        } catch (e) {
-            this._adopt(e, true);
-        }
-        return this;
-    }
-
-    get _value() {
-        return this.__value;
-    }
-    set _value(val) {
-        this._adopt(val, this._error);
-    }
-
-    /** @param {*} [value] */
-    static resolve(value) {
-        return new this((/** @type {*} */ resolve) => resolve(value));
-    }
-
-    /** @param {*} [error] */
-    static reject(error) {
-        return new this((/** @type {*} */ _, /** @type {*} */ reject) => reject(error));
-    }
-
-    /** @param {Array<Function>} functions */
-    static all(functions) {
-        return new this((/** @type {*} */ resolve) => {
-            // no async support, just execute them
-            return resolve(functions.map(fn => fn()));
-        });
-    }
-
-    /** @param {Array<Function>} functions */
-    static race(functions) {
-        if (functions.length < 1) {
-            return this.resolve();
-        }
-        // no async support, just execute the first
-        return new this((/** @type {*} */ resolve) => {
-            return resolve(functions[0]());
-        });
-    }
-}));
 

@@ -694,9 +694,9 @@
 
         var element = document.createElement('button');
 
-        var originalError = OpenSeadragon.console.error;
+        var originalError = console.error;
         var errorLogged = false;
-        OpenSeadragon.console.error = function(msg) {
+        console.error = function(msg) {
             if (msg && msg.indexOf('deprecated') !== -1) {
                 errorLogged = true;
             }
@@ -706,7 +706,7 @@
         // Pass the raw number 1 (TOP_LEFT value) to trigger the deprecated path
         var control = new OpenSeadragon.Control(element, 1, container);
 
-        OpenSeadragon.console.error = originalError;
+        console.error = originalError;
 
         assert.ok(errorLogged, 'deprecation warning logged');
         assert.equal(control.anchor, OpenSeadragon.ControlAnchor.TOP_LEFT, 'anchor set correctly');

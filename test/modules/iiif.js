@@ -336,9 +336,9 @@
     });
 
     QUnit.test('IIIFTileSource warns on unknown tileQuality but still uses it', function( assert ) {
-        const originalWarn = OpenSeadragon.console.warn;
+        const originalWarn = console.warn;
         const calls = [];
-        OpenSeadragon.console.warn = function() {
+        console.warn = function() {
             calls.push(Array.prototype.slice.call(arguments));
         };
         try {
@@ -350,14 +350,14 @@
                 "http://example.com/identifier/full/8,4/0/sepia.jpg",
                 "Unknown quality is still used in tile URL");
         } finally {
-            OpenSeadragon.console.warn = originalWarn;
+            console.warn = originalWarn;
         }
     });
 
     QUnit.test('IIIFTileSource accepts extraQualities (v3) without warning', function( assert ) {
-        const originalWarn = OpenSeadragon.console.warn;
+        const originalWarn = console.warn;
         const calls = [];
-        OpenSeadragon.console.warn = function() {
+        console.warn = function() {
             calls.push(Array.prototype.slice.call(arguments));
         };
         try {
@@ -371,14 +371,14 @@
                 "http://example.com/identifier/full/8,4/0/sepia.jpg",
                 "extraQualities value is used in tile URL");
         } finally {
-            OpenSeadragon.console.warn = originalWarn;
+            console.warn = originalWarn;
         }
     });
 
     QUnit.test('IIIFTileSource accepts profile.qualities (v2) without warning', function( assert ) {
-        const originalWarn = OpenSeadragon.console.warn;
+        const originalWarn = console.warn;
         const calls = [];
-        OpenSeadragon.console.warn = function() {
+        console.warn = function() {
             calls.push(Array.prototype.slice.call(arguments));
         };
         try {
@@ -394,7 +394,7 @@
                 "http://example.com/identifier/full/8,/0/sepia.jpg",
                 "profile.qualities value is used in tile URL");
         } finally {
-            OpenSeadragon.console.warn = originalWarn;
+            console.warn = originalWarn;
         }
     });
 

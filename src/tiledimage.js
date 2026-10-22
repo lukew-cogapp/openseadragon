@@ -125,12 +125,12 @@ class TiledImage extends EventSource {
          * @member {OpenSeadragon.TileSource} source
          * @memberof OpenSeadragon.TiledImage#
          */
-        $.console.assert( options.tileCache, "[TiledImage] options.tileCache is required" );
-        $.console.assert( options.drawer, "[TiledImage] options.drawer is required" );
-        $.console.assert( options.viewer, "[TiledImage] options.viewer is required" );
-        $.console.assert( options.imageLoader, "[TiledImage] options.imageLoader is required" );
-        $.console.assert( options.source, "[TiledImage] options.source is required" );
-        $.console.assert(!options.clip || options.clip instanceof Rect,
+        console.assert( options.tileCache, "[TiledImage] options.tileCache is required" );
+        console.assert( options.drawer, "[TiledImage] options.drawer is required" );
+        console.assert( options.viewer, "[TiledImage] options.viewer is required" );
+        console.assert( options.imageLoader, "[TiledImage] options.imageLoader is required" );
+        console.assert( options.source, "[TiledImage] options.source is required" );
+        console.assert(!options.clip || options.clip instanceof Rect,
             "[TiledImage] options.clip must be an OpenSeadragon.Rect if present");
 
 
@@ -167,7 +167,7 @@ class TiledImage extends EventSource {
             delete options.width;
 
             if ( options.height ) {
-                $.console.error( "specifying both width and height to a tiledImage is not supported" );
+                console.error( "specifying both width and height to a tiledImage is not supported" );
                 delete options.height;
             }
         } else if ( options.height ) {
@@ -191,7 +191,7 @@ class TiledImage extends EventSource {
         }
 
         if (!Number.isFinite(options.discardLevelsBelowDownsampleRatio) || options.discardLevelsBelowDownsampleRatio < 1) {
-            $.console.warn("discardLevelsBelowDownsampleRatio must be a positive number, defaulting to ",
+            console.warn("discardLevelsBelowDownsampleRatio must be a positive number, defaulting to ",
                 $.DEFAULT_SETTINGS.discardLevelsBelowDownsampleRatio);
             delete options.discardLevelsBelowDownsampleRatio;
         }
@@ -455,7 +455,7 @@ class TiledImage extends EventSource {
     setIssue(issueType, description = undefined, error = undefined) {
         const errorText = error ? (error.message || error) : '';
         this._issues[issueType] = (description || `TiledImage is ${issueType}}`) + errorText;
-        $.console.warn(this._issues[issueType], error);
+        console.warn(this._issues[issueType], error);
     }
 
     /**
@@ -516,7 +516,7 @@ class TiledImage extends EventSource {
 
     // deprecated
     getWorldBounds() {
-        $.console.error('[TiledImage.getWorldBounds] is deprecated; use TiledImage.getBounds instead');
+        console.error('[TiledImage.getWorldBounds] is deprecated; use TiledImage.getBounds instead');
         return this.getBounds();
     }
 
@@ -915,8 +915,8 @@ class TiledImage extends EventSource {
             });
             this._needsDraw = true;
         } catch (e) {
-            $.console.error('[TiledImage.setCroppingPolygons] Cropping polygon format not supported');
-            $.console.error(e);
+            console.error('[TiledImage.setCroppingPolygons] Cropping polygon format not supported');
+            console.error(e);
             this.resetCroppingPolygons();
         }
     }
@@ -1011,7 +1011,7 @@ class TiledImage extends EventSource {
      * @fires OpenSeadragon.TiledImage.event:clip-change
      */
     setClip(newClip) {
-        $.console.assert(!newClip || newClip instanceof Rect,
+        console.assert(!newClip || newClip instanceof Rect,
             "[TiledImage.setClip] newClip must be an OpenSeadragon.Rect or null");
 
         if (newClip instanceof Rect) {
@@ -1383,7 +1383,7 @@ class TiledImage extends EventSource {
             ajaxHeaders = {};
         }
         if (!$.isPlainObject(ajaxHeaders)) {
-            $.console.error('[TiledImage.setAjaxHeaders] Ignoring invalid headers, must be a plain object');
+            console.error('[TiledImage.setAjaxHeaders] Ignoring invalid headers, must be a plain object');
             return;
         }
 
@@ -2282,7 +2282,7 @@ class TiledImage extends EventSource {
     _onTileLoad(tile, time, data, errorMsg, tileRequest, dataType, tries) {
         //data is set to null on error by image loader, allow custom falsey values (e.g. 0)
         if ( data === null || data === undefined ) {
-            $.console.error( "Tile %s failed to load: %s - error: %s", tile, tile.getUrl(), errorMsg );
+            console.error( "Tile %s failed to load: %s - error: %s", tile, tile.getUrl(), errorMsg );
             /**
              * Triggered when a tile fails to load.
              *
@@ -2314,7 +2314,7 @@ class TiledImage extends EventSource {
         }
 
         if ( time < this.lastResetTime ) {
-            $.console.warn( "Ignoring tile %s loaded before reset: %s", tile, tile.getUrl() );
+            console.warn( "Ignoring tile %s loaded before reset: %s", tile, tile.getUrl() );
             tile.loading = false;
             return;
         }
@@ -2327,11 +2327,11 @@ class TiledImage extends EventSource {
                 converter.convert(tile, data, dataType, desiredType).then(newData => {
                     this._setTileLoaded(tile, newData, tileRequest, desiredType);
                 }).catch(e => {
-                    $.console.warn("Failed to satisfy original type [%s] %s from %s: %s", desiredType, tile, dataType, e);
+                    console.warn("Failed to satisfy original type [%s] %s from %s: %s", desiredType, tile, dataType, e);
                     this._setTileLoaded(tile, data, tileRequest, dataType);
                 });
             } else {
-                $.console.warn( "Ignoring default base tile data type %s: no conversion possible from %s", this.originalDataType, dataType);
+                console.warn( "Ignoring default base tile data type %s: no conversion possible from %s", this.originalDataType, dataType);
                 this._setTileLoaded(tile, data, tileRequest, dataType);
             }
         } else {
@@ -2351,7 +2351,7 @@ class TiledImage extends EventSource {
         tile.tiledImage = this; //unloaded with tile.unload(), so we need to set it back
         // does nothing if tile.cacheKey already present
 
-        $.console.assert(dataType !== undefined, "TileSource::downloadTileStart must return a dataType.");
+        console.assert(dataType !== undefined, "TileSource::downloadTileStart must return a dataType.");
 
         let tileCacheCreated = false;
         tile.addCache(tile.cacheKey, () => {
@@ -2383,7 +2383,7 @@ class TiledImage extends EventSource {
 
         function getCompletionCallback() {
             if (eventFinished) {
-                $.console.error("Event 'tile-loaded' argument getCompletionCallback must be called synchronously. " +
+                console.error("Event 'tile-loaded' argument getCompletionCallback must be called synchronously. " +
                     "Its return value should be called asynchronously.");
             }
             increment++;
@@ -2416,24 +2416,24 @@ class TiledImage extends EventSource {
                 tile: tile,
                 tiledImage: _this,
                 tileRequest: tileRequest,
-                promise: new $.Promise(resolve => {
+                promise: new Promise(resolve => {
                     resolver = resolve;
                 }),
                 get image() {
-                    $.console.error("[tile-loaded] event 'image' has been deprecated. Use 'tile-invalidated' event to modify data instead.");
+                    console.error("[tile-loaded] event 'image' has been deprecated. Use 'tile-invalidated' event to modify data instead.");
                     return data;
                 },
                 get data() {
-                    $.console.error("[tile-loaded] event 'data' has been deprecated. Use 'tile-invalidated' event to modify data instead.");
+                    console.error("[tile-loaded] event 'data' has been deprecated. Use 'tile-invalidated' event to modify data instead.");
                     return data;
                 },
                 getCompletionCallback: function () {
-                    $.console.error("[tile-loaded] getCompletionCallback is deprecated: it introduces race conditions: " +
+                    console.error("[tile-loaded] getCompletionCallback is deprecated: it introduces race conditions: " +
                         "use async event handlers instead, execution order is deducted by addHandler(...) priority argument.");
                     return getCompletionCallback();
                 },
             }).catch(() => {
-                $.console.error("[tile-loaded] event finished with failure: there might be a problem with a plugin you are using.");
+                console.error("[tile-loaded] event finished with failure: there might be a problem with a plugin you are using.");
             }).then(fallbackCompletion);
         }
 
@@ -2446,13 +2446,13 @@ class TiledImage extends EventSource {
             // First, ensure we really are ready to draw the tile
             const ensureValidDrawerType = (cache) => {
                 if (this.viewer.isDestroyed()) {
-                    return $.Promise.resolve();
+                    return Promise.resolve();
                 }
                 const drawer = this.getDrawer();
                 if (!cache.isUsableForDrawer(drawer)) {
                     return cache.prepareForRendering(drawer);
                 }
-                return $.Promise.resolve();
+                return Promise.resolve();
             };
 
             // Tile-invalidated not called on each tile, but only on tiles with new data! Verify we share the main cache
@@ -2678,7 +2678,7 @@ class TiledImage extends EventSource {
      */
     _setCoverage(coverage, level, x, y, covers) {
         if ( !coverage[ level ] ) {
-            $.console.warn(
+            console.warn(
                 "Setting coverage for a tile before its level's coverage has been reset: %s",
                 level
             );

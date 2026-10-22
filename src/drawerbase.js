@@ -78,9 +78,9 @@ class DrawerBase {
      * @param {HTMLElement} options.element - Parent element.
      */
     constructor(options){
-        $.console.assert( options.viewer, "[Drawer] options.viewer is required" );
-        $.console.assert( options.viewport, "[Drawer] options.viewport is required" );
-        $.console.assert( options.element, "[Drawer] options.element is required" );
+        console.assert( options.viewer, "[Drawer] options.viewer is required" );
+        console.assert( options.viewport, "[Drawer] options.viewport is required" );
+        console.assert( options.element, "[Drawer] options.element is required" );
 
         this._id = this.getType() + $.now();
         this.viewer = options.viewer;
@@ -108,7 +108,7 @@ class DrawerBase {
             this.canvas.style.position  = "absolute";
             // set canvas.style.left = 0 so the canvas is positioned properly in ltr and rtl html
             this.canvas.style.left = "0";
-            $.setElementOpacity( this.canvas, this.viewer.opacity, true );
+            $.setElementOpacity( this.canvas, this.viewer.opacity );
 
             // Allow pointer events to pass through the canvas element so implicit
             //   pointer capture works on touch devices
@@ -158,7 +158,7 @@ class DrawerBase {
     }
 
     get element(){
-        $.console.error('Drawer.element is deprecated. Use Drawer.container instead.');
+        console.error('Drawer.element is deprecated. Use Drawer.container instead.');
         return this.container;
     }
 
@@ -176,7 +176,7 @@ class DrawerBase {
      * @returns {String | undefined} What type of drawer this is. Must be overridden by extending classes.
      */
     getType(){
-        $.console.error('Drawer.getType must be implemented by child class');
+        console.error('Drawer.getType must be implemented by child class');
         return undefined;
     }
 
@@ -212,7 +212,7 @@ class DrawerBase {
     getDataToDraw(tile) {
         const cache = tile.getCache(tile.cacheKey);
         if (!cache) {
-            $.console.warn("Attempt to draw tile %s when not cached!", tile);
+            console.warn("Attempt to draw tile %s when not cached!", tile);
             return undefined;
         }
         const dataCache = cache.getDataForRendering(this, tile);
@@ -227,7 +227,7 @@ class DrawerBase {
      *  Must be overridden by extending classes.
      */
     static isSupported(options = undefined) {
-        $.console.error('Drawer.isSupported must be implemented by child class');
+        console.error('Drawer.isSupported must be implemented by child class');
         return false;
     }
 
@@ -237,7 +237,7 @@ class DrawerBase {
      * @private
      */
     _createDrawingElement() {
-        $.console.error('Drawer._createDrawingElement must be implemented by child class');
+        console.error('Drawer._createDrawingElement must be implemented by child class');
         return null;
     }
 
@@ -247,7 +247,7 @@ class DrawerBase {
      * @private
      */
     draw(tiledImages) {
-        $.console.error('Drawer.draw must be implemented by child class');
+        console.error('Drawer.draw must be implemented by child class');
     }
 
     /**
@@ -255,7 +255,7 @@ class DrawerBase {
      * @returns {Boolean} True if rotation is supported.
      */
     canRotate() {
-        $.console.error('Drawer.canRotate must be implemented by child class');
+        console.error('Drawer.canRotate must be implemented by child class');
     }
 
     /**
@@ -292,7 +292,7 @@ class DrawerBase {
      * {@link OpenSeadragon.Options} for more explanation.
      */
     setImageSmoothingEnabled(imageSmoothingEnabled){
-        $.console.error('Drawer.setImageSmoothingEnabled must be implemented by child class');
+        console.error('Drawer.setImageSmoothingEnabled must be implemented by child class');
     }
 
     /**
@@ -301,12 +301,12 @@ class DrawerBase {
      * @param {OpenSeadragon.Rect} rect
      */
     drawDebuggingRect(rect) {
-        $.console.warn('[drawer].drawDebuggingRect is not implemented by this drawer');
+        console.warn('[drawer].drawDebuggingRect is not implemented by this drawer');
     }
 
     // Deprecated functions
     clear(){
-        $.console.warn('[drawer].clear() is deprecated. The drawer is responsible for clearing itself as needed before drawing tiles.');
+        console.warn('[drawer].clear() is deprecated. The drawer is responsible for clearing itself as needed before drawing tiles.');
     }
 
     /**

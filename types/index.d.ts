@@ -2,7 +2,6 @@ declare namespace OpenSeadragon {
     class Browser {
         vendor: BROWSERS;
         version: number;
-        alpha: boolean;
     }
 
     enum BROWSERS {
@@ -85,13 +84,7 @@ declare namespace OpenSeadragon {
         static ONLY_AT_REST: number;
     }
 
-    const supportsAddEventListener: boolean;
-
     const supportsCanvas: boolean;
-
-    const supportsEventListenerOptions: boolean;
-
-    const supportsRemoveEventListener: boolean;
 
     const version: {
         versionStr: string;
@@ -206,7 +199,6 @@ declare namespace OpenSeadragon {
     function setElementOpacity(
         element: Element | string,
         opacity: number,
-        usesAlpha?: boolean,
     ): void;
 
     function setElementPointerEvents(

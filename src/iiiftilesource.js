@@ -160,7 +160,7 @@ class IIIFTileSource extends TileSource {
             });
             info.levels = options.levels;
         } else {
-            $.console.error("Nothing in the info.json to construct image pyramids from");
+            console.error("Nothing in the info.json to construct image pyramids from");
         }
 
         if (!options.maxLevel && !info.emulateLegacyImagePyramid) {
@@ -309,7 +309,7 @@ class IIIFTileSource extends TileSource {
                         data.version = 3;
                         break;
                     default:
-                        $.console.error('Data has a @context property which contains no known IIIF context URI.');
+                        console.error('Data has a @context property which contains no known IIIF context URI.');
                 }
             }
 
@@ -426,7 +426,7 @@ class IIIFTileSource extends TileSource {
 
             const validPoint = point.x >= 0 && point.x <= 1 &&
                              point.y >= 0 && point.y <= 1 / this.aspectRatio;
-            $.console.assert(validPoint, "[TileSource.getTileAtPoint] must be called with a valid point.");
+            console.assert(validPoint, "[TileSource.getTileAtPoint] must be called with a valid point.");
 
             const widthScaled = this.levelSizes[level].width;
             const pixelX = point.x * widthScaled;
@@ -673,7 +673,7 @@ IIIFTileSource.prototype.__testonly__ = {
     function warnIfUnknownQuality ( quality, version, options ) {
         const known = getKnownQualities(version, options);
         if ( known.indexOf(quality) === -1 ) {
-            $.console.warn(
+            console.warn(
                 "[IIIFTileSource] tileQuality '%s' is not in the set of " +
                 "qualities known for this image (%s). The request will still " +
                 "be sent; the server may reject it.",

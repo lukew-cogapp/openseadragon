@@ -189,7 +189,7 @@ class ImageTileSource extends TileSource {
      * @deprecated
      */
     getContext2D(level, x, y) {
-        $.console.error('Using [TiledImage.getContext2D] (for plain images only) is deprecated. ' +
+        console.error('Using [TiledImage.getContext2D] (for plain images only) is deprecated. ' +
             'Use overridden downloadTileStart (https://openseadragon.github.io/examples/advanced-data-model/) instead.');
         return this._createContext2D();
     }

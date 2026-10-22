@@ -346,7 +346,7 @@ class BatchImageJob {
      * Finish is defined as not to throw when accidentally used, but should not be called.
      */
     finish(data, request, dataType) {
-        $.console.error('Finish call on batch job is not desirable: call finish on individual child jobs!', data, request);
+        console.error('Finish call on batch job is not desirable: call finish on individual child jobs!', data, request);
     }
 
     /**
@@ -426,7 +426,7 @@ class ImageLoader {
      */
     addJob(options) {
         if (!options.source) {
-            $.console.error('ImageLoader.prototype.addJob() requires [options.source]...');
+            console.error('ImageLoader.prototype.addJob() requires [options.source]...');
             options.source = TileSource.prototype;
         }
 
@@ -477,7 +477,7 @@ class ImageLoader {
         }
 
         if (bucket && !bucket.timer) {
-            $.console.error(
+            console.error(
                 'Attempted to add a new job to a batch bucket that has already been flushed. ' +
                 'Creating a new batch bucket for this source. ' +
                 'Check batch logic and timing if this happens frequently. ' +

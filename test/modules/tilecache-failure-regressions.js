@@ -311,7 +311,7 @@
         // null-resolved data never reaches the drawer destructor
         let freeCalled = false;
         const nullRec = new OpenSeadragon.InternalCacheRecord(
-            OpenSeadragon.Promise.resolve(null), "drawer-unit", () => { freeCalled = true; });
+            Promise.resolve(null), "drawer-unit", () => { freeCalled = true; });
 
         return nullRec.await().then(() => {
             assert.ok(nullRec.loaded, "null-backed record is 'loaded' once its promise resolves");
@@ -340,9 +340,9 @@
             tc._cachesLoaded[key] = cache;
             tc._cachesLoadedCount++;
 
-            const originalError = OpenSeadragon.console.error;
+            const originalError = console.error;
             let sawDoesNotBelong = false;
-            OpenSeadragon.console.error = function (msg) {
+            console.error = function (msg) {
                 if (typeof msg === "string" && msg.indexOf("does not belong to") !== -1) {
                     sawDoesNotBelong = true;
                 }
@@ -355,7 +355,7 @@
             } catch (e) {
                 unloadThrew = true;
             } finally {
-                OpenSeadragon.console.error = originalError;
+                console.error = originalError;
             }
 
             assert.notOk(unloadThrew, "unloadCacheForTile does not rethrow the drawer destructor error");
@@ -404,7 +404,7 @@
             getSupportedDataFormats() { return [T_A]; },
             internalCacheCreate(cache) {
                 const val = cache.data;
-                return OpenSeadragon.Promise.resolve().then(() => ({ tex: val }));
+                return Promise.resolve().then(() => ({ tex: val }));
             },
             internalCacheFree(data) { asyncFreed.push(data); }
         };

@@ -325,7 +325,7 @@ class MouseTracker {
         }
 
         if (/** @type {Function|null} */ (this.exitHandler)) {
-            $.console.error("MouseTracker.exitHandler is deprecated. Use MouseTracker.leaveHandler instead.");
+            console.error("MouseTracker.exitHandler is deprecated. Use MouseTracker.leaveHandler instead.");
         }
 
         if ( !options.startDisabled ) {
@@ -1485,7 +1485,7 @@ MouseTracker.GesturePointList.prototype = {
         ++this.contacts;
 
         if (this.contacts > 1 && (this.type === "mouse" || this.type === "pen")) {
-            $.console.warn('GesturePointList.addContact() Implausible contacts value');
+            console.warn('GesturePointList.addContact() Implausible contacts value');
             this.contacts = 1;
         }
     },
@@ -1657,19 +1657,19 @@ function capturePointer( tracker, gPoint ) {
             //   (should never happen so we'll log a warning)
             try {
                 tracker.element.setPointerCapture( gPoint.id );
-                //$.console.log('element.setPointerCapture() called');
+                //console.log('element.setPointerCapture() called');
             } catch ( e ) {
-                $.console.warn('setPointerCapture() called on invalid pointer ID');
+                console.warn('setPointerCapture() called on invalid pointer ID');
                 return;
             }
         } else {
             /** @type {LegacyCaptureElement} */ (tracker.element).setCapture( true );
-            //$.console.log('element.setCapture() called');
+            //console.log('element.setCapture() called');
         }
     } else {
         // Emulate mouse capture by hanging listeners on the document object.
         //    (Note we listen on the capture phase so the captured handlers will get called first)
-        //$.console.log('Emulated mouse capture set');
+        //console.log('Emulated mouse capture set');
         const eventParams = getCaptureEventParams( tracker, MouseTracker.havePointerEvents ? 'pointerevent' : gPoint.type );
         // https://github.com/openseadragon/openseadragon/pull/790
         if (isInIframe && canAccessEvents(window.top)) {
@@ -1717,18 +1717,18 @@ function releasePointer( tracker, gPoint ) {
             //   (should never happen, but it does on Firefox 79 touch so we won't log a warning)
             try {
                 tracker.element.releasePointerCapture( gPoint.id );
-                //$.console.log('element.releasePointerCapture() called');
+                //console.log('element.releasePointerCapture() called');
             } catch ( e ) {
-                //$.console.warn('releasePointerCapture() called on invalid pointer ID');
+                //console.warn('releasePointerCapture() called on invalid pointer ID');
             }
         } else {
             /** @type {LegacyCaptureElement} */ (tracker.element).releaseCapture();
-            //$.console.log('element.releaseCapture() called');
+            //console.log('element.releaseCapture() called');
         }
     } else {
         // Emulate mouse capture by hanging listeners on the document object.
         //    (Note we listen on the capture phase so the captured handlers will get called first)
-        //$.console.log('Emulated mouse capture release');
+        //console.log('Emulated mouse capture release');
         const eventParams = getCaptureEventParams( tracker, MouseTracker.havePointerEvents ? 'pointerevent' : gPoint.type );
         // https://github.com/openseadragon/openseadragon/pull/790
         if (isInIframe && canAccessEvents(window.top)) {
@@ -1868,7 +1868,7 @@ function handlePropagation( eventInfo, event ) {
  * @param {MouseEvent} event
  */
 function onClick( tracker, event ) {
-    //$.console.log('click ' + (tracker.userData ? tracker.userData.toString() : ''));
+    //console.log('click ' + (tracker.userData ? tracker.userData.toString() : ''));
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
         originalEvent: event,
@@ -1893,7 +1893,7 @@ function onClick( tracker, event ) {
  * @param {MouseEvent} event
  */
 function onDblClick( tracker, event ) {
-    //$.console.log('dblclick ' + (tracker.userData ? tracker.userData.toString() : ''));
+    //console.log('dblclick ' + (tracker.userData ? tracker.userData.toString() : ''));
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
         originalEvent: event,
@@ -1918,7 +1918,7 @@ function onDblClick( tracker, event ) {
  * @param {KeyboardEvent} event
  */
 function onKeyDown( tracker, event ) {
-    //$.console.log( "keydown %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
+    //console.log( "keydown %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
     let eventArgs = null;
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
@@ -1960,7 +1960,7 @@ function onKeyDown( tracker, event ) {
  * @param {KeyboardEvent} event
  */
 function onKeyUp( tracker, event ) {
-    //$.console.log( "keyup %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
+    //console.log( "keyup %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
 
     let eventArgs = null;
 
@@ -2003,7 +2003,7 @@ function onKeyUp( tracker, event ) {
  * @param {KeyboardEvent} event
  */
 function onKeyPress( tracker, event ) {
-    //$.console.log( "keypress %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
+    //console.log( "keypress %s %s %s %s %s", event.keyCode, event.charCode, event.ctrlKey, event.shiftKey, event.altKey );
 
     let eventArgs = null;
 
@@ -2046,7 +2046,7 @@ function onKeyPress( tracker, event ) {
  * @param {FocusEvent} event
  */
 function onFocus( tracker, event ) {
-    //$.console.log('focus  ' + (tracker.userData ? tracker.userData.toString() : ''));
+    //console.log('focus  ' + (tracker.userData ? tracker.userData.toString() : ''));
 
     // focus doesn't bubble and is not cancelable, but we call
     //   preProcessEvent() so it's dispatched to preProcessEventHandler
@@ -2078,7 +2078,7 @@ function onFocus( tracker, event ) {
  * @param {FocusEvent} event
  */
 function onBlur( tracker, event ) {
-    //$.console.log('blur  ' + (tracker.userData ? tracker.userData.toString() : ''));
+    //console.log('blur  ' + (tracker.userData ? tracker.userData.toString() : ''));
 
     // blur doesn't bubble and is not cancelable, but we call
     //   preProcessEvent() so it's dispatched to preProcessEventHandler
@@ -2110,7 +2110,7 @@ function onBlur( tracker, event ) {
  * @param {MouseEvent} event
  */
 function onContextMenu( tracker, event ) {
-    //$.console.log('contextmenu ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('contextmenu ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     let eventArgs = null;
 
@@ -2253,7 +2253,7 @@ function handleWheelEvent( tracker, event, originalEvent ) {
  * @param {MouseEvent} event
  */
 function onLoseCapture( tracker, event ) {
-    //$.console.log('losecapture ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('losecapture ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const gPoint = /** @type {OpenSeadragon.MouseTracker.GesturePoint} */ (/** @type {unknown} */ ({
         id: MouseTracker.mousePointerId,
@@ -2288,10 +2288,10 @@ function onTouchStart( tracker, event ) {
 
     const time = $.now();
 
-    //$.console.log('touchstart ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('touchstart ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     if ( pointsList.getLength() > event.touches.length - touchCount ) {
-        $.console.warn('Tracked touch contact count doesn\'t match event.touches.length');
+        console.warn('Tracked touch contact count doesn\'t match event.touches.length');
     }
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
@@ -2338,7 +2338,7 @@ function onTouchEnd( tracker, event ) {
     const touchCount = event.changedTouches.length;
     const time = $.now();
 
-    //$.console.log('touchend ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('touchend ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
         originalEvent: event,
@@ -2434,7 +2434,7 @@ function onCooperativeTouchMove( tracker, event ) {
  */
 function onTouchCancel( tracker, event ) {
     const touchCount = event.changedTouches.length;
-    //$.console.log('touchcancel ' + (tracker.userData ? tracker.userData.toString() : ''));
+    //console.log('touchcancel ' + (tracker.userData ? tracker.userData.toString() : ''));
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
         originalEvent: event,
@@ -2493,7 +2493,7 @@ function onGestureChange( tracker, event ) {
  * @param {PointerEvent} event
  */
 function onGotPointerCapture( tracker, event ) {
-    //$.console.log('gotpointercapture ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('gotpointercapture ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
         originalEvent: event,
@@ -2504,7 +2504,7 @@ function onGotPointerCapture( tracker, event ) {
     preProcessEvent( tracker, eventInfo );
 
     if ( event.target === tracker.element ) {
-        //$.console.log('gotpointercapture ' + (tracker.userData ? tracker.userData.toString() : ''));
+        //console.log('gotpointercapture ' + (tracker.userData ? tracker.userData.toString() : ''));
         updatePointerCaptured( tracker, {
             id: event.pointerId,
             type: getPointerType( event )
@@ -2522,7 +2522,7 @@ function onGotPointerCapture( tracker, event ) {
  * @param {PointerEvent} event
  */
 function onLostPointerCapture( tracker, event ) {
-    //$.console.log('lostpointercapture ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('lostpointercapture ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
         originalEvent: event,
@@ -2533,7 +2533,7 @@ function onLostPointerCapture( tracker, event ) {
     preProcessEvent( tracker, eventInfo );
 
     if ( event.target === tracker.element ) {
-        //$.console.log('lostpointercapture ' + (tracker.userData ? tracker.userData.toString() : ''));
+        //console.log('lostpointercapture ' + (tracker.userData ? tracker.userData.toString() : ''));
         updatePointerCaptured( tracker, {
             id: event.pointerId,
             type: getPointerType( event )
@@ -2554,7 +2554,7 @@ function onLostPointerCapture( tracker, event ) {
  * @param {PointerEvent} event
  */
 function onPointerEnter( tracker, event ) {
-    //$.console.log('pointerenter ' + (tracker.userData ? tracker.userData.toString() : ''));
+    //console.log('pointerenter ' + (tracker.userData ? tracker.userData.toString() : ''));
 
     const gPoint = /** @type {OpenSeadragon.MouseTracker.GesturePoint} */ ({
         id: getPointerId( event ),
@@ -2589,7 +2589,7 @@ function onPointerEnter( tracker, event ) {
  * @param {PointerEvent} event
  */
 function onPointerLeave( tracker, event ) {
-    //$.console.log('pointerleave ' + (tracker.userData ? tracker.userData.toString() : ''));
+    //console.log('pointerleave ' + (tracker.userData ? tracker.userData.toString() : ''));
 
     const gPoint = /** @type {OpenSeadragon.MouseTracker.GesturePoint} */ ({
         id: getPointerId( event ),
@@ -2624,7 +2624,7 @@ function onPointerLeave( tracker, event ) {
  * @param {PointerEvent} event
  */
 function onPointerOver( tracker, event ) {
-    //$.console.log('pointerover ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('pointerover ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const gPoint = /** @type {OpenSeadragon.MouseTracker.GesturePoint} */ ({
         id: getPointerId( event ),
@@ -2662,7 +2662,7 @@ function onPointerOver( tracker, event ) {
  * @param {PointerEvent} event
  */
 function onPointerOut( tracker, event ) {
-    //$.console.log('pointerout ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('pointerout ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const gPoint = /** @type {OpenSeadragon.MouseTracker.GesturePoint} */ ({
         id: getPointerId( event ),
@@ -2718,7 +2718,7 @@ function onPointerDown( tracker, event ) {
     const implicitlyCaptured = MouseTracker.havePointerEvents &&
                             gPoint.type === 'touch';
 
-    //$.console.log('pointerdown ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('pointerdown ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
         originalEvent: event,
@@ -2791,7 +2791,7 @@ function onPointerUpCaptured( tracker, event ) {
  * @param {PointerEvent} event
  */
 function handlePointerUp( tracker, event ) {
-    //$.console.log('pointerup ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('pointerup ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const gPoint = /** @type {OpenSeadragon.MouseTracker.GesturePoint} */ ({
         id: getPointerId( event ),
@@ -2910,7 +2910,7 @@ function handlePointerMove( tracker, event ) {
  * @param {PointerEvent} event
  */
 function onPointerCancel( tracker, event ) {
-    //$.console.log('pointercancel ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
+    //console.log('pointercancel ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     const gPoint = /** @type {OpenSeadragon.MouseTracker.GesturePoint} */ ({
         id: event.pointerId,
@@ -2947,7 +2947,7 @@ function onPointerCancel( tracker, event ) {
  * @returns {Number} Number of gesture points in pointsList.
  */
 function startTrackingPointer( pointsList, gPoint ) {
-    //$.console.log('startTrackingPointer *** ' + pointsList.type + ' ' + gPoint.id.toString());
+    //console.log('startTrackingPointer *** ' + pointsList.type + ' ' + gPoint.id.toString());
     gPoint.speed = 0;
     gPoint.direction = 0;
     gPoint.contactPos = gPoint.currentPos;
@@ -2972,7 +2972,7 @@ function startTrackingPointer( pointsList, gPoint ) {
  * @returns {Number} Number of gesture points in pointsList.
  */
 function stopTrackingPointer( tracker, pointsList, gPoint ) {
-    //$.console.log('stopTrackingPointer *** ' + pointsList.type + ' ' + gPoint.id.toString());
+    //console.log('stopTrackingPointer *** ' + pointsList.type + ' ' + gPoint.id.toString());
     let listLength;
     const trackedGPoint = pointsList.getById( gPoint.id );
 
@@ -2982,7 +2982,7 @@ function stopTrackingPointer( tracker, pointsList, gPoint ) {
             // captured (it shares the touch stream to scroll the page), so reaching here is
             // expected and not worth warning about, but we still release to keep state clean.
             if ( !tracker.cooperativeGestureHandling ) {
-                $.console.warn('stopTrackingPointer() called on captured pointer');
+                console.warn('stopTrackingPointer() called on captured pointer');
             }
             releasePointer( tracker, trackedGPoint );
         }
@@ -3139,13 +3139,13 @@ function updatePointerCaptured( tracker, gPoint, isCaptured ) {
             pointsList.captureCount--;
             if ( pointsList.captureCount < 0 ) {
                 pointsList.captureCount = 0;
-                $.console.warn('updatePointerCaptured() - pointsList.captureCount went negative');
+                console.warn('updatePointerCaptured() - pointsList.captureCount went negative');
             }
         }
     } else if ( !tracker.cooperativeGestureHandling ) {
         // Expected in cooperative mode: a capture/release event can arrive for a pointer the
         // browser already cancelled (and we stopped tracking) during the page-scroll handoff.
-        $.console.warn('updatePointerCaptured() called on untracked pointer');
+        console.warn('updatePointerCaptured() called on untracked pointer');
     }
 }
 
@@ -3444,7 +3444,7 @@ function updatePointerDown( tracker, eventInfo, gPoint, buttonChanged ) {
     }
 
     pointsList.addContact();
-    //$.console.log('contacts++ ', pointsList.contacts);
+    //console.log('contacts++ ', pointsList.contacts);
 
     if ( !eventInfo.preventGesture && !eventInfo.defaultPrevented ) {
         // cooperativeGestureHandling:
@@ -3586,7 +3586,7 @@ function updatePointerUp( tracker, eventInfo, gPoint, buttonChanged ) {
 
     if ( updateGPoint ) {
         pointsList.removeContact();
-        //$.console.log('contacts-- ', pointsList.contacts);
+        //console.log('contacts-- ', pointsList.contacts);
 
         // Update the pointer, stop tracking it if not still in this element
         if ( updateGPoint.captured ) {

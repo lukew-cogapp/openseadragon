@@ -163,7 +163,7 @@
                 called = true;
             }
 
-            this.spyOnce(OpenSeadragon.console, 'error', function(message) {
+            this.spyOnce(console, 'error', function(message) {
                 if (/deprecated/.test(message)) {
                     errored = true;
                 }
@@ -289,7 +289,7 @@
                 finish();
             }
         }, 50);
-        return new OpenSeadragon.Promise((resolve) => finish = resolve);
+        return new Promise((resolve) => finish = resolve);
     };
 } )();
 

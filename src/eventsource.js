@@ -118,7 +118,7 @@ class EventSource {
     addHandler(eventName, handler, userData, priority) {
 
         if(Object.prototype.hasOwnProperty.call(this._rejectedEventList, eventName)){
-            $.console.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
+            console.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
             return false;
         }
 
@@ -241,7 +241,7 @@ class EventSource {
             // We return a promise that gets resolved after all the events finish.
             // Returning loop result is not correct, loop promises chain dynamically
             // and outer code could process finishing logics in the middle of event loop.
-            return new $.Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 const length = events.length;
                 /**
                  * @param {number} index
@@ -260,7 +260,7 @@ class EventSource {
                     } catch (e) {
                         return reject(e);
                     }
-                    result = (!result || $.type(result) !== "promise") ? $.Promise.resolve() : result;
+                    result = (!result || $.type(result) !== "promise") ? Promise.resolve() : result;
                     return result.then(() => {
                         if (!args.stopPropagation || (typeof args.stopPropagation === "function" && args.stopPropagation() === false)) {
                             return loop(index + 1);
@@ -283,10 +283,10 @@ class EventSource {
      */
     raiseEvent(eventName, eventArgs) {
         //uncomment if you want to get a log of all events
-        //$.console.log( "Event fired:", eventName );
+        //console.log( "Event fired:", eventName );
 
         if(Object.prototype.hasOwnProperty.call(this._rejectedEventList, eventName)){
-            $.console.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
+            console.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
             return false;
         }
 
@@ -308,13 +308,13 @@ class EventSource {
      */
     raiseEventAwaiting(eventName, eventArgs, bindTarget = null) {
         //uncomment if you want to get a log of all events
-        //$.console.log( "Awaiting event fired:", eventName );
+        //console.log( "Awaiting event fired:", eventName );
 
         const awaitingHandler = this.getAwaitingHandler(eventName, bindTarget);
         if (awaitingHandler) {
             return awaitingHandler(this, eventArgs || {});
         }
-        return $.Promise.resolve(bindTarget);
+        return Promise.resolve(bindTarget);
     }
 
     /**

@@ -465,14 +465,14 @@ class Button extends EventSource {
             if ( this._isCustomElement ) {
                 this.element.disabled = true;
             }
-            $.setElementOpacity( this.element, 0.2, true );
+            $.setElementOpacity( this.element, 0.2 );
         } else {
             this._disabled = false;
             this.element.removeAttribute( "aria-disabled" );
             if ( this._isCustomElement ) {
                 this.element.disabled = false;
             }
-            $.setElementOpacity( this.element, 1.0, true );
+            $.setElementOpacity( this.element, 1.0 );
             this.notifyGroupEnter();
         }
     }
@@ -553,7 +553,7 @@ function updateFade( button ) {
         opacity     = Math.max( 0.0, opacity );
 
         if( button.imgGroup ){
-            $.setElementOpacity( button.imgGroup, opacity, true );
+            $.setElementOpacity( button.imgGroup, opacity );
         }
         if ( opacity > 0 ) {
             // fade again
@@ -573,7 +573,7 @@ function beginFading( button ) {
 function stopFading( button ) {
     button.shouldFade = false;
     if( button.imgGroup ){
-        $.setElementOpacity( button.imgGroup, 1.0, true );
+        $.setElementOpacity( button.imgGroup, 1.0 );
     }
 }
 

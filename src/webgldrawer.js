@@ -249,7 +249,7 @@ class WebglContextManager {
     setupRenderer(width, height) {
         const gl = this._gl;
         if (!gl) {
-            $.console.error('WebGL context not available for setupRenderer');
+            console.error('WebGL context not available for setupRenderer');
             return;
         }
 
@@ -600,7 +600,7 @@ class WebglContextManager {
                 }
             } catch (e) {
                 // Context may already be lost, continue with cleanup
-                $.console.warn('Error during WebGL cleanup in WebglContextManager.destroy():', e);
+                console.warn('Error during WebGL cleanup in WebglContextManager.destroy():', e);
             }
 
             const ext = gl.getExtension('WEBGL_lose_context');
@@ -866,12 +866,12 @@ class WebGLDrawer extends DrawerBase{
             gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
             const hasNonZero = pixels.some(v => v !== 0);
             if (!hasNonZero) {
-                $.console.warn('[WebGLDrawer.isSupported] Functional test failed: no non-zero pixels read back.');
+                console.warn('[WebGLDrawer.isSupported] Functional test failed: no non-zero pixels read back.');
                 return false;
             }
             return true;
         } catch (e) {
-            $.console.warn('[WebGLDrawer.isSupported] Functional test failed:', e && e.message ? e.message : e);
+            console.warn('[WebGLDrawer.isSupported] Functional test failed:', e && e.message ? e.message : e);
             return false;
         } finally {
             try {
@@ -1219,10 +1219,10 @@ class WebGLDrawer extends DrawerBase{
             if (this._isWebGLContextError(error)) {
                 // Try recovery if enabled and not a retry
                 if (this._enableContextRecovery && !isRetry) {
-                    $.console.warn('WebGL context error detected during draw operation, attempting to recreate context...', error);
+                    console.warn('WebGL context error detected during draw operation, attempting to recreate context...', error);
                     const recreatedDrawer = this._recreateContext();
                     if (recreatedDrawer) {
-                        $.console.info('WebGL context recreated successfully, retrying draw operation');
+                        console.info('WebGL context recreated successfully, retrying draw operation');
                         // Raise event for successful recovery
                         if (this.viewer) {
                             /**
@@ -1419,7 +1419,7 @@ class WebGLDrawer extends DrawerBase{
     // private
     _setupRenderer(){
         if(!this._glContext || !this._glContext.getContext()){
-            $.console.error('_setupCanvases must be called before _setupRenderer');
+            console.error('_setupCanvases must be called before _setupRenderer');
             return;
         }
         this._glContext.setupRenderer(this._renderingCanvas.width, this._renderingCanvas.height);
@@ -1556,7 +1556,7 @@ class WebGLDrawer extends DrawerBase{
 
             // Verify context is valid
             if (!this._glContext.getContext()) {
-                $.console.error('Failed to recreate WebGL context: no GL context');
+                console.error('Failed to recreate WebGL context: no GL context');
                 return null;
             }
 
@@ -1564,11 +1564,11 @@ class WebGLDrawer extends DrawerBase{
             try {
                 const maxTextures = this._glContext.getMaxTextures();
                 if (!maxTextures || maxTextures <= 0) {
-                    $.console.error('Failed to recreate WebGL context: invalid MAX_TEXTURE_IMAGE_UNITS');
+                    console.error('Failed to recreate WebGL context: invalid MAX_TEXTURE_IMAGE_UNITS');
                     return null;
                 }
             } catch (e) {
-                $.console.error('Failed to verify new WebGL context:', e);
+                console.error('Failed to verify new WebGL context:', e);
                 return null;
             }
 
@@ -1581,7 +1581,7 @@ class WebGLDrawer extends DrawerBase{
 
             return this; // Return same drawer instance
         } catch (e) {
-            $.console.error('Failed to recreate WebGL context:', e);
+            console.error('Failed to recreate WebGL context:', e);
             return null;
         }
     }
@@ -1609,11 +1609,11 @@ class WebGLDrawer extends DrawerBase{
         });
 
         if (canvasDrawer) {
-            $.console.error('Failed to recreate WebGL context, switching to canvas drawer');
+            console.error('Failed to recreate WebGL context, switching to canvas drawer');
             oldWebGLDrawer._raiseContextRecoveryFailedEvent(error, canvasDrawer);
             this.viewer.world.requestInvalidate(true);
         } else {
-            $.console.error('Failed to create canvas drawer as fallback');
+            console.error('Failed to create canvas drawer as fallback');
             oldWebGLDrawer._raiseContextRecoveryFailedEvent(error, null);
             throw error;
         }
@@ -1653,7 +1653,7 @@ class WebGLDrawer extends DrawerBase{
         const tiledImage = tile.tiledImage;
         const gl = this._glContext ? this._glContext.getContext() : null;
         if (!gl) {
-            $.console.error('WebGL context not available in internalCacheCreate');
+            console.error('WebGL context not available in internalCacheCreate');
             return {};
         }
         let texture;
@@ -1735,7 +1735,7 @@ class WebGLDrawer extends DrawerBase{
         if (data instanceof CanvasRenderingContext2D || data instanceof OffscreenCanvasRenderingContext2D ) {
             return data;
         }
-        $.console.error("Unsupported data used for WebGL Drawer - probably a bug!");
+        console.error("Unsupported data used for WebGL Drawer - probably a bug!");
         return {};
     }
 
@@ -1900,7 +1900,7 @@ class WebGLDrawer extends DrawerBase{
             try {
                 this._drawDebugInfoOnTile(tile, tilesToDraw.length, i, tiledImage, flipped);
             } catch(e) {
-                $.console.error(e);
+                console.error(e);
             }
         }
     }
@@ -2047,7 +2047,7 @@ class WebGLDrawer extends DrawerBase{
             // See if it compiled successfully
 
             if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                $.console.error(
+                console.error(
                     `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`
                 );
                 gl.deleteShader(shader);
@@ -2070,7 +2070,7 @@ class WebGLDrawer extends DrawerBase{
         // If creating the shader program failed, alert
 
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        $.console.error(
+        console.error(
             `Unable to initialize the shader program: ${gl.getProgramInfoLog(
             shaderProgram
             )}`

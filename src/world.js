@@ -54,7 +54,7 @@ class World extends EventSource {
         super();
         const _this = this;
 
-        $.console.assert( options.viewer, "[World] options.viewer is required" );
+        console.assert( options.viewer, "[World] options.viewer is required" );
 
 
 
@@ -84,8 +84,8 @@ class World extends EventSource {
      * @fires OpenSeadragon.World.event:metrics-change
      */
     addItem(item, options) {
-        $.console.assert(item, "[World.addItem] item is required");
-        $.console.assert(item instanceof TiledImage, "[World.addItem] only TiledImages supported at this time");
+        console.assert(item, "[World.addItem] item is required");
+        console.assert(item instanceof TiledImage, "[World.addItem] only TiledImages supported at this time");
 
         options = options || {};
         if (options.index !== undefined) {
@@ -126,7 +126,7 @@ class World extends EventSource {
      * @returns {OpenSeadragon.TiledImage} The item at the specified index.
      */
     getItemAt(index) {
-        $.console.assert(index !== undefined, "[World.getItemAt] index is required");
+        console.assert(index !== undefined, "[World.getItemAt] index is required");
         return this._items[ index ];
     }
 
@@ -136,7 +136,7 @@ class World extends EventSource {
      * @returns {Number} The index of the item or -1 if not present.
      */
     getIndexOfItem(item) {
-        $.console.assert(item, "[World.getIndexOfItem] item is required");
+        console.assert(item, "[World.getIndexOfItem] item is required");
         return $.indexOf( this._items, item );
     }
 
@@ -154,8 +154,8 @@ class World extends EventSource {
      * @fires OpenSeadragon.World.event:item-index-change
      */
     setItemIndex(item, index) {
-        $.console.assert(item, "[World.setItemIndex] item is required");
-        $.console.assert(index !== undefined, "[World.setItemIndex] index is required");
+        console.assert(item, "[World.setItemIndex] item is required");
+        console.assert(index !== undefined, "[World.setItemIndex] index is required");
 
         const oldIndex = this.getIndexOfItem( item );
 
@@ -193,7 +193,7 @@ class World extends EventSource {
      * @fires OpenSeadragon.World.event:metrics-change
      */
     removeItem(item) {
-        $.console.assert(item, "[World.removeItem] item is required");
+        console.assert(item, "[World.removeItem] item is required");
 
         const index = $.indexOf(this._items, item );
         if ( index === -1 ) {
@@ -322,7 +322,7 @@ class World extends EventSource {
                                          _allowTileUnloaded = false, _isFromTileLoad = false) {
         // Calling the event is not considered invalidation, as tile load events finishes with this too.
         if (!this.viewer.isOpen()) {
-            return $.Promise.resolve();
+            return Promise.resolve();
         }
 
         if (tStamp === undefined) {
@@ -371,7 +371,7 @@ class World extends EventSource {
             // will wait for proper invalidation finish.
             let promise;
             if (!originalCache.__resolve) {
-                promise = new $.Promise((resolve) => {
+                promise = new Promise((resolve) => {
                     originalCache.__resolve = resolve;
                 });
             }
@@ -408,8 +408,8 @@ class World extends EventSource {
                 const targetCopyKey = restoreTiles ? tile.originalCacheKey : tile.cacheKey;
                 const origCache = tile.getCache(targetCopyKey);
                 if (!origCache) {
-                    $.console.error("[Tile::getData] There is no cache available for tile with key %s", targetCopyKey);
-                    return $.Promise.reject();
+                    console.error("[Tile::getData] There is no cache available for tile with key %s", targetCopyKey);
+                    return Promise.reject();
                 }
                 // Here ensure type is defined, rquired by data callbacks
                 type = type || origCache.type;
@@ -417,7 +417,7 @@ class World extends EventSource {
                 return origCache.getDataAs(type, true).then(data => {
                     if (data === undefined || data === null) {
                         // Conversion/loading failed upstream; abort invalidation for this tile.
-                        return $.Promise.reject(new Error('[World.getData] Working cache source data unavailable'));
+                        return Promise.reject(new Error('[World.getData] Working cache source data unavailable'));
                     }
                     workingCache.addTile(tile, data, type);
                     return workingCache.data;
@@ -428,7 +428,7 @@ class World extends EventSource {
                 if (!workingCache) {
                     workingCache = new CacheRecord().withTileReference(tile);
                     workingCache.addTile(tile, value, type);
-                    return $.Promise.resolve();
+                    return Promise.resolve();
                 }
                 return workingCache.setDataAs(value, type);
             };
@@ -495,7 +495,7 @@ class World extends EventSource {
                 },
             }).catch(err => {
                 // Plugin/invalidation error: keep existing main cache, discard working cache, and finish processing as invalid.
-                $.console.error('Update routine error:', err);
+                console.error('Update routine error:', err);
                 if (workingCache) {
                     try {
                         workingCache.destroy();
@@ -580,7 +580,7 @@ class World extends EventSource {
                             }
                             // else we will let it fall through to handle later
                         } else {
-                            $.console.error(
+                            console.error(
                                 `Invalidation flow error: tile processing state is invalid. ` +
                                 `Tile: ${tile ? tile.toString() : 'null'}, ` +
                                 `loaded: ${tile ? tile.loaded : 'n/a'}, loading: ${tile ? tile.loading : 'n/a'}, ` +
@@ -636,7 +636,7 @@ class World extends EventSource {
                 }
                 return null;
             }).catch(e => {
-                $.console.error("Update routine error:", e);
+                console.error("Update routine error:", e);
                 if (workingCache) {
                     workingCache.destroy();
                     workingCache = null;
@@ -657,7 +657,7 @@ class World extends EventSource {
             });
         });
 
-        return $.Promise.all(jobList).then(() => {
+        return Promise.all(jobList).then(() => {
             if (tilesThatNeedReprocessing.length) {
                 this.requestTileInvalidateEvent(tilesThatNeedReprocessing, undefined, restoreTiles, true);
             }

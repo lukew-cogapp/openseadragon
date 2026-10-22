@@ -154,13 +154,13 @@ import { TileSource } from "./tilesource.js";
           }
           catch (e) {
             const msg = "IrisTileSource: Error parsing metadata: " + e.message;
-            $.console.error(msg);
+            console.error(msg);
             _this.raiseEvent('open-failed', { message: msg, source: url });
           }
         },
         error: function(xhr, exc) {
           const msg = "IrisTileSource: Unable to get metadata from " + url;
-          $.console.error(msg);
+          console.error(msg);
           _this.raiseEvent('open-failed', {
             message: msg,
             source: url,

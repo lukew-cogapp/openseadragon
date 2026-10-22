@@ -87,7 +87,7 @@ class Control {
         const parent = /** @type {Node} */ (element.parentNode);
         if (typeof options === 'number')
         {
-            $.console.error("Passing an anchor directly into the OpenSeadragon.Control constructor is deprecated; " +
+            console.error("Passing an anchor directly into the OpenSeadragon.Control constructor is deprecated; " +
                             "please use an options object instead.  " +
                             "Support for this deprecated variant is scheduled for removal in December 2013");
              options = {anchor: options};
@@ -199,7 +199,7 @@ class Control {
      * @param {Number} opacity - a value between 1 and 0 inclusively.
      */
     setOpacity(opacity) {
-        $.setElementOpacity( this.wrapper, opacity, true );
+        $.setElementOpacity( this.wrapper, opacity );
     }
 }
 

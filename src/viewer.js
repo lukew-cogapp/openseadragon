@@ -256,7 +256,7 @@ class Viewer extends ControlDock {
         if ( typeof ( THIS[ this.hash ] ) !== "undefined" ) {
             // We don't want to throw an error here, as the user might have discarded
             // the previous viewer with the same hash and now want to recreate it.
-            $.console.warn("Hash " + this.hash + " has already been used.");
+            console.warn("Hash " + this.hash + " has already been used.");
         }
 
         //Private state properties
@@ -554,7 +554,7 @@ class Viewer extends ControlDock {
 
         //Create the drawer based on selected options
         if (Object.prototype.hasOwnProperty.call(this.drawerOptions, 'useCanvas') ){
-            $.console.error('useCanvas is deprecated, use the "drawer" option to indicate preferred drawer(s)');
+            console.error('useCanvas is deprecated, use the "drawer" option to indicate preferred drawer(s)');
 
             // for backwards compatibility, use HTMLDrawer if useCanvas is defined and is falsey
             if (!this.drawerOptions.useCanvas){
@@ -568,7 +568,7 @@ class Viewer extends ControlDock {
             // if an empty array was passed in, throw a warning and use the defaults
             // note: if the drawer option is not specified, the defaults will already be set so this won't apply
             drawerCandidates = [$.DEFAULT_SETTINGS.drawer].flat(); // ensure it is a list
-            $.console.warn('No valid drawers were selected. Using the default value.');
+            console.warn('No valid drawers were selected. Using the default value.');
         }
 
         // 'auto' is expanded in the candidate list in a platform-dependent way: on iOS-like devices
@@ -595,7 +595,7 @@ class Viewer extends ControlDock {
         }
 
         if (!this.drawer){
-            $.console.error('No drawer could be created!');
+            console.error('No drawer could be created!');
             throw('Error with creating the selected drawer(s)');
         }
 
@@ -624,12 +624,12 @@ class Viewer extends ControlDock {
         this._addUpdatePixelDensityRatioEvent();
 
         if ('navigatorAutoResize' in this) {
-            $.console.warn('navigatorAutoResize is deprecated, this value will be ignored.');
+            console.warn('navigatorAutoResize is deprecated, this value will be ignored.');
         }
 
         //Instantiate a navigator if configured
         if ( this.showNavigator && !viewerFeatures.Navigator ) {
-            $.console.error("showNavigator needs the Navigator registered with OpenSeadragon.register");
+            console.error("showNavigator needs the Navigator registered with OpenSeadragon.register");
         } else if ( this.showNavigator){
             this.navigator = new viewerFeatures.Navigator({
                 element:           this.navigatorElement,
@@ -659,7 +659,7 @@ class Viewer extends ControlDock {
             });
 
             this.navigator.addOnceHandler('drawer-error', (event) => {
-                $.console.warn(
+                console.warn(
                     'OpenSeadragon navigator drawer error: ' + event.error +
                     ' If tiles are cross-origin, set crossOriginPolicy: "Anonymous" or ' +
                     '"use-credentials" (requires CORS headers on the tile server), or set ' +
@@ -753,19 +753,19 @@ class Viewer extends ControlDock {
 
     // deprecated
     openDzi(dzi) {
-        $.console.error( "[Viewer.openDzi] this function is deprecated; use Viewer.open() instead." );
+        console.error( "[Viewer.openDzi] this function is deprecated; use Viewer.open() instead." );
         return this.open( dzi );
     }
 
     // deprecated
     openTileSource(tileSource) {
-        $.console.error( "[Viewer.openTileSource] this function is deprecated; use Viewer.open() instead." );
+        console.error( "[Viewer.openTileSource] this function is deprecated; use Viewer.open() instead." );
         return this.open( tileSource );
     }
 
     //deprecated
     get buttons() {
-        $.console.warn('Viewer.buttons is deprecated; Please use Viewer.buttonGroup');
+        console.warn('Viewer.buttons is deprecated; Please use Viewer.buttonGroup');
         return this.buttonGroup;
     }
 
@@ -900,7 +900,7 @@ class Viewer extends ControlDock {
             }
 
             if (options.index !== undefined) {
-                $.console.warn('[Viewer.open] Ignoring user-supplied index; preserving order by setting index to ' + index + '. If you need to set indexes, use addTiledImage instead.');
+                console.warn('[Viewer.open] Ignoring user-supplied index; preserving order by setting index to ' + index + '. If you need to set indexes, use addTiledImage instead.');
                 delete options.index;
                 // ensure we keep the order we received
                 options.index = index;
@@ -967,12 +967,12 @@ class Viewer extends ControlDock {
     requestInvalidate(restoreTiles = true) {
         if ( !THIS[ this.hash ] || !this._drawerList ) {
             //this viewer has already been destroyed or is a child in connected mode: returning immediately
-            return $.Promise.resolve();
+            return Promise.resolve();
         }
 
         const tStamp = $.now();
         // if drawer option broadCastTileInvalidation is enabled, this is NOOP for any but the base drawer, that runs update on all
-        return $.Promise.all(this._drawerList.map(drawer => drawer.viewer.world.requestInvalidate(restoreTiles, tStamp)));
+        return Promise.all(this._drawerList.map(drawer => drawer.viewer.world.requestInvalidate(restoreTiles, tStamp)));
     }
 
     /**
@@ -1188,7 +1188,7 @@ class Viewer extends ControlDock {
         }
 
         if (!Drawer) {
-            $.console.warn('Unsupported drawer %s! Drawer must be an existing string type, or a class that extends OpenSeadragon.DrawerBase.', drawerCandidate);
+            console.warn('Unsupported drawer %s! Drawer must be an existing string type, or a class that extends OpenSeadragon.DrawerBase.', drawerCandidate);
         }
 
         // Guard isSupported() in try/catch so a buggy or throwing plugin drawer cannot crash the whole viewer
@@ -1197,7 +1197,7 @@ class Viewer extends ControlDock {
             try {
                 supported = Drawer.isSupported(drawerOptions || this.drawerOptions[drawerCandidate]);
             } catch (e) {
-                $.console.warn('Error in %s isSupported(); treating this drawer as unsupported:', drawerCandidate, e && e.message ? e.message : e);
+                console.warn('Error in %s isSupported(); treating this drawer as unsupported:', drawerCandidate, e && e.message ? e.message : e);
             }
         }
         if (supported) {
@@ -1369,7 +1369,7 @@ class Viewer extends ControlDock {
             ajaxHeaders = {};
         }
         if (!$.isPlainObject(ajaxHeaders)) {
-            $.console.error('[Viewer.setAjaxHeaders] Ignoring invalid headers, must be a plain object');
+            console.error('[Viewer.setAjaxHeaders] Ignoring invalid headers, must be a plain object');
             return;
         }
         if (propagate === undefined) {
@@ -1794,9 +1794,9 @@ class Viewer extends ControlDock {
      * @fires OpenSeadragon.Viewer.event:add-item-failed
      */
     addTiledImage(options) {
-        $.console.assert(options, "[Viewer.addTiledImage] options is required");
-        $.console.assert(options.tileSource, "[Viewer.addTiledImage] options.tileSource is required");
-        $.console.assert(!options.replace || (options.index > -1 && options.index < this.world.getItemCount()),
+        console.assert(options, "[Viewer.addTiledImage] options is required");
+        console.assert(options.tileSource, "[Viewer.addTiledImage] options.tileSource is required");
+        console.assert(!options.replace || (options.index > -1 && options.index < this.world.getItemCount()),
             "[Viewer.addTiledImage] if options.replace is used, options.index must be a valid index in Viewer.world");
 
         this._hideMessage();
@@ -2024,7 +2024,7 @@ class Viewer extends ControlDock {
      *   was defining the TileSource. On success, the source is a TileSource instance.
      */
     instantiateTileSourceClass(options) {
-        return new $.Promise( ( resolve, reject ) => {
+        return new Promise( ( resolve, reject ) => {
             if (options.placeholderFillStyle === undefined) {
                 options.placeholderFillStyle = this.placeholderFillStyle;
             }
@@ -2152,8 +2152,8 @@ class Viewer extends ControlDock {
      * @fires OpenSeadragon.Viewer.event:add-item-failed
      */
     addSimpleImage(options) {
-        $.console.assert(options, "[Viewer.addSimpleImage] options is required");
-        $.console.assert(options.url, "[Viewer.addSimpleImage] options.url is required");
+        console.assert(options, "[Viewer.addSimpleImage] options is required");
+        console.assert(options.url, "[Viewer.addSimpleImage] options.url is required");
 
         const opts = $.extend({}, options, {
             tileSource: {
@@ -2169,7 +2169,7 @@ class Viewer extends ControlDock {
     addLayer(options) {
         const _this = this;
 
-        $.console.error( "[Viewer.addLayer] this function is deprecated; use Viewer.addTiledImage() instead." );
+        console.error( "[Viewer.addLayer] this function is deprecated; use Viewer.addTiledImage() instead." );
 
         const optionsClone = $.extend({}, options, {
             success: function(event) {
@@ -2189,31 +2189,31 @@ class Viewer extends ControlDock {
 
     // deprecated
     getLayerAtLevel(level) {
-        $.console.error( "[Viewer.getLayerAtLevel] this function is deprecated; use World.getItemAt() instead." );
+        console.error( "[Viewer.getLayerAtLevel] this function is deprecated; use World.getItemAt() instead." );
         return this.world.getItemAt(level);
     }
 
     // deprecated
     getLevelOfLayer(drawer) {
-        $.console.error( "[Viewer.getLevelOfLayer] this function is deprecated; use World.getIndexOfItem() instead." );
+        console.error( "[Viewer.getLevelOfLayer] this function is deprecated; use World.getIndexOfItem() instead." );
         return this.world.getIndexOfItem(drawer);
     }
 
     // deprecated
     getLayersCount() {
-        $.console.error( "[Viewer.getLayersCount] this function is deprecated; use World.getItemCount() instead." );
+        console.error( "[Viewer.getLayersCount] this function is deprecated; use World.getItemCount() instead." );
         return this.world.getItemCount();
     }
 
     // deprecated
     setLayerLevel(drawer, level) {
-        $.console.error( "[Viewer.setLayerLevel] this function is deprecated; use World.setItemIndex() instead." );
+        console.error( "[Viewer.setLayerLevel] this function is deprecated; use World.setItemIndex() instead." );
         return this.world.setItemIndex(drawer, level);
     }
 
     // deprecated
     removeLayer(drawer) {
-        $.console.error( "[Viewer.removeLayer] this function is deprecated; use World.removeItem() instead." );
+        console.error( "[Viewer.removeLayer] this function is deprecated; use World.removeItem() instead." );
         return this.world.removeItem(drawer);
     }
 
@@ -2759,7 +2759,7 @@ class Viewer extends ControlDock {
      */
     _unregisterDrawer(drawer) {
         if (!this._drawerList) {
-            $.console.warn('Viewer._unregisterDrawer: cannot unregister on viewer that is not meant to share updates.');
+            console.warn('Viewer._unregisterDrawer: cannot unregister on viewer that is not meant to share updates.');
             return;
         }
         this._drawerList.splice(this._drawerList.indexOf(drawer), 1);
@@ -3027,7 +3027,7 @@ class Viewer extends ControlDock {
             }
 
             if (!viewerFeatures.ReferenceStrip) {
-                $.console.error("showReferenceStrip needs the ReferenceStrip registered with OpenSeadragon.register");
+                console.error("showReferenceStrip needs the ReferenceStrip registered with OpenSeadragon.register");
                 return;
             }
 
@@ -3047,7 +3047,7 @@ class Viewer extends ControlDock {
                 this.referenceStrip.setFocus( this._sequenceIndex );
             }
         } else {
-            $.console.warn('Attempting to display a reference strip while "sequenceMode" is off.');
+            console.warn('Attempting to display a reference strip while "sequenceMode" is off.');
         }
     }
 

@@ -33,9 +33,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import * as $ from "./openseadragon.js";
-
 /**
  * Prefixed fullscreen members are not in the DOM typings, so they are dynamic.
  * @private
@@ -82,12 +79,12 @@ if ( document.exitFullscreen ) {
     };
     fullScreenApi.requestFullScreen = /** @param {VendorElement} element */ function( element ) {
         return element.requestFullscreen().catch(/** @param {any} msg */ function (msg) {
-            $.console.error('Fullscreen request failed: ', msg);
+            console.error('Fullscreen request failed: ', msg);
         });
     };
     fullScreenApi.exitFullScreen = function() {
         document.exitFullscreen().catch(/** @param {any} msg */ function (msg) {
-            $.console.error('Error while exiting fullscreen: ', msg);
+            console.error('Error while exiting fullscreen: ', msg);
         });
     };
     fullScreenApi.fullScreenEventName = "fullscreenchange";
@@ -153,7 +150,7 @@ fullScreenApi.isFullScreen = function() {
     return fullScreenApi.getFullScreenElement() !== null;
 };
 fullScreenApi.cancelFullScreen = function() {
-    $.console.error("cancelFullScreen is deprecated. Use exitFullScreen instead.");
+    console.error("cancelFullScreen is deprecated. Use exitFullScreen instead.");
     fullScreenApi.exitFullScreen();
 };
 

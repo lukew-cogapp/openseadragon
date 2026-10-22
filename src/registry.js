@@ -63,7 +63,7 @@ function register(...classes) {
         } else if ($.isFunction(Class.prototype.supports)) {
             tileSources.push(Class);
         } else {
-            $.console.error("register: %s is not a drawer, tile source or viewer feature", Class);
+            console.error("register: %s is not a drawer, tile source or viewer feature", Class);
         }
     }
 }
@@ -120,7 +120,7 @@ function determineTileSourceType(tileSource, data, url) {
     const found = tileSources.find(
         (TileSource) => TileSource.prototype.supports.call(tileSource, data, url));
     if (!found) {
-        $.console.error("No TileSource was able to open %s %s", url, data);
+        console.error("No TileSource was able to open %s %s", url, data);
     }
     return found || null;
 }

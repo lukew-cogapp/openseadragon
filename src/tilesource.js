@@ -250,7 +250,7 @@ class TileSource extends EventSource {
     }
 
     getTileSize(level) {
-        $.console.error(
+        console.error(
             "[TileSource.getTileSize] is deprecated. " +
             "Use TileSource.getTileWidth() and TileSource.getTileHeight() instead"
         );
@@ -376,7 +376,7 @@ class TileSource extends EventSource {
     getTileAtPoint(level, point) {
         const validPoint = point.x >= 0 && point.x <= 1 &&
             point.y >= 0 && point.y <= 1 / this.aspectRatio;
-        $.console.assert(validPoint, "[TileSource.getTileAtPoint] must be called with a valid point.");
+        console.assert(validPoint, "[TileSource.getTileAtPoint] must be called with a valid point.");
 
 
         const widthScaled = this.dimensions.x * this.getLevelScale(level);
@@ -562,7 +562,7 @@ class TileSource extends EventSource {
                         msg = formattedExc + " attempting to load TileSource: " + url;
                     }
 
-                    $.console.error(msg);
+                    console.error(msg);
 
                     /***
                      * Raised when an error occurs loading a TileSource.
@@ -956,7 +956,7 @@ class TileSource extends EventSource {
      * @deprecated
      */
     createTileCache(cacheObject, data, tile) {
-        $.console.error("[TileSource.createTileCache] has been deprecated. Use cache API of a tile instead.");
+        console.error("[TileSource.createTileCache] has been deprecated. Use cache API of a tile instead.");
         //no-op, we create the cache automatically
     }
 
@@ -970,7 +970,7 @@ class TileSource extends EventSource {
      * @deprecated
      */
     destroyTileCache(cacheObject) {
-        $.console.error("[TileSource.destroyTileCache] has been deprecated. Use cache API of a tile instead.");
+        console.error("[TileSource.destroyTileCache] has been deprecated. Use cache API of a tile instead.");
         //no-op, handled internally
     }
 
@@ -982,7 +982,7 @@ class TileSource extends EventSource {
      * @deprecated
      */
     getTileCacheData(cacheObject) {
-        $.console.error("[TileSource.getTileCacheData] has been deprecated. Use cache API of a tile instead.");
+        console.error("[TileSource.getTileCacheData] has been deprecated. Use cache API of a tile instead.");
         return cacheObject.getDataAs(undefined, false);
     }
 
@@ -997,7 +997,7 @@ class TileSource extends EventSource {
      *  @deprecated
      */
     getTileCacheDataAsImage(cacheObject) {
-        $.console.error("[TileSource.getTileCacheDataAsImage] has been deprecated. Use cache API of a tile instead.");
+        console.error("[TileSource.getTileCacheDataAsImage] has been deprecated. Use cache API of a tile instead.");
         return cacheObject.getImage();
     }
 
@@ -1011,7 +1011,7 @@ class TileSource extends EventSource {
      * @deprecated
      */
     getTileCacheDataAsContext2D(cacheObject) {
-        $.console.error("[TileSource.getTileCacheDataAsContext2D] has been deprecated. Use cache API of a tile instead.");
+        console.error("[TileSource.getTileCacheDataAsContext2D] has been deprecated. Use cache API of a tile instead.");
         return cacheObject.getRenderedContext();
     }
 }

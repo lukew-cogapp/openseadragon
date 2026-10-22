@@ -102,7 +102,7 @@ class WeightedGraph {
      */
     addEdge(vertex1, vertex2, weight, transform) {
         if (weight < 0) {
-            $.console.error("WeightedGraph: negative weights will make for invalid shortest path computation!");
+            console.error("WeightedGraph: negative weights will make for invalid shortest path computation!");
         }
         const outgoingPaths = this.adjacencyList[vertex1],
             replacedEdgeIndex = outgoingPaths.findIndex(edge => edge.target === this.vertices[vertex2]),
@@ -276,7 +276,7 @@ function postWorker(op, payload, { timeoutMs = 15000 } = {}) {
     const worker = getIBWorker();
     const id = ++_conversionId;
 
-    return new $.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         // possibly test $.supportsPromise here as well...
         payload.id = id;
         payload.op = op;
@@ -421,10 +421,7 @@ class DataTypeConverter {
         // hands back the same element, and the HTML drawer places that very element in the DOM rather
         // than a clone. Deferring the release to a destructor would both keep every blob alive for the
         // lifetime of the cache and force it to guess, from the src alone, which images it owns.
-        this.learn("rasterBlob", "image", (tile, blob) => new $.Promise((resolve, reject) => {
-            if (!$.supportsAsync) {
-                return reject("Not supported in sync mode!");
-            }
+        this.learn("rasterBlob", "image", (tile, blob) => new Promise((resolve, reject) => {
             const urlApi = window.URL || window.webkitURL;
             const url = urlApi.createObjectURL(blob);
             const img = new Image();
@@ -441,10 +438,7 @@ class DataTypeConverter {
             return undefined;
         }), 1, 3);
 
-        this.learn("context2d", "rasterBlob", (tile, ctx) => new $.Promise((resolve, reject) => {
-            if (!$.supportsAsync) {
-                return reject("Not supported in sync mode!");
-            }
+        this.learn("context2d", "rasterBlob", (tile, ctx) => new Promise((resolve, reject) => {
             // toBlob() reports failure by passing null, which would otherwise be resolved as if it were
             // valid data and only fail further down the conversion path.
             ctx.canvas.toBlob(/** @param {Blob|null} blob */ blob => {
@@ -458,10 +452,7 @@ class DataTypeConverter {
         }), 1, 2);
 
         // rasterBlob -> imageBitmap (preferred fast path)
-        this.learn("rasterBlob", "imageBitmap", (tile, blob) => new $.Promise((resolve, reject) => {
-            if (!$.supportsAsync) {
-                return reject("Not supported in sync mode!");
-            }
+        this.learn("rasterBlob", "imageBitmap", (tile, blob) => new Promise((resolve, reject) => {
             if (_imageConversionWorker) {
                 postWorker('decodeFromBlob', { blob }).then(resolve).catch(reject);
             } else {
@@ -494,13 +485,10 @@ class DataTypeConverter {
         // does not close the copy, which is the only property the cache ownership model needs. Rasterizing
         // through an OffscreenCanvas to achieve the same thing costs a GPU->CPU->GPU round trip per copy.
         this.learn("imageBitmap", "imageBitmap", (tile, bmp) => {
-            if (!$.supportsAsync) {
-                return $.Promise.reject("Not supported in sync mode!");
-            }
             // A closed ImageBitmap reports zero dimensions, and createImageBitmap() rejects on a zero-sized
             // source: check here so the failure names the actual cause.
             if (!bmp || !bmp.width || !bmp.height) {
-                return $.Promise.reject(new Error("Cannot copy a closed or empty ImageBitmap!"));
+                return Promise.reject(new Error("Cannot copy a closed or empty ImageBitmap!"));
             }
             return createImageBitmap(bmp, { colorSpaceConversion: 'none' });
         }, 1, 1);
@@ -592,8 +580,8 @@ class DataTypeConverter {
      *   use costPower=2, costMultiplier=3; can be between 1 and 10^5
      */
     learn(from, to, callback, costPower = 0, costMultiplier = 1) {
-        $.console.assert(costPower >= 0 && costPower <= 7, "[DataTypeConverter] Conversion costPower must be between <0, 7>.");
-        $.console.assert($.isFunction(callback), "[DataTypeConverter:learn] Callback must be a valid function!");
+        console.assert(costPower >= 0 && costPower <= 7, "[DataTypeConverter] Conversion costPower must be between <0, 7>.");
+        console.assert($.isFunction(callback), "[DataTypeConverter:learn] Callback must be a valid function!");
 
         if (from === to) {
             this.copyings[to] = callback;
@@ -639,8 +627,8 @@ class DataTypeConverter {
             // A missing path is a static property of the graph, so rejecting here would report it once per
             // tile and, through the cache error handling, take every one of those tiles down permanently.
             // Report it and let the caller keep whatever data it already had, as CacheRecord._convert does.
-            $.console.error(`[OpenSeadragon.converter.convert] Conversion ${from} ---> ${to} cannot be done!`);
-            return $.Promise.resolve();
+            console.error(`[OpenSeadragon.converter.convert] Conversion ${from} ---> ${to} cannot be done!`);
+            return Promise.resolve();
         }
 
         const stepCount = conversionPath.length;
@@ -653,7 +641,7 @@ class DataTypeConverter {
          */
         const step = (x, i, destroy = true) => {
             if (i >= stepCount) {
-                return $.Promise.resolve(x);
+                return Promise.resolve(x);
             }
             const edge = conversionPath[i];
             let y;
@@ -663,19 +651,19 @@ class DataTypeConverter {
                 if (destroy) {
                     _this.destroy(x, edge.origin.value);
                 }
-                return $.Promise.reject(`[OpenSeadragon.converter.convert] sync failure (while converting using ${edge.origin.value} -> ${edge.target.value})`);
+                return Promise.reject(`[OpenSeadragon.converter.convert] sync failure (while converting using ${edge.origin.value} -> ${edge.target.value})`);
             }
             if (y === undefined) {
                 if (destroy) {
                     _this.destroy(x, edge.origin.value);
                 }
-                return $.Promise.reject(`[OpenSeadragon.converter.convert] data mid result undefined value (while converting using ${edge.origin.value} -> ${edge.target.value})`);
+                return Promise.reject(`[OpenSeadragon.converter.convert] data mid result undefined value (while converting using ${edge.origin.value} -> ${edge.target.value})`);
             }
             //node.value holds the type string
             if (destroy) {
                 _this.destroy(x, edge.origin.value);
             }
-            const result = $.type(y) === "promise" ? y : $.Promise.resolve(y);
+            const result = $.type(y) === "promise" ? y : Promise.resolve(y);
             return result.then(/** @param {any} res */ res => step(res, i + 1));
         };
         //destroy only mid-results, but not the original value
@@ -698,12 +686,12 @@ class DataTypeConverter {
             } catch (e) {
                 // Callers treat this as a promise-returning function: a synchronous throw would otherwise
                 // escape past them, e.g. out of CacheRecord.getDataAs() itself.
-                return $.Promise.reject(e);
+                return Promise.reject(e);
             }
-            return $.type(y) === "promise" ? y : $.Promise.resolve(y);
+            return $.type(y) === "promise" ? y : Promise.resolve(y);
         }
-        $.console.warn(`[OpenSeadragon.converter.copy] is not supported with type %s`, type);
-        return $.Promise.resolve(undefined);
+        console.warn(`[OpenSeadragon.converter.copy] is not supported with type %s`, type);
+        return Promise.resolve(undefined);
     }
 
     /**
@@ -717,7 +705,7 @@ class DataTypeConverter {
         const destructor = this.destructors[type];
         if (destructor) {
             const y = destructor(data);
-            return $.type(y) === "promise" ? y : $.Promise.resolve(y);
+            return $.type(y) === "promise" ? y : Promise.resolve(y);
         }
         return undefined;
     }
@@ -742,7 +730,7 @@ class DataTypeConverter {
         }
 
         if (Array.isArray(to)) {
-            $.console.assert(to.length > 0, "[getConversionPath] conversion 'to' type must be defined.");
+            console.assert(to.length > 0, "[getConversionPath] conversion 'to' type must be defined.");
             let bestCost = Infinity;
 
             for (const outType of to) {
@@ -756,7 +744,7 @@ class DataTypeConverter {
                 }
             }
         } else {
-            $.console.assert(typeof to === "string", "[getConversionPath] conversion 'to' type must be defined.");
+            console.assert(typeof to === "string", "[getConversionPath] conversion 'to' type must be defined.");
             bestConverterPath = knownFrom[to];
             if (bestConverterPath === undefined) {
                 bestConverterPath = this.graph.dijkstra(from, to);
@@ -813,10 +801,7 @@ const converter = new DataTypeConverter();
 
 // Image URL -> image private conversion, used in tests (was public originally, but made private to
 // discourage bad practices by forcing conversion API to deal with URLs that download data
-converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new $.Promise((resolve, reject) => {
-    if (!$.supportsAsync) {
-        return reject("Not supported in sync mode!");
-    }
+converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new Promise((resolve, reject) => {
     /** @type {RequestInit|undefined} */
     let setup;
     if (tile.tiledImage && tile.tiledImage.crossOriginPolicy) {
@@ -832,7 +817,7 @@ converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new $.Promi
                 credentials: 'include',
             };
         } else if (policy) {
-            $.console.error(`Unsupported crossOriginPolicy ${policy}. Ignoring the property.`);
+            console.error(`Unsupported crossOriginPolicy ${policy}. Ignoring the property.`);
         }
     }
     if (_imageConversionWorker) {

@@ -164,13 +164,13 @@ class Viewport {
 
     // deprecated
     get degrees() {
-        $.console.warn('Accessing [Viewport.degrees] is deprecated. Use viewport.getRotation instead.');
+        console.warn('Accessing [Viewport.degrees] is deprecated. Use viewport.getRotation instead.');
         return this.getRotation();
     }
 
     // deprecated
     set degrees(degrees) {
-        $.console.warn('Setting [Viewport.degrees] is deprecated. Use viewport.rotateTo, viewport.rotateBy, or viewport.setRotation instead.');
+        console.warn('Setting [Viewport.degrees] is deprecated. Use viewport.rotateTo, viewport.rotateBy, or viewport.setRotation instead.');
         this.rotateTo(degrees);
     }
 
@@ -182,10 +182,10 @@ class Viewport {
      * @fires OpenSeadragon.Viewer.event:reset-size
      */
     resetContentSize(contentSize) {
-        $.console.assert(contentSize, "[Viewport.resetContentSize] contentSize is required");
-        $.console.assert(contentSize instanceof Point, "[Viewport.resetContentSize] contentSize must be an OpenSeadragon.Point");
-        $.console.assert(contentSize.x > 0, "[Viewport.resetContentSize] contentSize.x must be greater than 0");
-        $.console.assert(contentSize.y > 0, "[Viewport.resetContentSize] contentSize.y must be greater than 0");
+        console.assert(contentSize, "[Viewport.resetContentSize] contentSize is required");
+        console.assert(contentSize instanceof Point, "[Viewport.resetContentSize] contentSize must be an OpenSeadragon.Point");
+        console.assert(contentSize.x > 0, "[Viewport.resetContentSize] contentSize.x must be greater than 0");
+        console.assert(contentSize.y > 0, "[Viewport.resetContentSize] contentSize.y must be greater than 0");
 
         this._setContentBounds(new Rect(0, 0, 1, contentSize.y / contentSize.x), contentSize.x);
         return this;
@@ -193,7 +193,7 @@ class Viewport {
 
     // deprecated
     setHomeBounds(bounds, contentFactor) {
-        $.console.error("[Viewport.setHomeBounds] this function is deprecated; The content bounds should not be set manually.");
+        console.error("[Viewport.setHomeBounds] this function is deprecated; The content bounds should not be set manually.");
         this._setContentBounds(bounds, contentFactor);
     }
 
@@ -204,10 +204,10 @@ class Viewport {
     // @fires OpenSeadragon.Viewer.event:reset-size
     // @private
     _setContentBounds(bounds, contentFactor) {
-        $.console.assert(bounds, "[Viewport._setContentBounds] bounds is required");
-        $.console.assert(bounds instanceof Rect, "[Viewport._setContentBounds] bounds must be an OpenSeadragon.Rect");
-        $.console.assert(bounds.width > 0, "[Viewport._setContentBounds] bounds.width must be greater than 0");
-        $.console.assert(bounds.height > 0, "[Viewport._setContentBounds] bounds.height must be greater than 0");
+        console.assert(bounds, "[Viewport._setContentBounds] bounds is required");
+        console.assert(bounds instanceof Rect, "[Viewport._setContentBounds] bounds must be an OpenSeadragon.Rect");
+        console.assert(bounds.width > 0, "[Viewport._setContentBounds] bounds.width must be greater than 0");
+        console.assert(bounds.height > 0, "[Viewport._setContentBounds] bounds.height must be greater than 0");
 
         this._contentBoundsNoRotate = bounds.clone();
         this._contentSizeNoRotate = this._contentBoundsNoRotate.getSize().times(
@@ -374,7 +374,7 @@ class Viewport {
      * @param {Object} margins - Properties (Numbers, in screen coordinates): left, top, right, bottom.
      */
     setMargins(margins) {
-        $.console.assert($.type(margins) === 'object', '[Viewport.setMargins] margins must be an object');
+        console.assert($.type(margins) === 'object', '[Viewport.setMargins] margins must be an object');
 
         this._margins = $.extend({
             left: 0,
@@ -1060,7 +1060,7 @@ class Viewport {
     resize(newContainerSize = undefined, maintain = false) {
         if (!newContainerSize) {
             if (!this.viewer) {
-                $.console.warn('[Viewport::resize] needs newContainerSize argument when the viewport.viewer reference is not defined!');
+                console.warn('[Viewport::resize] needs newContainerSize argument when the viewport.viewer reference is not defined!');
                 return this;
             }
             const el = $.getElement(this.viewer.container);
@@ -1389,7 +1389,7 @@ class Viewport {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
                 if (!this.silenceMultiImageWarnings) {
-                    $.console.error('[Viewport.viewportToImageCoordinates] is not accurate ' +
+                    console.error('[Viewport.viewportToImageCoordinates] is not accurate ' +
                         'with multi-image; use TiledImage.viewportToImageCoordinates instead.');
                 }
             } else if (count === 1) {
@@ -1435,7 +1435,7 @@ class Viewport {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
                 if (!this.silenceMultiImageWarnings) {
-                    $.console.error('[Viewport.imageToViewportCoordinates] is not accurate ' +
+                    console.error('[Viewport.imageToViewportCoordinates] is not accurate ' +
                         'with multi-image; use TiledImage.imageToViewportCoordinates instead.');
                 }
             } else if (count === 1) {
@@ -1479,7 +1479,7 @@ class Viewport {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
                 if (!this.silenceMultiImageWarnings) {
-                    $.console.error('[Viewport.imageToViewportRectangle] is not accurate ' +
+                    console.error('[Viewport.imageToViewportRectangle] is not accurate ' +
                        'with multi-image; use TiledImage.imageToViewportRectangle instead.');
                 }
             } else if (count === 1) {
@@ -1529,7 +1529,7 @@ class Viewport {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
                 if (!this.silenceMultiImageWarnings) {
-                    $.console.error('[Viewport.viewportToImageRectangle] is not accurate ' +
+                    console.error('[Viewport.viewportToImageRectangle] is not accurate ' +
                         'with multi-image; use TiledImage.viewportToImageRectangle instead.');
                 }
             } else if (count === 1) {
@@ -1584,7 +1584,7 @@ class Viewport {
      * @returns {OpenSeadragon.Point}
      */
     windowToImageCoordinates(pixel) {
-        $.console.assert(this.viewer,
+        console.assert(this.viewer,
             "[Viewport.windowToImageCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = pixel.minus(
                 $.getElementPosition(this.viewer.container));
@@ -1598,7 +1598,7 @@ class Viewport {
      * @returns {OpenSeadragon.Point}
      */
     imageToWindowCoordinates(pixel) {
-        $.console.assert(this.viewer,
+        console.assert(this.viewer,
             "[Viewport.imageToWindowCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = this.imageToViewerElementCoordinates(pixel);
         return viewerCoordinates.plus(
@@ -1659,7 +1659,7 @@ class Viewport {
      * @returns {OpenSeadragon.Point}
      */
     windowToViewportCoordinates(pixel) {
-        $.console.assert(this.viewer,
+        console.assert(this.viewer,
             "[Viewport.windowToViewportCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = pixel.minus(
                 $.getElementPosition(this.viewer.container));
@@ -1672,7 +1672,7 @@ class Viewport {
      * @returns {OpenSeadragon.Point}
      */
     viewportToWindowCoordinates(point) {
-        $.console.assert(this.viewer,
+        console.assert(this.viewer,
             "[Viewport.viewportToWindowCoordinates] the viewport must have a viewer.");
         const viewerCoordinates = this.viewportToViewerElementCoordinates(point);
         return viewerCoordinates.plus(
@@ -1696,7 +1696,7 @@ class Viewport {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
                 if (!this.silenceMultiImageWarnings) {
-                    $.console.error('[Viewport.viewportToImageZoom] is not ' +
+                    console.error('[Viewport.viewportToImageZoom] is not ' +
                         'accurate with multi-image.');
                 }
             } else if (count === 1) {
@@ -1732,7 +1732,7 @@ class Viewport {
             const count = this.viewer.world.getItemCount();
             if (count > 1) {
                 if (!this.silenceMultiImageWarnings) {
-                    $.console.error('[Viewport.imageToViewportZoom] is not accurate ' +
+                    console.error('[Viewport.imageToViewportZoom] is not accurate ' +
                         'with multi-image. Instead, use [TiledImage.imageToViewportZoom] for the specific image of interest');
                 }
             } else if (count === 1) {
@@ -1820,7 +1820,7 @@ class Viewport {
      */
     setMaxZoomPixelRatio(ratio, applyConstraints = true, immediately = false) {
 
-        $.console.assert(!isNaN(ratio), "[Viewport.setMaxZoomPixelRatio] ratio must be a number");
+        console.assert(!isNaN(ratio), "[Viewport.setMaxZoomPixelRatio] ratio must be a number");
 
         if (isNaN(ratio)) {
             return;

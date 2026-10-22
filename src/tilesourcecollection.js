@@ -32,13 +32,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-
-import * as $ from "./openseadragon.js";
-
 // deprecated
 function TileSourceCollection(tileSize, tileSources, rows, layout) {
-    $.console.error('TileSourceCollection is deprecated; use World instead');
+    console.error('TileSourceCollection is deprecated; use World instead');
 }
 
 export { TileSourceCollection };
