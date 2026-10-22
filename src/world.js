@@ -54,7 +54,7 @@ class World extends EventSource {
         super();
         const _this = this;
 
-        console.assert( options.viewer, "[World] options.viewer is required" );
+        $.logger.assert( options.viewer, "[World] options.viewer is required" );
 
 
 
@@ -84,8 +84,8 @@ class World extends EventSource {
      * @fires OpenSeadragon.World.event:metrics-change
      */
     addItem(item, options) {
-        console.assert(item, "[World.addItem] item is required");
-        console.assert(item instanceof TiledImage, "[World.addItem] only TiledImages supported at this time");
+        $.logger.assert(item, "[World.addItem] item is required");
+        $.logger.assert(item instanceof TiledImage, "[World.addItem] only TiledImages supported at this time");
 
         options = options || {};
         if (options.index !== undefined) {
@@ -126,7 +126,7 @@ class World extends EventSource {
      * @returns {OpenSeadragon.TiledImage} The item at the specified index.
      */
     getItemAt(index) {
-        console.assert(index !== undefined, "[World.getItemAt] index is required");
+        $.logger.assert(index !== undefined, "[World.getItemAt] index is required");
         return this._items[ index ];
     }
 
@@ -136,7 +136,7 @@ class World extends EventSource {
      * @returns {Number} The index of the item or -1 if not present.
      */
     getIndexOfItem(item) {
-        console.assert(item, "[World.getIndexOfItem] item is required");
+        $.logger.assert(item, "[World.getIndexOfItem] item is required");
         return $.indexOf( this._items, item );
     }
 
@@ -154,8 +154,8 @@ class World extends EventSource {
      * @fires OpenSeadragon.World.event:item-index-change
      */
     setItemIndex(item, index) {
-        console.assert(item, "[World.setItemIndex] item is required");
-        console.assert(index !== undefined, "[World.setItemIndex] index is required");
+        $.logger.assert(item, "[World.setItemIndex] item is required");
+        $.logger.assert(index !== undefined, "[World.setItemIndex] index is required");
 
         const oldIndex = this.getIndexOfItem( item );
 
@@ -193,7 +193,7 @@ class World extends EventSource {
      * @fires OpenSeadragon.World.event:metrics-change
      */
     removeItem(item) {
-        console.assert(item, "[World.removeItem] item is required");
+        $.logger.assert(item, "[World.removeItem] item is required");
 
         const index = $.indexOf(this._items, item );
         if ( index === -1 ) {
@@ -408,7 +408,7 @@ class World extends EventSource {
                 const targetCopyKey = restoreTiles ? tile.originalCacheKey : tile.cacheKey;
                 const origCache = tile.getCache(targetCopyKey);
                 if (!origCache) {
-                    console.error("[Tile::getData] There is no cache available for tile with key %s", targetCopyKey);
+                    $.logger.error("[Tile::getData] There is no cache available for tile with key %s", targetCopyKey);
                     return Promise.reject();
                 }
                 // Here ensure type is defined, rquired by data callbacks
@@ -495,7 +495,7 @@ class World extends EventSource {
                 },
             }).catch(err => {
                 // Plugin/invalidation error: keep existing main cache, discard working cache, and finish processing as invalid.
-                console.error('Update routine error:', err);
+                $.logger.error('Update routine error:', err);
                 if (workingCache) {
                     try {
                         workingCache.destroy();
@@ -580,7 +580,7 @@ class World extends EventSource {
                             }
                             // else we will let it fall through to handle later
                         } else {
-                            console.error(
+                            $.logger.error(
                                 `Invalidation flow error: tile processing state is invalid. ` +
                                 `Tile: ${tile ? tile.toString() : 'null'}, ` +
                                 `loaded: ${tile ? tile.loaded : 'n/a'}, loading: ${tile ? tile.loading : 'n/a'}, ` +
@@ -636,7 +636,7 @@ class World extends EventSource {
                 }
                 return null;
             }).catch(e => {
-                console.error("Update routine error:", e);
+                $.logger.error("Update routine error:", e);
                 if (workingCache) {
                     workingCache.destroy();
                     workingCache = null;

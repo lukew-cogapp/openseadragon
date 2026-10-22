@@ -325,7 +325,7 @@ class MouseTracker {
         }
 
         if (/** @type {Function|null} */ (this.exitHandler)) {
-            console.error("MouseTracker.exitHandler is deprecated. Use MouseTracker.leaveHandler instead.");
+            $.logger.error("MouseTracker.exitHandler is deprecated. Use MouseTracker.leaveHandler instead.");
         }
 
         if ( !options.startDisabled ) {
@@ -1485,7 +1485,7 @@ MouseTracker.GesturePointList.prototype = {
         ++this.contacts;
 
         if (this.contacts > 1 && (this.type === "mouse" || this.type === "pen")) {
-            console.warn('GesturePointList.addContact() Implausible contacts value');
+            $.logger.warn('GesturePointList.addContact() Implausible contacts value');
             this.contacts = 1;
         }
     },
@@ -1659,7 +1659,7 @@ function capturePointer( tracker, gPoint ) {
                 tracker.element.setPointerCapture( gPoint.id );
                 //console.log('element.setPointerCapture() called');
             } catch ( e ) {
-                console.warn('setPointerCapture() called on invalid pointer ID');
+                $.logger.warn('setPointerCapture() called on invalid pointer ID');
                 return;
             }
         } else {
@@ -2291,7 +2291,7 @@ function onTouchStart( tracker, event ) {
     //console.log('touchstart ' + (tracker.userData ? tracker.userData.toString() : '') + ' ' + (event.target === tracker.element ? 'tracker.element' : ''));
 
     if ( pointsList.getLength() > event.touches.length - touchCount ) {
-        console.warn('Tracked touch contact count doesn\'t match event.touches.length');
+        $.logger.warn('Tracked touch contact count doesn\'t match event.touches.length');
     }
 
     const eventInfo = /** @type {OpenSeadragon.MouseTracker.EventProcessInfo} */ (/** @type {unknown} */ ({
@@ -2982,7 +2982,7 @@ function stopTrackingPointer( tracker, pointsList, gPoint ) {
             // captured (it shares the touch stream to scroll the page), so reaching here is
             // expected and not worth warning about, but we still release to keep state clean.
             if ( !tracker.cooperativeGestureHandling ) {
-                console.warn('stopTrackingPointer() called on captured pointer');
+                $.logger.warn('stopTrackingPointer() called on captured pointer');
             }
             releasePointer( tracker, trackedGPoint );
         }
@@ -3139,13 +3139,13 @@ function updatePointerCaptured( tracker, gPoint, isCaptured ) {
             pointsList.captureCount--;
             if ( pointsList.captureCount < 0 ) {
                 pointsList.captureCount = 0;
-                console.warn('updatePointerCaptured() - pointsList.captureCount went negative');
+                $.logger.warn('updatePointerCaptured() - pointsList.captureCount went negative');
             }
         }
     } else if ( !tracker.cooperativeGestureHandling ) {
         // Expected in cooperative mode: a capture/release event can arrive for a pointer the
         // browser already cancelled (and we stopped tracking) during the page-scroll handoff.
-        console.warn('updatePointerCaptured() called on untracked pointer');
+        $.logger.warn('updatePointerCaptured() called on untracked pointer');
     }
 }
 

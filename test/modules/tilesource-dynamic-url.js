@@ -7,7 +7,6 @@
     let done = null;
     let DYNAMIC_URL = "";
     let viewer = null;
-    let restoreXhr = null;
     const OriginalTileGetUrl = OpenSeadragon.Tile.prototype.getUrl;
     // These variables allow tracking when the first request for data has finished
     let firstUrlPromise = null;
@@ -72,11 +71,11 @@
             $("#qunit-fixture").html("<div id='example'></div>");
 
             let hasCompletedImageInfoRequest = false;
-            restoreXhr = Util.fakeXhr(function(request) {
+            OpenSeadragon.setAjaxHandler(function(options) {
                 //first AJAX firing is the image info getter, second is the first tile request: can exit
                 if (hasCompletedImageInfoRequest) {
                     // Assert dynamic url from tileSource is called
-                    ASSERT.equal(request.url, DYNAMIC_URL, 'Called dynamic url correctly: ' + DYNAMIC_URL);
+                    ASSERT.equal(options.url, DYNAMIC_URL, 'Called dynamic url correctly: ' + DYNAMIC_URL);
                     // If we've only queried for one url, resolve that promise to set up second query
                     // Otherwise close viewer
                     if (isFirstUrlPromiseResolved) {
@@ -85,10 +84,14 @@
                     } else {
                         firstUrlPromiseResolver();
                     }
-                    return false;
+                    return null;
                 }
                 hasCompletedImageInfoRequest = true;
-                return true;
+
+                //some required properties to pass through processResponse(...)
+                const request = { responseText: "some text", status: 200 };
+                options.success(request);
+                return request;
             });
 
             // Override Tile::getUrl to ensure getUrl is called successfully.
@@ -111,7 +114,7 @@
 
             viewer = null;
 
-            restoreXhr();
+            OpenSeadragon.setAjaxHandler();
             OpenSeadragon.Tile.prototype.getUrl = OriginalTileGetUrl;
         }
     });

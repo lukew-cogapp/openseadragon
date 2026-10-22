@@ -48,9 +48,9 @@
         return null;
     };
 
-    var originalError = console.error;
+    var originalError = OpenSeadragon.logger.error;
     var errorLogged = false;
-    console.error = function(msg) {
+    OpenSeadragon.logger.error = function(msg) {
         if (msg && msg.indexOf('deprecated') !== -1) {
             errorLogged = true;
         }
@@ -59,7 +59,7 @@
 
     source.getContext2D(0, 0, 0);
 
-    console.error = originalError;
+    OpenSeadragon.logger.error = originalError;
 
     assert.ok(errorLogged, 'should log deprecation warning');
 });

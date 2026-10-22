@@ -447,7 +447,7 @@ class Overlay {
      * @returns {OpenSeadragon.Rect} overlay bounds
      */
     getBounds(viewport) {
-        console.assert(viewport,
+        $.logger.assert(viewport,
             'A viewport must now be passed to Overlay.getBounds.');
         let width = this.width;
         let height = this.height;

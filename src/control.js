@@ -87,7 +87,7 @@ class Control {
         const parent = /** @type {Node} */ (element.parentNode);
         if (typeof options === 'number')
         {
-            console.error("Passing an anchor directly into the OpenSeadragon.Control constructor is deprecated; " +
+            $.logger.error("Passing an anchor directly into the OpenSeadragon.Control constructor is deprecated; " +
                             "please use an options object instead.  " +
                             "Support for this deprecated variant is scheduled for removal in December 2013");
              options = {anchor: options};

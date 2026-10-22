@@ -102,7 +102,7 @@ class WeightedGraph {
      */
     addEdge(vertex1, vertex2, weight, transform) {
         if (weight < 0) {
-            console.error("WeightedGraph: negative weights will make for invalid shortest path computation!");
+            $.logger.error("WeightedGraph: negative weights will make for invalid shortest path computation!");
         }
         const outgoingPaths = this.adjacencyList[vertex1],
             replacedEdgeIndex = outgoingPaths.findIndex(edge => edge.target === this.vertices[vertex2]),
@@ -305,7 +305,7 @@ function postWorker(op, payload, { timeoutMs = 15000 } = {}) {
                 } else {
                     if (!__warnedNoSAB) {
                         __warnedNoSAB = true;
-                        console.warn('[Converter] SharedArrayBuffer unavailable; falling back to ArrayBuffer.');
+                        $.logger.warn('[Converter] SharedArrayBuffer unavailable; falling back to ArrayBuffer.');
                     }
                     const u8 = payload.u8;
                     const tight = (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) ? u8 : u8.slice();
@@ -580,8 +580,8 @@ class DataTypeConverter {
      *   use costPower=2, costMultiplier=3; can be between 1 and 10^5
      */
     learn(from, to, callback, costPower = 0, costMultiplier = 1) {
-        console.assert(costPower >= 0 && costPower <= 7, "[DataTypeConverter] Conversion costPower must be between <0, 7>.");
-        console.assert($.isFunction(callback), "[DataTypeConverter:learn] Callback must be a valid function!");
+        $.logger.assert(costPower >= 0 && costPower <= 7, "[DataTypeConverter] Conversion costPower must be between <0, 7>.");
+        $.logger.assert($.isFunction(callback), "[DataTypeConverter:learn] Callback must be a valid function!");
 
         if (from === to) {
             this.copyings[to] = callback;
@@ -627,7 +627,7 @@ class DataTypeConverter {
             // A missing path is a static property of the graph, so rejecting here would report it once per
             // tile and, through the cache error handling, take every one of those tiles down permanently.
             // Report it and let the caller keep whatever data it already had, as CacheRecord._convert does.
-            console.error(`[OpenSeadragon.converter.convert] Conversion ${from} ---> ${to} cannot be done!`);
+            $.logger.error(`[OpenSeadragon.converter.convert] Conversion ${from} ---> ${to} cannot be done!`);
             return Promise.resolve();
         }
 
@@ -690,7 +690,7 @@ class DataTypeConverter {
             }
             return $.type(y) === "promise" ? y : Promise.resolve(y);
         }
-        console.warn(`[OpenSeadragon.converter.copy] is not supported with type %s`, type);
+        $.logger.warn(`[OpenSeadragon.converter.copy] is not supported with type %s`, type);
         return Promise.resolve(undefined);
     }
 
@@ -730,7 +730,7 @@ class DataTypeConverter {
         }
 
         if (Array.isArray(to)) {
-            console.assert(to.length > 0, "[getConversionPath] conversion 'to' type must be defined.");
+            $.logger.assert(to.length > 0, "[getConversionPath] conversion 'to' type must be defined.");
             let bestCost = Infinity;
 
             for (const outType of to) {
@@ -744,7 +744,7 @@ class DataTypeConverter {
                 }
             }
         } else {
-            console.assert(typeof to === "string", "[getConversionPath] conversion 'to' type must be defined.");
+            $.logger.assert(typeof to === "string", "[getConversionPath] conversion 'to' type must be defined.");
             bestConverterPath = knownFrom[to];
             if (bestConverterPath === undefined) {
                 bestConverterPath = this.graph.dijkstra(from, to);
@@ -817,7 +817,7 @@ converter.learn("__private__imageUrl", "imageBitmap", (tile, url) => new Promise
                 credentials: 'include',
             };
         } else if (policy) {
-            console.error(`Unsupported crossOriginPolicy ${policy}. Ignoring the property.`);
+            $.logger.error(`Unsupported crossOriginPolicy ${policy}. Ignoring the property.`);
         }
     }
     if (_imageConversionWorker) {

@@ -340,9 +340,9 @@
             tc._cachesLoaded[key] = cache;
             tc._cachesLoadedCount++;
 
-            const originalError = console.error;
+            const originalError = OpenSeadragon.logger.error;
             let sawDoesNotBelong = false;
-            console.error = function (msg) {
+            OpenSeadragon.logger.error = function (msg) {
                 if (typeof msg === "string" && msg.indexOf("does not belong to") !== -1) {
                     sawDoesNotBelong = true;
                 }
@@ -355,7 +355,7 @@
             } catch (e) {
                 unloadThrew = true;
             } finally {
-                console.error = originalError;
+                OpenSeadragon.logger.error = originalError;
             }
 
             assert.notOk(unloadThrew, "unloadCacheForTile does not rethrow the drawer destructor error");

@@ -187,7 +187,7 @@ import { TileSource } from "./tilesource.js";
         },
         error: function ( xhr, exc ) {
           const msg = "IIPTileSource: Unable to get IIP metadata from " + url;
-          console.error( msg );
+          $.logger.error( msg );
           _this.raiseEvent( 'open-failed', {
             message: msg,
             source: url,

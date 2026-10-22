@@ -289,12 +289,12 @@ class HTMLDrawer extends DrawerBase{
      * drawingHandler({context, tile, rendered})
      */
     _drawTile( tile ) {
-        console.assert(tile, '[Drawer._drawTile] tile is required');
+        $.logger.assert(tile, '[Drawer._drawTile] tile is required');
 
         let container = this.canvas;
 
         if ( !tile.loaded ) {
-            console.warn(
+            $.logger.warn(
                 "Attempting to draw tile %s when it's not yet loaded.",
                 tile.toString()
             );

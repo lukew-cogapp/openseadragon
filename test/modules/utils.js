@@ -87,6 +87,27 @@
         );
     });
 
+    QUnit.test("setAjaxHandler wraps the built-in request", function(assert) {
+        const timeWatcher = Util.timeWatcher(assert);
+
+        OpenSeadragon.setAjaxHandler(function(options, next) {
+            assert.equal(options.url, 'data/testpattern.dzi', 'Handler sees the request');
+            return next(Object.assign({}, options, { headers: { 'X-Test': '1' } }));
+        });
+        OpenSeadragon.makeAjaxRequest({
+            url: 'data/testpattern.dzi',
+            success: function(xhr) {
+                assert.equal(xhr.status, 200, 'Built-in request still made');
+                timeWatcher.done();
+            },
+            error: function() {
+                assert.ok(false, 'Error callback should not be called');
+                timeWatcher.done();
+            }
+        });
+        OpenSeadragon.setAjaxHandler();
+    });
+
     QUnit.test("getUrlProtocol", function(assert) {
 
         assert.equal(OpenSeadragon.getUrlProtocol("test"), window.location.protocol,

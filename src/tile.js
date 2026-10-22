@@ -148,7 +148,7 @@ class Tile {
         this.ajaxHeaders = ajaxHeaders;
 
         if (cacheKey === undefined) {
-            console.warn("Tile constructor needs 'cacheKey' variable: creation tile cache" +
+            $.logger.warn("Tile constructor needs 'cacheKey' variable: creation tile cache" +
                 " in Tile class is deprecated. TileSource.prototype.getTileHashKey will be used.");
             cacheKey = TileSource.prototype.getTileHashKey(level, x, y, url, ajaxHeaders, postData);
         }
@@ -303,7 +303,7 @@ class Tile {
         const cache = this.getCache(value);
         if (!cache) {
             // It's better to first set cache, then change the key to existing one. Warn if otherwise.
-            console.warn("[Tile.cacheKey] should not be set manually. Use addCache() with setAsMain=true.");
+            $.logger.warn("[Tile.cacheKey] should not be set manually. Use addCache() with setAsMain=true.");
         }
         this._updateMainCacheKey(value);
     }
@@ -335,7 +335,7 @@ class Tile {
      * @returns {Image}
      */
     get image() {
-        console.error("[Tile.image] property has been deprecated. Use [Tile.getData] instead.");
+        $.logger.error("[Tile.image] property has been deprecated. Use [Tile.getData] instead.");
         return this.getImage();
     }
 
@@ -347,7 +347,7 @@ class Tile {
      * @returns {String}
      */
     get url() {
-        console.error("[Tile.url] property has been deprecated. Use [Tile.getUrl] instead.");
+        $.logger.error("[Tile.url] property has been deprecated. Use [Tile.getUrl] instead.");
         return this.getUrl();
     }
 
@@ -358,13 +358,13 @@ class Tile {
      * @deprecated
      */
     get element() {
-        console.error("Tile::element property is deprecated. Use cache API instead. Moreover, this property might be unstable.");
+        $.logger.error("Tile::element property is deprecated. Use cache API instead. Moreover, this property might be unstable.");
         const cache = this.getCache();
         if (!cache || !cache.loaded) {
             return null;
         }
         if (cache.type !== 'htmlDrawer[canvas]' || cache.type !== 'htmlDrawer[image]') {
-            console.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
+            $.logger.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
             return null;
         }
         return cache.data.element;
@@ -377,13 +377,13 @@ class Tile {
      * @deprecated
      */
     get imgElement() {
-        console.error("Tile::imgElement property is deprecated. Use cache API instead. Moreover, this property might be unstable.");
+        $.logger.error("Tile::imgElement property is deprecated. Use cache API instead. Moreover, this property might be unstable.");
         const cache = this.getCache();
         if (!cache || !cache.loaded) {
             return null;
         }
         if (cache.type !== 'htmlDrawer[canvas]' || cache.type !== 'htmlDrawer[image]') {
-            console.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
+            $.logger.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
             return null;
         }
         return cache.data.imgElement;
@@ -396,13 +396,13 @@ class Tile {
      * @deprecated
      */
     get style() {
-        console.error("Tile::style property is deprecated. Use cache API instead. Moreover, this property might be unstable.");
+        $.logger.error("Tile::style property is deprecated. Use cache API instead. Moreover, this property might be unstable.");
         const cache = this.getCache();
         if (!cache || !cache.loaded) {
             return null;
         }
         if (cache.type !== 'htmlDrawer[canvas]' || cache.type !== 'htmlDrawer[image]') {
-            console.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
+            $.logger.error("Access to HtmlDrawer property via Tile instance: HTMLDrawer must be used!");
             return null;
         }
         return cache.data.style;
@@ -414,7 +414,7 @@ class Tile {
      * @deprecated
      */
     getImage() {
-        console.error("[Tile.getImage] property has been deprecated. Use 'tile-invalidated' routine event instead.");
+        $.logger.error("[Tile.getImage] property has been deprecated. Use 'tile-invalidated' routine event instead.");
         //this method used to ensure the underlying data model conformed to given type - convert instead of getData()
         const cache = this.getCache(this.cacheKey);
         if (!cache) {
@@ -443,7 +443,7 @@ class Tile {
      * @returns {CanvasRenderingContext2D|undefined}
      */
     getCanvasContext() {
-        console.error("[Tile.getCanvasContext] property has been deprecated. Use 'tile-invalidated' routine event instead.");
+        $.logger.error("[Tile.getCanvasContext] property has been deprecated. Use 'tile-invalidated' routine event instead.");
         //this method used to ensure the underlying data model conformed to given type - convert instead of getData()
         const cache = this.getCache(this.cacheKey);
         if (!cache) {
@@ -459,7 +459,7 @@ class Tile {
      * @type {CanvasRenderingContext2D}
      */
     get context2D() {
-        console.error("[Tile.context2D] property has been deprecated. Use 'tile-invalidated' routine event instead.");
+        $.logger.error("[Tile.context2D] property has been deprecated. Use 'tile-invalidated' routine event instead.");
         return this.getCanvasContext();
     }
 
@@ -468,7 +468,7 @@ class Tile {
      * @deprecated
      */
     set context2D(value) {
-        console.error("[Tile.context2D] property has been deprecated. Use 'tile-invalidated' routine event instead.");
+        $.logger.error("[Tile.context2D] property has been deprecated. Use 'tile-invalidated' routine event instead.");
         const cache = this._caches[this.cacheKey];
         if (cache) {
             this.removeCache(this.cacheKey);
@@ -482,7 +482,7 @@ class Tile {
      * @type OpenSeadragon.CacheRecord
      */
     get cacheImageRecord() {
-        console.error("[Tile.cacheImageRecord] property has been deprecated. Use Tile::getCache.");
+        $.logger.error("[Tile.cacheImageRecord] property has been deprecated. Use Tile::getCache.");
         return this.getCache(this.cacheKey);
     }
 
@@ -491,7 +491,7 @@ class Tile {
      * @deprecated
      */
     set cacheImageRecord(value) {
-        console.error("[Tile.cacheImageRecord] property has been deprecated. Use Tile::addCache.");
+        $.logger.error("[Tile.cacheImageRecord] property has been deprecated. Use Tile::addCache.");
         const cache = this._caches[this.cacheKey];
 
         if (cache) {
@@ -562,12 +562,12 @@ class Tile {
 
         if (!type) {
             if (!this.__typeWarningReported) {
-                console.warn(this, "[Tile.addCache] called without type specification. " +
+                $.logger.warn(this, "[Tile.addCache] called without type specification. " +
                     "Automated deduction is potentially unsafe: prefer specification of data type explicitly.");
                 this.__typeWarningReported = true;
             }
             if (typeof data === 'function') {
-                console.error("[TileCache.cacheTile] options.data as a callback requires type argument! Current is " + type);
+                $.logger.error("[TileCache.cacheTile] options.data as a callback requires type argument! Current is " + type);
             }
             type = converter.guessType(data);
         }
@@ -577,7 +577,7 @@ class Tile {
             // Need to get the supported type for rendering out of the active drawer.
             const supportedTypes = tiledImage.getDrawer().getSupportedDataFormats();
             const conversion = converter.getConversionPath(type, supportedTypes);
-            console.assert(conversion, "[Tile.addCache] data was set for the default tile cache we are unable" +
+            $.logger.assert(conversion, "[Tile.addCache] data was set for the default tile cache we are unable" +
                 `to render. Make sure OpenSeadragon.converter was taught to convert ${type} to (one of): ${conversion.toString()}`);
         }
 
@@ -623,12 +623,12 @@ class Tile {
 
         const overwritesMainCache = key === this.cacheKey;
         if (_safely) {
-            console.assert(cache instanceof CacheRecord, "[Tile.setCache] cache must be a CacheRecord object!");
+            $.logger.assert(cache instanceof CacheRecord, "[Tile.setCache] cache must be a CacheRecord object!");
             if (overwritesMainCache || setAsMain) {
                 // Need to get the supported type for rendering out of the active drawer.
                 const supportedTypes = tiledImage.getDrawer().getSupportedDataFormats();
                 const conversion = converter.getConversionPath(cache.type, supportedTypes);
-                console.assert(conversion, "[Tile.setCache] data was set for the default tile cache we are unable" +
+                $.logger.assert(conversion, "[Tile.setCache] data was set for the default tile cache we are unable" +
                     `to render. Make sure OpenSeadragon.converter was taught to convert ${cache.type} to (one of): ${conversion.toString()}`);
             }
         }
@@ -694,7 +694,7 @@ class Tile {
             sameBuiltinKeys = currentMainKey === originalDataKey;
 
         if (!sameBuiltinKeys && originalDataKey === key) {
-            console.warn("[Tile.removeCache] original data must not be manually deleted: other parts of the code might rely on it!",
+            $.logger.warn("[Tile.removeCache] original data must not be manually deleted: other parts of the code might rely on it!",
                 "If you want the tile not to preserve the original data, toggle of data perseverance in tile.setData().");
             return undefined;
         }
@@ -704,7 +704,7 @@ class Tile {
                 // if we have original data let's revert back
                 this._updateMainCacheKey(originalDataKey);
             } else {
-                console.warn("[Tile.removeCache] trying to remove the only cache that can be used to draw the tile!",
+                $.logger.warn("[Tile.removeCache] trying to remove the only cache that can be used to draw the tile!",
                     "If you want to remove the main cache, first set different cache as main with tile.addCache()");
                 return undefined;
             }
@@ -724,10 +724,10 @@ class Tile {
      */
     getScaleForEdgeSmoothing() {
         // getCanvasContext is deprecated and so should be this method.
-        console.warn("[Tile.getScaleForEdgeSmoothing] is deprecated, the following error is the consequence:");
+        $.logger.warn("[Tile.getScaleForEdgeSmoothing] is deprecated, the following error is the consequence:");
         const context = this.getCanvasContext();
         if (!context) {
-            console.warn(
+            $.logger.warn(
                 '[Tile.drawCanvas] attempting to get tile scale %s when tile\'s not cached',
                 this.toString());
             return 1;

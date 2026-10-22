@@ -81,10 +81,10 @@ class Spring {
             };
         }
 
-        console.assert(typeof options.springStiffness === "number" && options.springStiffness !== 0,
+        $.logger.assert(typeof options.springStiffness === "number" && options.springStiffness !== 0,
             "[OpenSeadragon.Spring] options.springStiffness must be a non-zero number");
 
-        console.assert(typeof options.animationTime === "number" && options.animationTime >= 0,
+        $.logger.assert(typeof options.animationTime === "number" && options.animationTime >= 0,
             "[OpenSeadragon.Spring] options.animationTime must be a number greater than or equal to 0");
 
         if (options.exponential) {
@@ -115,7 +115,7 @@ class Spring {
             time:  $.now() // always work in milliseconds
         };
 
-        console.assert(!this._exponential || this.current.value !== 0,
+        $.logger.assert(!this._exponential || this.current.value !== 0,
             "[OpenSeadragon.Spring] value must be non-zero for exponential springs");
 
         /**
@@ -154,7 +154,7 @@ class Spring {
      * @param {Number} target
      */
     resetTo(target) {
-        console.assert(!this._exponential || target !== 0,
+        $.logger.assert(!this._exponential || target !== 0,
             "[OpenSeadragon.Spring.resetTo] target must be non-zero for exponential springs");
 
         this.start.value = this.target.value = this.current.value = target;
@@ -172,7 +172,7 @@ class Spring {
      * @param {Number} target
      */
     springTo(target) {
-        console.assert(!this._exponential || target !== 0,
+        $.logger.assert(!this._exponential || target !== 0,
             "[OpenSeadragon.Spring.springTo] target must be non-zero for exponential springs");
 
         this.start.value  = this.current.value;
@@ -195,7 +195,7 @@ class Spring {
         this.target.value += delta;
 
         if (this._exponential) {
-            console.assert(this.target.value !== 0 && this.start.value !== 0,
+            $.logger.assert(this.target.value !== 0 && this.start.value !== 0,
                 "[OpenSeadragon.Spring.shiftBy] spring value must be non-zero for exponential springs");
 
             this.start._logValue = Math.log(this.start.value);
@@ -210,7 +210,7 @@ class Spring {
         this._exponential = value;
 
         if (this._exponential) {
-            console.assert(this.current.value !== 0 && this.target.value !== 0 && this.start.value !== 0,
+            $.logger.assert(this.current.value !== 0 && this.target.value !== 0 && this.start.value !== 0,
                 "[OpenSeadragon.Spring.setExponential] spring value must be non-zero for exponential springs");
 
             this.start._logValue = Math.log(this.start.value);

@@ -124,32 +124,6 @@
         },
 
         // ----------
-        // Replaces XMLHttpRequest until the returned function is called. respond({ method,
-        // url, body }) returns true to answer 200 synchronously; otherwise the request hangs.
-        fakeXhr: function(respond) {
-            const OriginalXhr = window.XMLHttpRequest;
-            window.XMLHttpRequest = class {
-                open(method, url) {
-                    this.method = method;
-                    this.url = url;
-                }
-                setRequestHeader() {}
-                abort() {}
-                send(body) {
-                    if (respond({ method: this.method, url: this.url, body: body })) {
-                        this.readyState = 4;
-                        this.status = 200;
-                        this.responseText = "some text";
-                        this.onreadystatechange();
-                    }
-                }
-            };
-            return function() {
-                window.XMLHttpRequest = OriginalXhr;
-            };
-        },
-
-        // ----------
         testDeprecation: function(assert, obj0, member0, obj1, member1) {
             let called = false;
             let errored = false;
@@ -163,7 +137,7 @@
                 called = true;
             }
 
-            this.spyOnce(console, 'error', function(message) {
+            this.spyOnce(OpenSeadragon.logger, 'error', function(message) {
                 if (/deprecated/.test(message)) {
                     errored = true;
                 }
@@ -175,17 +149,16 @@
         },
     };
 
-    // Log the name of the currently running test when it starts, with the original
-    // console.log so that the message is printed after the console is diverted (see below).
-    const printLog = console.log.bind(console);
+    // Log the name of the currently running test when it starts. Uses console.log rather than
+    // the OpenSeadragon logger, which is diverted below.
     QUnit.testStart((details) => {
-        printLog(`Starting test ${details.module}.${details.name}`);
+        console.log(`Starting test ${details.module}.${details.name}`);
     });
 
     /*
     Test console log capture
 
-    1. The page's console methods are replaced
+    1. Only the OpenSeadragon logger is touched
     2. All log messages are stored in window.testLog in arrays keyed on the logger name (e.g. log,
     warning, error, etc.) as JSON-serialized strings to simplify comparisons
     3. The captured log arrays have a custom contains() method for ease of testing
@@ -266,7 +239,7 @@
         }
     };
 
-    Object.assign(console, testConsole);
+    OpenSeadragon.setLogger(testConsole);
 
     OpenSeadragon.getBuiltInDrawersForTest = function() {
         const drawers = [];

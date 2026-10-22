@@ -29,7 +29,6 @@
     let viewer = null;
     let DONE = false;
     const originalAddJob = OpenSeadragon.ImageLoader.prototype.addJob;
-    let restoreXhr = null;
 
     const closeViewer = function() {
         if (viewer && viewer.close) {
@@ -108,14 +107,9 @@
             };
 
             let ajaxCounter = 0;
-            restoreXhr = Util.fakeXhr(function(request) {
-                // makeAjaxRequest sends empty post data as null, to avoid a POST request
-                if (request.body === null && POST_DATA === "") {
-                    ASSERT.ok(true, "Empty post data is parsed as null");
-                } else {
-                    testPostData(request.body, "AJAX");
-                }
-                testUrl(request.url, "AJAX");
+            OpenSeadragon.setAjaxHandler(function(options) {
+                testPostData(options.postData, "AJAX");
+                testUrl(options.url, "AJAX");
 
                 //first AJAX firing is the image info getter, second is the first tile request: can exit
                 ajaxCounter++;
@@ -123,9 +117,13 @@
                     setTimeout(() => {
                         viewer.close();
                     });
-                    return false;
+                    return null;
                 }
-                return true;
+
+                //some required properties to pass through processResponse(...)
+                const request = { responseText: "some text", status: 200 };
+                options.success(request);
+                return request;
             });
         },
 
@@ -134,7 +132,7 @@
             viewer = null;
 
             OpenSeadragon.ImageLoader.prototype.addJob = originalAddJob;
-            restoreXhr();
+            OpenSeadragon.setAjaxHandler();
         }
     });
 

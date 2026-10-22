@@ -118,7 +118,7 @@ class EventSource {
     addHandler(eventName, handler, userData, priority) {
 
         if(Object.prototype.hasOwnProperty.call(this._rejectedEventList, eventName)){
-            console.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
+            $.logger.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
             return false;
         }
 
@@ -286,7 +286,7 @@ class EventSource {
         //console.log( "Event fired:", eventName );
 
         if(Object.prototype.hasOwnProperty.call(this._rejectedEventList, eventName)){
-            console.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
+            $.logger.error(`Error adding handler for ${eventName}. ${this._rejectedEventList[eventName]}`);
             return false;
         }
 

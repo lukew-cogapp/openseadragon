@@ -155,15 +155,30 @@ declare namespace OpenSeadragon {
 
     // (missing jquery functions)
 
-    function makeAjaxRequest(options: {
+    interface AjaxRequestOptions {
         url: string;
-        success: (obj: object) => void;
-        error: (obj: object) => void;
-        headers: object;
-        responseType: string;
-        postData: string;
+        success: (request: XMLHttpRequest) => void;
+        error?: (request: XMLHttpRequest, error?: unknown) => void;
+        headers?: Record<string, string>;
+        responseType?: XMLHttpRequestResponseType;
+        postData?: string | null;
         withCredentials?: boolean;
-    }): XMLHttpRequest;
+    }
+
+    type AjaxHandler = (
+        options: AjaxRequestOptions,
+        next: (options: AjaxRequestOptions) => XMLHttpRequest,
+    ) => XMLHttpRequest | null;
+
+    function makeAjaxRequest(options: AjaxRequestOptions): XMLHttpRequest | null;
+
+    function setAjaxHandler(handler?: AjaxHandler): void;
+
+    type Logger = Pick<Console, "log" | "debug" | "info" | "warn" | "error" | "assert">;
+
+    const logger: Logger;
+
+    function setLogger(logger?: Logger): void;
 
     function makeCenteredNode(element: Element | string): Element;
 

@@ -1,6 +1,7 @@
 import { expectType, expectError } from 'tsd';
 import { Viewer, CanvasDrawer, WebGLDrawer, IIIFTileSource, DziTileSource, Navigator, ReferenceStrip,
-    TileSourceCollection, Point, register, determineDrawer, extend, getElementSize } from '..';
+    TileSourceCollection, Point, register, determineDrawer, extend, getElementSize,
+    setAjaxHandler, setLogger } from '..';
 
 register(CanvasDrawer, WebGLDrawer, IIIFTileSource, DziTileSource, Navigator, ReferenceStrip);
 expectError(register(Point));
@@ -16,3 +17,9 @@ new TileSourceCollection(256, []);
 
 expectType<any>(extend({}, { a: 1 }));
 expectType<Point>(getElementSize("viewer"));
+
+setAjaxHandler((options, next) => next({ ...options, headers: { ...options.headers, Authorization: "token" } }));
+setAjaxHandler();
+setLogger({ ...console, warn: () => {} });
+setLogger();
+expectError(setLogger({ warn: () => {} }));

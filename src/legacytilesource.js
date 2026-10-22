@@ -87,7 +87,7 @@ class LegacyTileSource extends TileSource {
         else {
             width = 0;
             height = 0;
-            console.error( "No supported image formats found" );
+            $.logger.error( "No supported image formats found" );
         }
 
         $.extend( true, options, {
@@ -234,7 +234,7 @@ function filterFiles( files ){
             });
         }
         else {
-            console.error( 'Unsupported image format: %s', file.url ? file.url : '<no URL>' );
+            $.logger.error( 'Unsupported image format: %s', file.url ? file.url : '<no URL>' );
         }
     }
 

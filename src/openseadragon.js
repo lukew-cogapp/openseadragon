@@ -973,6 +973,21 @@ const class2type = /** @type {Object<string, string>} */ ({
 const toString    = Object.prototype.toString;
 const hasOwn      = Object.prototype.hasOwnProperty;
 
+/**
+ * Where OpenSeadragon writes its warnings and errors. Replace it with
+ * {@link OpenSeadragon.setLogger}.
+ * @type {Pick<Console, "log" | "debug" | "info" | "warn" | "error" | "assert">}
+ */
+export let logger = console;
+
+/**
+ * Sends OpenSeadragon's log output to the given logger instead of the console.
+ * @param {Pick<Console, "log" | "debug" | "info" | "warn" | "error" | "assert">} [newLogger] Omit to restore the console.
+ */
+export function setLogger(newLogger = console) {
+    logger = newLogger;
+}
+
 
 /**
  * An enumeration of Browser vendors.
@@ -1249,7 +1264,7 @@ export function extend() {
 
                     copy = descriptor.value;
                 } else {
-                    console.warn('Could not copy inherited property "' + name + '".');
+                    logger.warn('Could not copy inherited property "' + name + '".');
                     continue;
                 }
 
@@ -2168,50 +2183,67 @@ export function createAjaxRequest() {
 }
 
 /**
- * Makes an AJAX request.
- * @param {String} url - the url to request
- * @param {Function} onSuccess
- * @param {Function} onError
- * @throws {Error}
- * @returns {XMLHttpRequest}
- * @deprecated deprecated way of calling this function
- *//**
- * Makes an AJAX request.
- * @param {Object} options
- * @param {String} options.url - the url to request
- * @param {Function} options.success - a function to call on a successful response
- * @param {Function} options.error - a function to call on when an error occurs
- * @param {Object} options.headers - headers to add to the AJAX request
- * @param {String} options.responseType - the response type of the AJAX request
- * @param {String} options.postData - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
- *      see TileSource::getTilePostData), GET method used if null
- * @param {Boolean} [options.withCredentials=false] - whether to set the XHR's withCredentials
- * @throws {Error}
+ * @typedef {Object} AjaxRequestOptions
+ * @property {String} url - the url to request
+ * @property {Function} success - a function to call on a successful response
+ * @property {Function} [error] - a function to call on when an error occurs
+ * @property {Object<string, string>} [headers] - headers to add to the AJAX request
+ * @property {XMLHttpRequestResponseType} [responseType] - the response type of the AJAX request
+ * @property {String|null} [postData] - HTTP POST data (usually but not necessarily in k=v&k2=v2... form,
+ *      see TileSource::getTilePostData), GET method used if empty
+ * @property {Boolean} [withCredentials=false] - whether to set the XHR's withCredentials
+ * @memberof OpenSeadragon
+ */
+
+/**
+ * @callback AjaxHandler
+ * @param {AjaxRequestOptions} options
+ * @param {function(AjaxRequestOptions): XMLHttpRequest} next - the built-in XMLHttpRequest
+ *      implementation, for handlers that only adjust the request
+ * @returns {XMLHttpRequest|null}
+ * @memberof OpenSeadragon
+ */
+
+/** @type {AjaxHandler} */
+let ajaxHandler = (options, next) => next(options);
+
+/**
+ * Routes every request OpenSeadragon makes through the given handler.
+ * @example
+ * setAjaxHandler((options, next) => next({ ...options, headers: { ...options.headers, Authorization: token } }));
+ * @param {AjaxHandler} [handler] Omit to restore the default.
+ */
+export function setAjaxHandler(handler = (options, next) => next(options)) {
+    ajaxHandler = handler;
+}
+
+/**
+ * Makes an AJAX request through the handler set with {@link OpenSeadragon.setAjaxHandler}.
+ * @param {AjaxRequestOptions|String} options - the request, or (deprecated) its url
+ * @param {Function} [onSuccess] - deprecated, use options.success
+ * @param {Function} [onError] - deprecated, use options.error
+ * @returns {XMLHttpRequest|null}
+ */
+export function makeAjaxRequest( options, onSuccess, onError ) {
+    if ( typeof options === "string" ) {
+        logger.warn("makeAjaxRequest() deprecated usage!");
+        options = { url: options, success: /** @type {Function} */ (onSuccess), error: onError };
+    }
+    return ajaxHandler( options, xhrRequest );
+}
+
+/**
+ * @param {AjaxRequestOptions} options
  * @returns {XMLHttpRequest}
  */
-export function makeAjaxRequest(
-    /** @type {*} */ url,
-    /** @type {Function} */ onSuccess,
-    /** @type {Function} */ onError
-) {
-    let withCredentials;
-    let headers;
-    let responseType;
-    let postData;
-
-    // Note that our preferred API is that you pass in a single object; the named
-    // arguments are for legacy support.
-    if( isPlainObject( url ) ){
-        onSuccess = url.success;
-        onError = url.error;
-        withCredentials = url.withCredentials;
-        headers = url.headers;
-        responseType = url.responseType || null;
-        postData = url.postData || null;
-        url = url.url;
-    } else {
-        console.warn("makeAjaxRequest() deprecated usage!");
-    }
+function xhrRequest( options ) {
+    const url = options.url;
+    const onSuccess = options.success;
+    const onError = options.error;
+    const withCredentials = options.withCredentials;
+    const headers = options.headers;
+    const responseType = options.responseType || null;
+    const postData = options.postData || null;
 
     const protocol = getUrlProtocol( url );
     const request = createAjaxRequest();
@@ -2233,10 +2265,10 @@ export function makeAjaxRequest(
                   protocol !== "https:" )) {
                 onSuccess( request );
             } else {
-                if ( isFunction( onError ) ) {
+                if ( typeof onError === "function" ) {
                     onError( request );
                 } else {
-                    console.error( "AJAX request returned %d: %s", request.status, url );
+                    logger.error( "AJAX request returned %d: %s", request.status, url );
                 }
             }
         }
@@ -2264,11 +2296,11 @@ export function makeAjaxRequest(
 
         request.send(postData);
     } catch (e) {
-        console.error( "%s while making AJAX request: %s", /** @type {Error} */ (e).name, /** @type {Error} */ (e).message );
+        logger.error( "%s while making AJAX request: %s", /** @type {Error} */ (e).name, /** @type {Error} */ (e).message );
 
         request.onreadystatechange = function(){};
 
-        if ( isFunction( onError ) ) {
+        if ( typeof onError === "function" ) {
             onError( request, e );
         }
     }
@@ -2533,14 +2565,14 @@ const URLPARAMS = {};
             try {
                 URLPARAMS[ key ] = decodeURIComponent( value );
             } catch (e) {
-                console.error( "Ignoring malformed URL parameter: %s=%s", key, value );
+                logger.error( "Ignoring malformed URL parameter: %s=%s", key, value );
             }
         }
     }
 
 
     if ( Browser.vendor === BROWSERS.IE ) {
-        console.error('Internet Explorer is not supported by OpenSeadragon');
+        logger.error('Internet Explorer is not supported by OpenSeadragon');
     }
 })();
 

@@ -379,7 +379,7 @@ class CanvasDrawer extends DrawerBase{
                 });
                 this._clipWithPolygons(polygons, useSketch);
             } catch (e) {
-                console.error(e);
+                $.logger.error(e);
             }
             usedClip = true;
         }
@@ -492,7 +492,7 @@ class CanvasDrawer extends DrawerBase{
                 try {
                     this._drawDebugInfoOnTile(tile, lastDrawn.length, i, tiledImage);
                 } catch(e) {
-                    console.error(e);
+                    $.logger.error(e);
                 }
             }
         }
@@ -532,11 +532,11 @@ class CanvasDrawer extends DrawerBase{
      * @param {OpenSeadragon.TileSource} source - The source specification of the tile.
      */
     _drawTile( tile, tiledImage, useSketch, scale, translate, shouldRoundPositionAndSize, source) {
-        console.assert(tile, '[Drawer._drawTile] tile is required');
-        console.assert(tiledImage, '[Drawer._drawTile] drawingHandler is required');
+        $.logger.assert(tile, '[Drawer._drawTile] tile is required');
+        $.logger.assert(tiledImage, '[Drawer._drawTile] drawingHandler is required');
 
         if ( !tile.loaded ){
-            console.warn(
+            $.logger.warn(
                 "Attempting to draw tile %s when it's not yet loaded.",
                 tile.toString()
             );

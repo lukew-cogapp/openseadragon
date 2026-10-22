@@ -45,7 +45,11 @@ function OpenSeadragon(options) {
     return new classes.Viewer(options);
 }
 Object.assign(OpenSeadragon, utils, classes, fullScreenApi);
-Object.defineProperty(OpenSeadragon, "pixelDensityRatio", { get: () => utils.pixelDensityRatio });
+// Reassignable exports are read through the module, so the global sees setter calls.
+Object.defineProperties(OpenSeadragon, {
+    pixelDensityRatio: { get: () => utils.pixelDensityRatio },
+    logger: { get: () => utils.logger },
+});
 
 classes.register(
     classes.HTMLDrawer,
